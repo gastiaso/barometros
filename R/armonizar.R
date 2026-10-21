@@ -1,9 +1,16 @@
 # Armonización: .sav de cada estudio -> microdatos con categorías comunes
 
 cargar_insumos <- function(f_crosswalk, f_estudios, f_partidos, f_problemas, f_candidatos, f_lideres,
-                           f_rupturas, f_conceptos, f_decisiones) {
+                           f_rupturas, f_conceptos, f_decisiones, f_sin_etiqueta) {
   leer <- function(f) readr::read_csv(f, col_types = readr::cols(.default = "c"), progress = FALSE)
   cw <- leer(f_crosswalk)
+  # códigos de partido presentes en los datos pero sin etiqueta en el .sav, resueltos a mano con su fuente
+  sin_etq <- leer(f_sin_etiqueta)
+  est <- leer(f_estudios)
+  partidos <- dplyr::bind_rows(
+    leer(f_partidos),
+    dplyr::transmute(sin_etq, estudio, mes = est$mes[match(estudio, est$estudio)], concepto,
+                     variable = NA_character_, codigo, etiqueta, partido_armonizado, es_no_respuesta = "False"))
   # Tramos de cada concepto: una ruptura C abre un tramo nuevo (las categorías de un tramo a otro no son comparables)
   cw <- cw |>
     dplyr::arrange(concepto, mes) |>
@@ -12,8 +19,9 @@ cargar_insumos <- function(f_crosswalk, f_estudios, f_partidos, f_problemas, f_c
     dplyr::ungroup()
   list(
     crosswalk = cw,
-    estudios = leer(f_estudios),
-    partidos = leer(f_partidos),
+    estudios = est,
+    partidos = partidos,
+    codigos_sin_etiqueta = sin_etq,
     problemas = leer(f_problemas),
     candidatos = leer(f_candidatos),
     lideres = leer(f_lideres) |> dplyr::filter(bloque == "VALORALIDERES"),

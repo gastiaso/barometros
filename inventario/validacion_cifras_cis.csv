@@ -1,0 +1,4 @@
+estudio,indicador,valor,tolerancia,calculado,ok
+3577,media_ideologia,4.61,0.005,4.611102870172064,TRUE
+3582,media_ideologia,4.51,0.005,4.505895455281108,TRUE
+3582,pct_ideologia_1,18.9,0.05,18.910175915198764,TRUE

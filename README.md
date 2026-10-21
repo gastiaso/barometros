@@ -2,7 +2,7 @@
 
 Herramienta de series históricas a partir de los microdatos de los barómetros mensuales del CIS. La ventana va de enero de 2021 a octubre de 2026: **64 estudios**, todos desde el primer barómetro posterior a la etapa COVID.
 
-**Estado:** crosswalk revisado contra cuestionarios, libros de códigos y fichas técnicas, con tablas de armonización de partidos, problemas y candidatos. Todavía no hay pipeline de armonización ni interfaz.
+**Estado:** crosswalk revisado contra cuestionarios, libros de códigos y fichas técnicas. Pipeline de armonización en R operativo: genera `datos/publicacion/microdatos.parquet` (264.081 entrevistas, 6 MB) y `metadatos.json`. La web está en construcción.
 
 **Fuente de los datos:** Centro de Investigaciones Sociológicas. Se reutilizan según las condiciones generales del CIS: hay que citar la fuente, no desvirtuar el sentido de la información y no sugerir respaldo del CIS. Este proyecto no está patrocinado por el CIS ni cuenta con su respaldo.
 
@@ -20,7 +20,11 @@ scripts/04_enunciados.py        enunciado de cada concepto en cada cuestionario 
 scripts/05_revision.py          crosswalk revisado + mapas de partidos, problemas y candidatos
 scripts/06_revision_xlsx.py     inventario/revision.xlsx
 scripts/lib/                    parsers del libro de códigos y del cuestionario
+_targets.R, R/                  armonización en R: .sav -> microdatos armonizados + metadatos + validación
+datos/publicacion/              microdatos.parquet y metadatos.json (generados; los usa la web)
 ```
+
+**Reparto de lenguajes.** Python (`scripts/`) lee la documentación del CIS y produce el inventario y las tablas de revisión. R (`_targets.R`, `R/`) aplica esas tablas a los microdatos. Las decisiones de armonización viven en CSV editables (`inventario/`), no en el código.
 
 Para reproducir hace falta Python 3 con `pyreadstat`, `pandas` y `openpyxl`, y poppler (`pdftotext`, `pdfinfo`). Los comandos se lanzan desde la raíz del proyecto:
 
@@ -32,7 +36,10 @@ python scripts/03_textos.py .
 python scripts/04_enunciados.py .
 python scripts/05_revision.py .
 python scripts/06_revision_xlsx.py .
+Rscript -e 'targets::tar_make()'
 ```
+
+El paso de R necesita los paquetes `targets`, `haven`, `arrow`, `dplyr`, `tidyr`, `purrr`, `readr`, `jsonlite` y `tibble`. Si la validación falla (códigos sin mapa, pesos ausentes o cifras que no reproducen las del CIS), el Parquet no se escribe.
 
 `scripts/03_revision_xlsx.py` es de la versión anterior y se puede borrar.
 
@@ -47,11 +54,21 @@ python scripts/06_revision_xlsx.py .
 | `rupturas_candidatas.csv` | Registro de rupturas R01–R24, con evidencia y estado (confirmada / resuelta / descartada / nueva) |
 | `enunciados.csv`, `enunciados_versiones.csv` | Enunciado de cada pregunta en cada cuestionario y sus versiones con periodo |
 | `mapa_partidos.csv` | Estudio × variable × código → partido armonizado |
-| `partidos_armonizados.csv` | Las 195 etiquetas de partido → 177 identificadores, con nota |
+| `partidos_armonizados.csv` | Las 195 etiquetas de partido → 176 identificadores, con nota |
+| `codigos_sin_etiqueta.csv` | Códigos de partido presentes en los datos sin etiqueta en el .sav, resueltos a mano con su fuente |
 | `mapa_problemas.csv` | Estudio × código → problema armonizado (98 categorías) |
 | `mapa_candidatos.csv` | Estudio × código → candidato (PREFPTE) |
 | `codigos_cambio_significado_revisado.csv` | Los 89 códigos que cambian de etiqueta, verificados contra el libro de códigos o el cuestionario, con su resolución |
 | `revision.xlsx` | Todo lo anterior con formato y filtros; columna `comentario` en amarillo para anotaciones |
+
+**Validación de la armonización (generada por R)**
+
+| Fichero | Contenido |
+|---|---|
+| `validacion_cifras_cis.csv` | Cifras publicadas por el CIS frente a las calculadas con el fichero armonizado |
+| `validacion_sin_mapa.csv` | Códigos presentes en los datos sin categoría armonizada (debe estar vacío) |
+| `validacion_anomalias_no_respuesta.csv` | Estudios con no respuesta muy por encima de la habitual del concepto |
+| `registro_etiquetas_cerradas.csv` | Variantes de etiqueta en las variables cerradas y a qué categoría se llevan |
 
 **Inventario automático**
 
@@ -115,6 +132,11 @@ R19 y R22 coinciden con una reordenación del cuestionario en octubre de 2023, s
 7. **Barómetros atípicos.**
    - 3410 y 3420 son postelectorales, con n de 7.407 y 10.101. En 3410, 3413 y 3420 la intención de voto usa enunciados electorales específicos (B).
    - 3489 incluye una sobremuestra de 1.000 entrevistas en la Comunitat Valenciana. Eso explica su deff, sin que haya cambio de método (R11, descartada).
+8. **Errores en los ficheros del CIS, corregidos en el pipeline.**
+   - 3582 (oct-2026): `ESTUDIOS` viene vacía (5.010 de 5.024 casos como N.C.). Se reconstruye desde `NIVELESTENTREV` con la correspondencia de 3571 y 3577; la distribución resultante coincide con la de 3577 a menos de 0,5 pp. La ponderación no está afectada: `ESCIDEOL` reproduce la cifra publicada.
+   - 3502: el código 0 de `INTENCIONGALTER` (1.205 casos filtrados) está etiquetado «N.C.»; se trata como «No procede».
+   - Códigos de partido sin etiqueta en 3457 y 3502: se resuelven en `codigos_sin_etiqueta.csv`.
+9. **No respuesta armonizada por tipo, no por código:** NS (no sabe, «no sabe todavía»), NC (no contesta), NR (no recuerda) y NP (no procede: el entrevistado no recibió la pregunta). NP queda fuera de la base de los porcentajes; NS, NC y NR cuentan en ella, como en las publicaciones del CIS.
 
 ## Verificación
 
@@ -128,6 +150,8 @@ R19 y R22 coinciden con una reordenación del cuestionario en octubre de 2023, s
 ## Pendiente
 
 - R24 (cambio de la población de referencia de la ponderación, mar-2025): sin verificar en los datos.
+- Validar la intención directa y la valoración de líderes contra las cifras publicadas por el CIS (de momento solo se valida `ESCIDEOL`).
+- Si el CIS corrige el fichero de 3582, retirar la reconstrucción de `ESTUDIOS`.
 - Las 76 comprobaciones de códigos sin lista en el libro de códigos se apoyan solo en el .sav.
 
 Las conclusiones son provisionales. Se derivan de la documentación del CIS y de comprobaciones puntuales en los datos, no de una evaluación del efecto de cada cambio sobre las series.

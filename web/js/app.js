@@ -382,7 +382,7 @@ function dibujar(host, res, cfg) {
 
   // rupturas
   const rup = rupturas(cfg).filter(r => r.m >= meses[0] && r.m <= meses[meses.length - 1]);
-  const marcas = [...d3.group(rup, r => r.m)].map(([mes, rs]) => ({ mes, rs, x: x(fecha(mes)), esC: rs.some(r => r.tipo === 'C') }));
+  const marcas = cfg.sinRupturas ? [] : [...d3.group(rup, r => r.m)].map(([mes, rs]) => ({ mes, rs, x: x(fecha(mes)), esC: rs.some(r => r.tipo === 'C') }));
   marcas.forEach(mk => {
     const g = svg.append('g');
     g.append('line').attr('x1', mk.x).attr('x2', mk.x).attr('y1', mk.esC ? m.t - 6 : m.t).attr('y2', H - m.b)
@@ -584,6 +584,7 @@ function panelEl(cfg) {
   el.innerHTML = `<header class="phd"><div class="ttl"><h2></h2><p class="meta"></p></div>
     <div class="acts">
       <button class="ib" type="button" data-a="edit">Configurar</button>
+      ${cfg.tipo === 'barras' ? '' : `<button class="ib" type="button" data-a="rupt" aria-pressed="${!cfg.sinRupturas}">${cfg.sinRupturas ? 'Mostrar rupturas' : 'Ocultar rupturas'}</button>`}
       <button class="ib" type="button" data-a="tabla" aria-pressed="false">Tabla</button>
       <button class="ib" type="button" data-a="csv">CSV</button>
       <button class="ib" type="button" data-a="png">PNG</button>
@@ -599,6 +600,12 @@ function panelEl(cfg) {
     if (a === 'dup') { PANELES.splice(i + 1, 0, { ...structuredClone(PANELES[i]), id: nuevoId() }); guardar(); renderTodo(); }
     if (a === 'del') { PANELES.splice(i, 1); guardar(); renderTodo(); }
     if (a === 'tabla') { const t = el.querySelector('.tabla'); t.hidden = !t.hidden; ev.target.setAttribute('aria-pressed', String(!t.hidden)); }
+    if (a === 'rupt') {
+      const p = PANELES[i]; p.sinRupturas = !p.sinRupturas; guardar();
+      ev.target.textContent = p.sinRupturas ? 'Mostrar rupturas' : 'Ocultar rupturas';
+      ev.target.setAttribute('aria-pressed', String(!p.sinRupturas));
+      renderPanel(el, p);
+    }
     if (a === 'csv') exportarCSV(el);
     if (a === 'png') exportarPNG(el);
   });
@@ -630,8 +637,9 @@ async function renderPanel(el, cfg) {
     el._res = { res, out, cfg };
     // notas
     const vistas = new Set();
-    const ns = out.rup.filter(r => !vistas.has(r.ruptura_id) && vistas.add(r.ruptura_id))
-      .map(r => `<p class="note"><span class="rid">${esc(r.ruptura_id)}</span> (${esc(mesCorto(r.m))}, tipo ${esc(r.tipo)}): ${esc(breveRuptura(r.descripcion))}</p>`);
+    const ns = cfg.sinRupturas && out.rup.length ? ['<p class="note">Líneas de ruptura ocultas en el gráfico. Las variaciones mensuales siguen sin calcularse a través de una ruptura C.</p>'] : [];
+    ns.push(...out.rup.filter(r => !vistas.has(r.ruptura_id) && vistas.add(r.ruptura_id))
+      .map(r => `<p class="note"><span class="rid">${esc(r.ruptura_id)}</span> (${esc(mesCorto(r.m))}, tipo ${esc(r.tipo)}): ${esc(breveRuptura(r.descripcion))}</p>`));
     if (out.barras) notasEstudio(cfg, res.filas[0].e.mes).forEach(t => ns.push(`<p class="note">${esc(t)}</p>`));
     if (out.omitidos) ns.push(`<p class="note">${out.omitidos} ${out.barras ? (out.omitidos === 1 ? 'barra omitida' : 'barras omitidas') : (out.omitidos === 1 ? 'punto omitido' : 'puntos omitidos')} por tener menos de ${MIN_N} entrevistas.</p>`);
     notas.innerHTML = ns.join('');

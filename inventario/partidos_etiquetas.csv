@@ -1,0 +1,196 @@
+etiqueta_norm,variantes,partido_armonizado_propuesto,partido_armonizado_revisado,codigos_usados,primer_mes,ultimo_mes,n_meses,conceptos
+bng,BNG,BNG,,24;1201,2021-01,2026-10,64,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;recuerdo_votantes_r;recuerdo_voto;simpatia;voto_simpatia
+cha,CHA,,,30;203,2021-01,2026-10,64,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+ciudadanos,Ciudadanos,CS,,4;5,2021-01,2026-10,64,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;recuerdo_votantes_r;simpatia;voto_simpatia
+compromis,Compromís,COMPROMIS,,7;1001,2021-01,2026-10,64,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+cup,CUP,CUP,,19;904,2021-01,2026-10,64,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;recuerdo_votantes_r;recuerdo_voto;simpatia;voto_simpatia
+eaj pnv,EAJ-PNV,PNV,,11;1601,2021-01,2026-10,64,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;recuerdo_votantes_r;recuerdo_voto;simpatia;voto_simpatia
+eh bildu,EH Bildu | EH-Bildu,BILDU,,12;1602,2021-01,2026-10,64,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;recuerdo_votantes_r;recuerdo_voto;simpatia;voto_simpatia
+en blanco,En blanco,BLANCO,,96;996;8996,2021-01,2026-10,64,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;recuerdo_votantes_r;recuerdo_voto;simpatia;voto_simpatia
+en comu podem,En Comú Podem,EN_COMU_CAT,,6;903,2021-01,2026-10,64,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;recuerdo_votantes_r;recuerdo_voto;simpatia;voto_simpatia
+erc,ERC,ERC,,8;901,2021-01,2026-10,64,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;recuerdo_votantes_r;recuerdo_voto;simpatia;voto_simpatia
+escanos en blanco,Escaños en Blanco | Escaños en blanco,ESCANOS_BLANCO,,13;27,2021-01,2026-10,64,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+falange espanola de las jons,Falange Española de las JONS,,,12;26,2021-01,2026-10,64,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+geroa bai,Geroa Bai,,,34;1502,2021-01,2026-10,64,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+iu,IU,IU,,5;9,2021-01,2026-10,64,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+los verdes,Los Verdes,,,10;20,2021-01,2026-10,64,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+mas pais,Más País,MAS_PAIS,,7;50,2021-01,2026-10,64,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;recuerdo_votantes_r;recuerdo_voto;simpatia;voto_simpatia
+mes psm entesa,MÉS (PSM-Entesa),,,25;401,2021-01,2026-10,64,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+ninguno,Ninguno,NINGUNO,,97;997;9997,2021-01,2026-10,64,cercania;simpatia;voto_simpatia
+no tenia derecho a voto,No tenía derecho a voto,SIN_DERECHO,,93;993;9996,2021-01,2026-10,64,recuerdo_voto
+no tenia edad,No tenía edad,SIN_DERECHO,,94;994;9995,2021-01,2026-10,64,recuerdo_voto
+no votaria,No votaría,NO_VOTARIA,,97;997;9997,2021-01,2026-10,64,intencion_alternativa;intencion_voto;intencion_voto_r;voto_simpatia
+no voto,No votó,NO_VOTO,,97;997;9997,2021-01,2026-10,64,recuerdo_voto
+nueva canarias,Nueva Canarias,,,16;502,2021-01,2026-10,64,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+nulo,Nulo,NULO,,77;977;9977,2021-01,2026-10,64,intencion_voto_r;recuerdo_voto;voto_simpatia
+otro partido,Otro partido,OTRO,,95;995;8995,2021-01,2026-10,64,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;recuerdo_votantes_r;recuerdo_voto;simpatia;voto_simpatia
+pacma,PACMA,PACMA,,6;17,2021-01,2026-10,64,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;recuerdo_votantes_r;recuerdo_voto;simpatia;voto_simpatia
+partido libertario,Partido Libertario,,,15;29,2021-01,2026-10,64,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+podemos,Podemos,PODEMOS,,3;8,2021-01,2026-10,64,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+pp,PP,PP,,1;2,2021-01,2026-10,64,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;recuerdo_votantes_r;recuerdo_voto;simpatia;voto_simpatia
+prc,PRC,,,43;601,2021-01,2026-10,64,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;recuerdo_votantes_r;recuerdo_voto;simpatia;voto_simpatia
+psoe,PSOE,PSOE,,1;2,2021-01,2026-10,64,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;recuerdo_votantes_r;recuerdo_voto;simpatia;voto_simpatia
+teruel existe,Teruel Existe,TERUEL_EXISTE,,68;202,2021-01,2026-10,64,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;recuerdo_votantes_r;recuerdo_voto;simpatia;voto_simpatia
+upl,UPL,,,44;801,2021-01,2026-10,64,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+upn,UPN,UPN,,14;1501,2021-01,2026-10,64,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;recuerdo_votantes_r;recuerdo_voto;simpatia;voto_simpatia
+voto nulo,Voto nulo,NULO,,77;977;9977,2021-01,2026-10,64,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;recuerdo_votantes_r;simpatia;voto_simpatia
+vox,VOX,VOX,,3;18,2021-01,2026-10,64,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;recuerdo_votantes_r;recuerdo_voto;simpatia;voto_simpatia
+equo,EQUO,,,11;22,2021-01,2026-10,63,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+fac,FAC,,,15;301,2021-01,2026-09,63,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+par,PAR,,,23;201,2021-01,2026-10,63,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+pcpe,PCPE,,,19;39,2021-01,2026-10,63,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+unidas podemos,Unidas Podemos,UP,,4;21,2021-01,2026-10,63,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;recuerdo_votantes_r;recuerdo_voto;simpatia;voto_simpatia
+en comun unidas podemos,En Común-Unidas Podemos,EN_COMUN_GAL,,67;1202,2021-01,2026-10,62,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;recuerdo_votantes_r;recuerdo_voto;simpatia;voto_simpatia
+partido feminista de espana,Partido Feminista de España,,,17;33,2021-01,2026-10,62,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+recortes cero,Recortes Cero,,,16;31,2021-01,2026-10,62,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+upyd,UPyD,,,18;38,2021-01,2026-10,62,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+democracia nacional,Democracia Nacional,,,23;61,2021-01,2026-09,61,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+extremadura unida,Extremadura Unida,,,69;1101,2021-01,2026-07,60,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+partido humanista,Partido Humanista,,,24;63,2021-01,2026-09,60,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+pdecat,PDeCAT | PdeCat,,,71;905,2021-01,2026-07,60,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+actua,ACTUA | Actúa,,,22;52,2021-01,2026-07,59,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+anova irmandade nacionalista,Anova-Irmandade Nacionalista,,,53;1209,2021-01,2026-07,59,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+barcelona pel canvi,Barcelona pel Canvi,,,55;908,2021-01,2026-07,59,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+bloc,Bloc,,,35;1002,2021-01,2026-07,59,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+cc pnc,CC-PNC,CC,,13;501,2021-01,2026-07,59,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+coalicion caballas,Coalición Caballas,,,46;1801,2021-01,2026-07,59,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+coalicion por melilla,Coalición por Melilla,,,48;1901,2021-01,2026-07,59,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+compromis podemos eupv,Compromís-Podemos-EUPV,COMPROMIS,,37;1004,2021-01,2026-07,59,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+converxencia galega,Converxencia Galega,,,65;1207,2021-01,2026-07,59,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+directe 68,Directe 68,,,32;906,2021-01,2026-07,59,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+en marea,En Marea,,,10;1203,2021-01,2026-07,59,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+espana 2000,España 2000,,,14;28,2021-01,2026-07,59,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+igre,IGRE,,,20;42,2021-01,2026-07,59,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+mdyc,MDyC,,,47;1802,2021-01,2026-07,59,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+terra galega,Terra Galega,,,66;1208,2021-01,2026-07,59,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+zaragoza en comun,Zaragoza en Común,EN_COMUN_GAL,,56;204,2021-01,2026-07,59,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+no votaria a ningun otro partido cita el mismo partido,(NO LEER) No votaría a ningún otro partido (cita el mismo partido),NO_VOTARIA,,93;993;9993,2021-06,2026-10,56,cercania;intencion_alternativa
+adelante andalucia,Adelante Andalucía,,,90;101,2021-12,2026-10,53,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+compromiso por galicia,Compromiso por Galicia,COMPROMIS,,54;1205,2021-01,2026-07,51,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+compostela aberta,Compostela Aberta,,,57;1206,2021-12,2026-07,50,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+espana vaciada,España Vaciada,,,86;808,2022-03,2026-10,50,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+por avila,Por Ávila,,,80;803,2022-03,2026-10,50,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+soria ya,Soria Ya,,,81;802,2022-03,2026-10,50,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+centrados segovia,Centrados (Segovia),,,84;806,2022-03,2026-07,47,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+coalicion por el bierzo,Coalición por El Bierzo | Coalición por el Bierzo,,,89;813,2022-03,2026-07,47,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+por andalucia,Por Andalucía,,,73;103,2022-05,2026-10,47,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+por zamora,Por Zamora,,,91;810,2022-03,2026-07,47,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+prepal,PREPAL,,,88;809,2022-03,2026-07,47,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+puede palencia,Puede Palencia,,,83;805,2022-03,2026-07,47,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+sumar,SUMAR | Sumar,SUMAR,,21;101,2022-06,2026-10,47,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;recuerdo_votantes_r;recuerdo_voto;simpatia;voto_simpatia
+via burgalesa,Vía Burgalesa,,,82;804,2022-03,2026-07,47,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+zamora decide,Zamora Decide,,,85;807,2022-03,2026-07,47,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+jaen merece mas,Jaén Merece Más,,,100;102,2022-06,2026-07,46,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+juntos por granada,Juntos por Granada,,,75;105,2022-05,2026-07,45,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+mas madrid,Más Madrid,,,1301,2022-10,2026-10,45,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+por huelva,Por Huelva,,,76;106,2022-05,2026-07,45,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+levanta jaen,Levanta Jaén,,,74;104,2022-06,2026-07,44,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+pnc partido nacionalista canario,PNC (Partido Nacionalista Canario),,,504,2022-10,2026-10,44,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+por un mundo mas justo m+j,Por un Mundo más Justo (M+J),,,25,2022-10,2026-10,44,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+partido riojano,Partido Riojano,,,1701,2022-10,2026-10,43,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+pnc,PNC,,,72;504;911,2021-11,2026-07,43,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+cdc,CDC,,,907,2022-10,2026-10,42,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+partido castellano tierra comunera recortes cero,Partido Castellano-Tierra Comunera-Recortes Cero,,,812,2022-10,2026-07,42,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+pi proposta per les illes,PI (Proposta per les Illes),,,402,2022-10,2026-07,42,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+andalucia por si,Andalucía Por Sí,,,107,2022-10,2026-07,41,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+crida nacional per la republica,Crida Nacional per la República,,,909,2022-10,2026-07,41,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+payj partido anticorrupcion y justicia,PAYJ (Partido Anticorrupción y Justicia),,,1204,2022-10,2026-07,41,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+poble lliure front republica,Poble Lliure (Front República),,,910,2022-10,2026-07,41,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+pp+ciudadanos,PP+Ciudadanos,CS,,1603;1650,2022-10,2026-07,41,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+soms valencians,Soms Valencians,,,1003,2022-10,2026-07,41,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+union regionalista,Unión Regionalista,,,811,2022-10,2026-07,41,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+cca,CCa,CC,,503,2023-06,2026-10,37,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;recuerdo_votantes_r;recuerdo_voto;simpatia;voto_simpatia
+jxcat,JxCat,JUNTS,,9;902,2021-01,2024-05,37,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;recuerdo_votantes_r;recuerdo_voto;simpatia;voto_simpatia
+junts,Junts,JUNTS,,902,2023-07,2026-10,36,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;recuerdo_votantes_r;recuerdo_voto;simpatia;voto_simpatia
+drago canarias verdes,Drago Canarias Verdes,,,506,2023-07,2026-10,35,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+marea de vigo,Marea de Vigo,,,1201;1210,2023-04,2026-07,34,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+asg,ASG,,,505,2023-05,2026-07,33,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+caminando juntos,Caminando Juntos,,,26,2023-07,2026-07,32,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+c s,C's,CS,,4;5,2021-01,2023-09,30,recuerdo_voto
+cca nc,CCa-NC,,,13;501,2021-01,2023-09,30,intencion_voto_r;recuerdo_votantes_r;recuerdo_voto;voto_simpatia
+frente obrero,Frente Obrero,,,27,2024-02,2026-10,30,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+mes compromis,Més Compromís,COMPROMIS,,7;1001,2021-01,2023-09,30,intencion_voto_r;recuerdo_votantes_r;recuerdo_voto;voto_simpatia
+mxme mes per menorca,MXME (Més per Menorca),,,403,2023-04,2026-07,30,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+na+,NA+ | Na+,UPN,,14;1501,2021-01,2023-09,30,intencion_voto_r;recuerdo_votantes_r;recuerdo_voto;voto_simpatia
+otros partidos,Otros partidos,OTRO,,95;995;8995,2021-01,2023-09,30,intencion_alternativa;recuerdo_votantes_r;recuerdo_voto;voto_simpatia
+democracia ourensana,Democracia Ourensana,,,1212,2024-01,2026-07,27,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia
+alianca catalana,Aliança Catalana,,,915,2024-06,2026-10,26,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+se acabo la fiesta,Se Acabó la Fiesta | Se Acabó la fiesta,SALF,,28;5006,2024-06,2026-10,26,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+comuns sumar,Comuns Sumar,,,912,2024-05,2026-10,25,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia
+alhora,Alhora,,,916,2024-06,2026-09,24,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia
+elkarrekin podemos,Elkarrekin Podemos | Elkarrekin-Podemos,ELKARREKIN,,1603;1604,2024-04,2026-10,24,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia
+espazo comun galeguista,Espazo Común Galeguista,,,1213,2024-02,2026-07,23,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia
+ahora republicas,Ahora Repúblicas,,,5002,2024-06,2026-07,22,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia
+cat junts+,Cat-Junts+,,,913,2024-06,2026-07,22,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia
+compromiso por europa,Compromiso por Europa,COMPROMIS,,5005,2024-06,2026-07,22,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia
+cup dt,CUP-DT,CUP,,914,2024-06,2026-07,22,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia
+elkarrekin podemos iu,Elkarrekin Podemos-IU,ELKARREKIN,,1603,2024-06,2026-07,22,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia
+junts i lliures per europa,Junts i Lliures per Europa,JUNTS,,5003,2024-06,2026-07,22,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia
+la espana olvidada existe,La España Olvidada Existe,,,5007,2024-06,2026-07,22,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia
+por una europa solidaria,Por una Europa Solidaria,,,5004,2024-06,2026-07,22,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia
+sumar euskadi,Sumar Euskadi,SUMAR,,1605,2024-06,2026-07,22,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia
+unidas podemos cambiar europa,Unidas Podemos Cambiar Europa,UP,,5001,2024-06,2026-07,22,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia
+pnc partido nacionalista catalan,PNC (Partido Nacionalista Catalán),,,72;911,2021-01,2022-10,20,cercania;intencion_alternativa;intencion_voto;simpatia
+pi,PI,,,40,2021-01,2022-09,19,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia
+cnxr,CNxR,,,60,2021-01,2022-09,18,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia
+convergencia,Convergència,,,36,2021-01,2022-09,18,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia
+payj,PAYJ,,,41,2021-01,2022-09,18,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia
+poble lliure,Poble Lliure,,,62,2021-01,2022-09,18,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia
+pp+c s,PP+C s,,,70,2021-01,2022-09,18,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia
+ppl,PPL,,,49,2021-01,2022-09,18,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia
+pr+,PR+,,,51,2021-01,2022-09,18,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia
+recortes cero grupo verde,Recortes Cero-Grupo Verde,,,45,2021-01,2022-09,18,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia
+som valencians,Som Valencians,,,64,2021-01,2022-09,18,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia
+marea galeguista en marea compromisoxgalicia partido galeguista,Marea Galeguista (En Marea-CompromisoXGalicia-Partido Galeguista),COMPROMIS,,1211,2024-01,2026-07,16,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia
+valladolid toma la palabra,Valladolid Toma la Palabra | Valladolid Toma la palabra,,,814,2023-05,2026-07,12,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+cc,CC,CC,,503,2022-10,2023-10,10,cercania;intencion_alternativa;intencion_voto;simpatia
+adelante sevilla,Adelante Sevilla,,,90,2021-01,2021-11,9,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia
+santiago aberta,Santiago Aberta,,,57,2021-01,2021-11,9,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia
+juex,JUEX,,,1103,2025-12,2026-07,8,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia
+juntos levanta,JUNTOS-LEVANTA,,,1102,2025-12,2026-07,8,cercania;intencion_alternativa;intencion_voto;simpatia
+no votaria a ningun otro partido cita el mismo pa,(NO LEER) No votaría a ningún otro partido (cita el mismo pa,NO_VOTARIA,,93,2021-01,2022-01,8,intencion_alternativa
+existe,EXISTE | Existe,,,202;207,2023-07,2026-07,7,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+movimiento sumar,Movimiento Sumar,SUMAR,,21,2023-06,2024-02,7,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+ahora decide espana vaciada,Ahora Decide-España Vaciada,,,817,2026-02,2026-07,6,cercania;intencion_alternativa;intencion_voto;simpatia
+asg agrupacion socialista gomera,ASG (Agrupación Socialista Gomera),,,505,2023-04,2023-12,6,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+coalicion de izquierdas,Coalición de izquierdas,,,29,2026-04,2026-10,6,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+compromiso por pais vasco,Compromiso por País Vasco,COMPROMIS,,1205,2024-06,2025-05,6,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia
+drago verdes canarias,Drago Verdes Canarias,,,506,2023-05,2023-12,6,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+en comun iu movimiento sumar verdes equo,En Común (IU-Movimiento Sumar-Verdes Equo),SUMAR,,815,2026-02,2026-07,6,cercania;intencion_alternativa;intencion_voto;simpatia
+iu movimiento sumar,IU-MOVIMIENTO SUMAR,SUMAR,,205,2026-02,2026-07,6,cercania;intencion_alternativa;intencion_voto;simpatia
+marea galeguista en marea compromisoxpais vasco partido galeguista,Marea Galeguista (En Marea-CompromisoXPaís Vasco-Partido Galeguista),COMPROMIS,,1211,2024-06,2025-05,6,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia
+pcas tc rc,PCAS-TC-RC,,,87,2022-03,2022-09,6,cercania;intencion_alternativa;intencion_voto;simpatia
+podemos alianza verde,Podemos-Alianza Verde,,,816,2026-02,2026-07,6,cercania;intencion_alternativa;intencion_voto;simpatia
+podemos av,PODEMOS-AV,,,206,2026-02,2026-07,6,cercania;intencion_alternativa;intencion_voto;simpatia
+unidas podemos castilla y leon podemos iu av,Unidas Podemos Castilla y León (Podemos-IU-AV),UP,,818,2026-02,2026-07,6,cercania;intencion_alternativa;intencion_voto;simpatia
+urcl,URCL,,,92,2022-03,2022-09,6,cercania;intencion_alternativa;intencion_voto;simpatia
+en comun up,En Común-UP,EN_COMUN_GAL,,1202,2023-04,2023-09,5,recuerdo_voto
+otros partidos autonomicos,Otros partidos autonómicos,OTRO,,8889,2023-07,2023-12,5,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+otros partidos de derecha,Otros partidos de derecha,OTRO,,8994,2023-07,2023-12,5,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+otros partidos de izquierda,Otros partidos de izquierda,OTRO,,8993,2023-07,2023-12,5,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+otros partidos locales,Otros partidos locales,OTRO,,8888,2023-07,2023-12,5,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+up,UP,UP,,4,2023-04,2023-09,5,recuerdo_voto
+valents,Valents,,,912,2023-07,2023-12,5,intencion_voto_r;voto_simpatia
+existe teruel existe,Existe (Teruel Existe),TERUEL_EXISTE,,202,2023-09,2023-12,4,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+marea galeguista,Marea Galeguista,,,1211,2024-03,2024-05,3,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia
+adelante,Adelante,,,101,2023-05,2023-07,2,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+compromiso por galiza,Compromiso por Galiza,COMPROMIS,,1205,2025-04,2025-06,2,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia
+marea galeguista en marea compromisoxgaliza partido galeguista,Marea Galeguista (En Marea-CompromisoXGaliza-Partido Galeguista),COMPROMIS,,1211,2025-04,2025-06,2,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia
+podemos iu av,Podemos-IU-AV,UP,,4,2025-12,2026-01,2,cercania;intencion_alternativa;intencion_voto;simpatia
+verdes equo,Verdes Equo | Verdes-Equo,,,11,2023-06,2023-07,2,cercania;intencion_alternativa;intencion_voto;intencion_voto_r;simpatia;voto_simpatia
+1102,1102,,,1102,2025-12,2025-12,1,intencion_voto_r
+29,29,,,29,2026-09,2026-09,1,intencion_voto_r
+90,-90,,,-90,2025-10,2025-10,1,recuerdo_votantes_r
+agrupacion de electores se acabo la fiesta,Agrupación de electores Se Acabó la Fiesta,SALF,,5006,2024-06,2024-06,1,cercania;intencion_alternativa;intencion_voto;simpatia
+cca pnc,CCa-PNC,CC,,501,2023-06,2023-06,1,cercania;intencion_alternativa;intencion_voto;simpatia
+frente amplio,Frente Amplio,,,30,2026-10,2026-10,1,cercania;intencion_alternativa;intencion_voto;simpatia;voto_simpatia
+frente obreo,Frente Obreo,,,27,2025-01,2025-01,1,intencion_alternativa
+levanta jaen merece mas,"Levanta, Jaén Merece Más",,,74,2022-05,2022-05,1,intencion_alternativa;intencion_voto;simpatia
+los verdes grupo verde,Los Verdes-Grupo Verde,,,10,2023-07,2023-07,1,intencion_voto_r;voto_simpatia
+marea galeguista en marea compromiso por galicia partido galeguista,Marea Galeguista (En Marea-Compromiso por Galicia-Partido Galeguista),COMPROMIS,,1211,2025-07,2025-07,1,cercania;intencion_voto
+mdyc movimiento por la dignidad y ciudadania,MDyC (Movimiento por la Dignidad y Ciudadanía),,,1802,2022-10,2022-10,1,intencion_alternativa
+partido castellano tierra comunera,Partido Castellano-Tierra Comunera,,,812,2023-07,2023-07,1,intencion_voto_r;voto_simpatia
+pdecat e ciu,PDeCAT-E-CiU,,,905,2023-07,2023-07,1,intencion_voto_r;voto_simpatia
+plataforma por jaen,Plataforma por Jaén,,,74,2022-05,2022-05,1,cercania
+toma la palabra,Toma la palabra,,,814,2023-04,2023-04,1,cercania;intencion_alternativa;intencion_voto;simpatia
+voto blanco,Voto blanco,,,96,2021-01,2021-01,1,intencion_voto_r

@@ -1,0 +1,37 @@
+concepto,bloque,tipo,descripcion,nombres_candidatos,regex_etiqueta,ocurrencia
+prob_esp_1,serie,abierta,Primer problema de España,PESPANNA1,^primer problema$,0
+prob_esp_2,serie,abierta,Segundo problema de España,PESPANNA2,^segundo problema$,0
+prob_esp_3,serie,abierta,Tercer problema de España,PESPANNA3,^tercer problema$,0
+prob_per_1,serie,abierta,Primer problema que más afecta personalmente,PPERSONAL1,^primer problema$,1
+prob_per_2,serie,abierta,Segundo problema personal,PPERSONAL2,^segundo problema$,1
+prob_per_3,serie,abierta,Tercer problema personal,PPERSONAL3,^tercer problema$,1
+eco_esp,serie,cerrada,Valoración de la situación económica general de España,ECOESP,situacion economica general de espana,0
+eco_per,serie,cerrada,Valoración de la situación económica personal actual,ECOPER,situacion economica personal actual,0
+ideologia,serie+cruce,escala,Autoubicación ideológica (1-10),ESCIDEOL,autoubicacion ideologica,0
+intencion_voto,serie,abierta,Intención de voto en generales (directa),INTENCIONG,^intencion de voto en (unas )?(supuestas )?(las )?elecciones generales,0
+intencion_voto_r,serie,abierta,Intención de voto en generales [recodificada CIS],INTENCIONGR,,0
+intencion_alternativa,serie,abierta,Intención de voto alternativo,INTENCIONGALTER,,0
+voto_simpatia,serie,abierta,Voto + simpatía,VOTOSIMG,^voto simpatia,0
+simpatia,serie,abierta,Partido por el que siente más simpatía,SIMPATIA,mas simpatia,0
+cercania,serie,abierta,Partido más cercano a sus ideas,CERCANIA,mas cercano a sus ideas,0
+pref_presidente,serie,abierta,Preferencia personal como presidente del Gobierno,PREFPTE,preferencia personal como presidente,0
+participacion_g,cruce,cerrada,Participación en las últimas generales,PARTICIPACIONG,^participacion electoral en las elecciones generales,0
+recuerdo_voto,cruce,abierta,Recuerdo de voto en las últimas generales (con participación),RECUERDO,,0
+recuerdo_votantes_r,cruce,abierta,Recuerdo de voto de los votantes [recodificada CIS],RECUVOTOGR,,0
+sexo,cruce,cerrada,Sexo,SEXO,,0
+edad,cruce,continua,Edad,EDAD,,0
+ccaa,cruce,cerrada,Comunidad autónoma,CCAA,,0
+provincia,cruce,cerrada,Provincia,PROV,,0
+tamuni,cruce,cerrada,Tamaño de municipio,TAMUNI,,0
+estudios,cruce,cerrada,"Estudios (recodificación CIS, 6 niveles)",ESTUDIOS,,0
+nivel_estudios,cruce,cerrada,Nivel de estudios detallado,NIVELESTENTREV,,0
+sitlab,cruce,cerrada,Situación laboral,SITLAB,,0
+ocupacion_r,cruce,cerrada,Población activa e inactiva (CNO11 recodificada),CNO11R,,0
+clase_subjetiva,cruce,cerrada,Identificación subjetiva de clase,CLASESUB,,0
+clase_social,cruce,cerrada,Clase social subjetiva (detallada),CLASESOCIAL,,0
+religiosidad,cruce,cerrada,Religiosidad,RELIGION,,0
+practica_religiosa,cruce,cerrada,Frecuencia de asistencia a oficios religiosos,PRACTICARELIG6;PRACTICARELIG,,0
+estado_civil,cruce,cerrada,Estado civil,ECIVIL,,0
+tipo_telefono,tecnica,cerrada,Tipo de teléfono (fijo/móvil),TIPO_TEL,,0
+peso,tecnica,continua,Ponderación de la muestra general,PESO;PESO_V2,^ponderacion|coeficientes de ponderacion,0
+peso_ccaa,tecnica,continua,Ponderación por CCAA,PESOCCAA,,0

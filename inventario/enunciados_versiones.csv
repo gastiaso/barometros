@@ -1,0 +1,31 @@
+concepto,version,desde,hasta,n_estudios,enunciado
+cercania,1,2021-01,2026-10,64,"En todo caso, ¿qué partido considera más cercano a sus propias ideas? ."
+clase_social,1,2021-01,2026-10,64,¿A qué clase social diría Ud. que pertenece? .
+eco_esp,1,2021-01,2026-10,63,"Refiriéndonos a la situación económica general de España actualmente, ¿cómo la calificaría Ud.: muy buena, buena, mala o muy mala?"
+eco_per,1,2021-01,2026-10,63,"¿Cómo calificaría Ud. su situación económica personal en la actualidad: muy buena, buena, mala o muy mala?"
+estado_civil,1,2021-01,2026-10,64,¿Cuál es su estado civil?
+ideologia,1,2021-01,2021-03,3,"Cuando se habla de política se utilizan normalmente las expresiones izquierda y derecha. Situándonos en una escala de 10 casillas, como un termómetro, que van del 1 al 10, en la que 1 significa “lo más a la izquierda” y 10 “lo más a la derecha”, ¿en qué casilla se colocaría Ud.?"
+ideologia,2,2021-04,2023-09,27,"Cuando se habla de política se utilizan normalmente las expresiones izquierda y derecha. Situándonos en una escala que va del 1 al 10, en la que 1 significa “lo más a la izquierda” y 10 “lo más a la derecha”, ¿en qué casilla se colocaría Ud.?"
+ideologia,3,2023-10,2026-10,34,"En general, cuando se habla de política se utilizan normalmente las expresiones izquierda y derecha. Situándonos en una escala que va del 1 al 10, en la que 1 significa “lo más a la izquierda” y 10 “lo más a la derecha”, ¿dónde se colocaría Ud.?"
+intencion_alternativa,1,2021-01,2026-10,64,"En el caso de que por cualquier razón finalmente no votase por el partido que me ha dicho, ¿a qué otro partido votaría Ud.? ."
+intencion_voto,1,2021-01,2023-05,27,"Suponiendo que mañana se celebrasen nuevamente elecciones generales, es decir, al Parlamento español, ¿a qué partido votaría Ud.? ."
+intencion_voto,2,2023-06,2023-06,1,"Y en todo caso, en las próximas elecciones generales del día 23 de julio, ¿a qué partido votará Ud.? ."
+intencion_voto,3,2023-07,2023-07,1,"Como Ud. sabe, el próximo 23 de julio se celebrarán elecciones generales al Parlamento español, ¿a qué partido tiene pensado votar Ud.? ."
+intencion_voto,4,2023-09,2023-09,1,"Y en caso de que se convocasen elecciones generales al Parlamento español en este momento, ¿a qué partido votaría Ud.? ."
+intencion_voto,5,2023-10,2026-10,34,"Y en unas próximas elecciones al Parlamento español, ¿a qué partido votaría Ud.? ."
+nivel_estudios,1,2021-01,2023-12,33,"¿Cuáles son los estudios de más alto nivel oficial que Ud. ha cursado (con independencia de que los haya terminado o no)? Por favor, especifique lo más posible, diciéndome el curso en que estaba cuando los terminó (o los interrumpió) y también el nombre que tenían entonces esos estudios (ej.: 3 años de estudios primarios, primaria, 5º de bachillerato, Maestría Industrial, preuniversitario, 4º de EGB, licenciatura, doctorado, FP1, etc.). . CURSO __________ N.S. - N.R. = 98 N.C. = 99 NOMBRE DE ESTUDIOS __________ N.S. - N.R. = 98 N.C. = 99"
+nivel_estudios,2,2024-01,2026-10,31,¿Cuáles son los estudios de más alto nivel oficial que usted ha terminado obteniendo la titulación correspondiente? . NOMBRE DE ESTUDIOS FINALIZADOS __________ N.S. - N.R. = 98 N.C. = 99 __________ N.S. = 98 N.C. = 99 INFORMACIÓ N ADICIONAL 01. Menos de 5 años de escolarización o primaria
+participacion_g,1,2021-01,2023-09,30,¿Me podría decir si en las elecciones generales del 10 de noviembre de 2019...? (LEER RESPUESTAS).
+participacion_g,2,2023-10,2026-10,34,¿Me podría decir si en las últimas elecciones generales celebradas el 23 de julio de 2023 Ud...? .
+practica_religiosa,1,2021-01,2026-10,64,"¿Con qué frecuencia asiste Ud. a misa u otros oficios religiosos, sin contar las ocasiones relacionadas con ceremonias de tipo social, por ejemplo, bodas, comuniones o funerales?"
+pref_presidente,1,2021-01,2026-10,64,"De los/as principales líderes políticos/as, ¿quién preferiría que fuese el/la presidente/a del Gobierno en estos momentos? (SOLO UN NOMBRE)."
+prob_esp_1,1,2021-01,2026-10,64,"¿Cuál es, a su juicio, el principal problema que existe actualmente en España? ¿Y el segundo? ¿Y el tercero? 1er. Problema"
+prob_esp_2,1,2021-01,2026-10,64,"¿Cuál es, a su juicio, el principal problema que existe actualmente en España? ¿Y el segundo? ¿Y el tercero? 1er. Problema"
+prob_esp_3,1,2021-01,2026-10,64,"¿Cuál es, a su juicio, el principal problema que existe actualmente en España? ¿Y el segundo? ¿Y el tercero? 1er. Problema"
+prob_per_1,1,2021-01,2026-10,64,"¿Y cuál es el problema que a Ud., personalmente, le afecta más? ¿Y el segundo? ¿Y el tercero? . </span 1er lugar </span ___ 3e [P1"
+prob_per_2,1,2021-01,2026-10,64,"¿Y cuál es el problema que a Ud., personalmente, le afecta más? ¿Y el segundo? ¿Y el tercero? . </span 1er lugar </span ___ 3e [P1"
+prob_per_3,1,2021-01,2026-10,64,"¿Y cuál es el problema que a Ud., personalmente, le afecta más? ¿Y el segundo? ¿Y el tercero? . </span 1er lugar </span ___ 3e [P1"
+recuerdo_voto,1,2021-01,2026-10,64,¿Y podría decirme a qué partido o coalición votó? .
+religiosidad,1,2021-01,2026-10,64,"¿Cómo se define Ud. en materia religiosa: católico/a practicante, católico/a no practicante, creyente de otra religión, agnóstico/a, indiferente o no creyente, o ateo/a?"
+simpatia,1,2021-01,2026-10,64,"Sin ningún compromiso por su parte, ¿me podría decir por qué partido siente Ud. más simpatía? ."
+sitlab,1,2021-01,2026-10,64,¿En qué situación laboral se encuentra Ud. actualmente?

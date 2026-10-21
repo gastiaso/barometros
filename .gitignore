@@ -1,0 +1,7 @@
+datos/extract/
+datos/docs/
+datos/publicacion/
+_targets/
+__pycache__/
+.Rhistory
+.RData

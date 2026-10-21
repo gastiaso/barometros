@@ -187,9 +187,9 @@ async function calcular(cfg) {
       }
       const grupos = [];
       for (let g = 0; g < G; g++) {
-        const vals = {};
-        if (n[g] > 0) for (let k = 0; k < K; k++) if (num[g * K + k] > 0) vals[ids[k]] = 100 * num[g * K + k] / base[g];
-        grupos.push({ n: n[g], vals });
+        const vals = {}, wnum = {};
+        if (n[g] > 0) for (let k = 0; k < K; k++) if (num[g * K + k] > 0) { vals[ids[k]] = 100 * num[g * K + k] / base[g]; wnum[ids[k]] = num[g * K + k]; }
+        grupos.push({ n: n[g], base: base[g], vals, wnum });
       }
       filas.push({ e, grupos });
     }
@@ -212,12 +212,12 @@ async function calcular(cfg) {
     }
     const grupos = [];
     for (let g = 0; g < G; g++) {
-      const vals = {}, ns = {}, sd = {};
+      const vals = {}, ns = {}, sd = {}, a = {}, b = {}, c = {};
       for (let k = 0; k < K; k++) {
-        const i = g * K + k;
-        if (n[i] > 0) { const m = swx[i] / sw[i]; vals[P.cols[k]] = m; ns[P.cols[k]] = n[i]; sd[P.cols[k]] = Math.sqrt(Math.max(0, swx2[i] / sw[i] - m * m)); }
+        const i = g * K + k, id = P.cols[k];
+        if (n[i] > 0) { const m = swx[i] / sw[i]; vals[id] = m; ns[id] = n[i]; sd[id] = Math.sqrt(Math.max(0, swx2[i] / sw[i] - m * m)); a[id] = sw[i]; b[id] = swx[i]; c[id] = swx2[i]; }
       }
-      grupos.push({ vals, ns, sd });
+      grupos.push({ vals, ns, sd, sw: a, swx: b, swx2: c });
     }
     filas.push({ e, grupos });
   }
@@ -236,9 +236,43 @@ function puntoDe(res, f, g, id) {
   else { const p = v / 100; se = 100 * Math.sqrt(f.e.deff * p * (1 - p) / n); }
   return { v, n, lo: Math.max(0, v - 1.96 * se), hi: v + 1.96 * se };
 }
+/* Acumula varios barómetros (índices de res.filas) para un grupo y una respuesta: suma de pesos y de casos */
+function acumular(res, idxs, g, id) {
+  const media = res.unidad === 'media';
+  let N = 0, B = 0, S = 0, S2 = 0, D = 0;
+  for (const i of idxs) {
+    const gr = res.filas[i].grupos[g]; if (!gr) continue;
+    if (media) {
+      const n = gr.ns[id] || 0; if (!n) continue;
+      N += n; B += gr.sw[id]; S += gr.swx[id]; S2 += gr.swx2[id]; D += res.filas[i].e.deff * n;
+    } else {
+      if (!gr.n) continue;
+      N += gr.n; B += gr.base; S += gr.wnum[id] || 0; D += res.filas[i].e.deff * gr.n;
+    }
+  }
+  if (!N) return { v: null, n: 0 };
+  if (N < MIN_N) return { v: null, n: N, omit: true };
+  const deff = D / N;
+  if (media) { const m = S / B, sd = Math.sqrt(Math.max(0, S2 / B - m * m)), se = Math.sqrt(deff * sd * sd / N); return { v: m, n: N, lo: m - 1.96 * se, hi: m + 1.96 * se }; }
+  const p = S / B, se = Math.sqrt(deff * p * (1 - p) / N);
+  return { v: 100 * p, n: N, lo: Math.max(0, 100 * (p - 1.96 * se)), hi: 100 * (p + 1.96 * se) };
+}
+/* Hasta k barómetros que terminan en el índice i sin cruzar una ruptura C de los conceptos del panel */
+function ventana(res, cfg, i, k) {
+  const cortes = rupturas(cfg).filter(r => r.tipo === 'C').map(r => r.m);
+  const tramo = mes => cortes.filter(c => c <= mes).length;
+  const t = tramo(res.filas[i].e.mes), out = [];
+  for (let j = i; j >= 0 && out.length < k; j--) {
+    if (tramo(res.filas[j].e.mes) !== t) break;
+    if (res.filas[j].grupos.some(gr => (gr.n || 0) > 0 || Object.keys(gr.ns || {}).length)) out.push(j);
+  }
+  return out;
+}
 function series(res, cfg) {
   const { P, filas, glev } = res;
-  const punto = (f, g, id) => puntoDe(res, f, g, id);
+  const punto = cfg.movil
+    ? (f, g, id) => { const i = filas.indexOf(f); return acumular(res, ventana(res, cfg, i, 3), g, id); }
+    : (f, g, id) => puntoDe(res, f, g, id);
   const conc = P.tipo === 'multi' ? P.cols[0] : P.cols[0];
   let out;
   if (!cfg.cruce) {

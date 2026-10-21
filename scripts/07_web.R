@@ -17,7 +17,7 @@ ELECTORALES <- c("intencion_voto", "intencion_voto_r", "intencion_alternativa", 
 
 d <- read_parquet(file.path(PUB, "microdatos.parquet")) |> arrange(estudio)
 meta <- read_json(file.path(PUB, "metadatos.json"))
-retirar <- if (VEDA) c(ELECTORALES, grep("^lider_", names(d), value = TRUE)) else character(0)
+retirar <- if (VEDA) c(ELECTORALES, grep("^(lider|ministro)_", names(d), value = TRUE)) else character(0)
 
 unlink(WEB, recursive = TRUE)
 dir.create(file.path(WEB, "col"), recursive = TRUE)
@@ -26,7 +26,7 @@ dir.create(file.path(WEB, "col"), recursive = TRUE)
 est <- d |> mutate(fila = row_number() - 1L) |> group_by(estudio, mes) |>
   summarise(desde = min(fila), hasta = max(fila) + 1L, .groups = "drop")
 
-enteros_cortos <- c("ideologia", "edad", grep("^lider_", names(d), value = TRUE))
+enteros_cortos <- c("ideologia", "edad", grep("^(lider|ministro)_", names(d), value = TRUE))
 columnas <- list()
 for (k in setdiff(names(d), c("estudio", "mes", retirar))) {
   x <- d[[k]]

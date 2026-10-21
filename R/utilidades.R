@@ -15,7 +15,8 @@ NO_RESPUESTA <- c(NS = "No sabe", NC = "No contesta", NR = "No recuerda", NP = "
 RX_NO_RESPUESTA <- "^(n s|n c|n p|n r|no sabe|no contesta|no procede|no recuerda)( |$)"
 
 norm_etiqueta <- function(x) {
-  x <- iconv(enc2utf8(as.character(x)), "UTF-8", "ASCII//TRANSLIT", sub = "")
+  x <- chartr("áéíóúüñçàèìòùâêîôûÁÉÍÓÚÜÑÇÀÈÌÒÙÂÊÎÔÛ", "aeiouuncaeiouaeiouAEIOUUNCAEIOUAEIOU", enc2utf8(as.character(x)))
+  x <- iconv(x, "UTF-8", "ASCII//TRANSLIT", sub = "")   # resto de caracteres; las tildes ya se han quitado arriba
   x <- tolower(x)
   x <- gsub("[^a-z0-9]+", " ", x)
   trimws(gsub("\\s+", " ", x))

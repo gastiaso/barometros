@@ -1,7 +1,7 @@
 # Armonización: .sav de cada estudio -> microdatos con categorías comunes
 
 cargar_insumos <- function(f_crosswalk, f_estudios, f_partidos, f_problemas, f_candidatos, f_lideres,
-                           f_rupturas, f_conceptos, f_decisiones, f_sin_etiqueta) {
+                           f_rupturas, f_conceptos, f_decisiones, f_sin_etiqueta, f_variables) {
   leer <- function(f) readr::read_csv(f, col_types = readr::cols(.default = "c"), progress = FALSE)
   cw <- leer(f_crosswalk)
   # códigos de partido presentes en los datos pero sin etiqueta en el .sav, resueltos a mano con su fuente
@@ -25,6 +25,10 @@ cargar_insumos <- function(f_crosswalk, f_estudios, f_partidos, f_problemas, f_c
     problemas = leer(f_problemas),
     candidatos = leer(f_candidatos),
     lideres = leer(f_lideres) |> dplyr::filter(bloque == "VALORALIDERES"),
+    # valoración de ministros (trimestral): batería VALMINIS_k, con el nombre del ministro como etiqueta de la variable
+    ministros = leer(f_variables) |> dplyr::filter(grepl("^VALMINIS_[0-9]+$", variable)) |>
+      dplyr::transmute(estudio, mes, variable, ministro = etiqueta,
+                       id = paste0("ministro_", gsub(" ", "_", norm_etiqueta(etiqueta)))),
     rupturas = leer(f_rupturas),
     conceptos = leer(f_conceptos),
     decisiones = leer(f_decisiones)
@@ -36,10 +40,12 @@ leer_estudio <- function(estudio, ruta, insumos) {
   cw <- dplyr::filter(insumos$crosswalk, .data$estudio == !!estudio, !is.na(variable))
   cw <- dplyr::filter(cw, concepto != "tipo_telefono")
   lid <- dplyr::filter(insumos$lideres, .data$estudio == !!estudio)
-  vars <- unique(c(cw$variable, lid$variable))
+  mins <- dplyr::filter(insumos$ministros, .data$estudio == !!estudio)
+  vars <- unique(c(cw$variable, lid$variable, mins$variable))
   sav <- haven::read_sav(ruta, user_na = TRUE, col_select = dplyr::all_of(vars))
   pares <- stats::setNames(cw$variable, cw$concepto)
   if (nrow(lid)) pares <- c(pares, stats::setNames(lid$variable, paste0("lider_", gsub(" ", "_", lid$lider_norm))))
+  if (nrow(mins)) pares <- c(pares, stats::setNames(mins$variable, mins$id))
   valores <- purrr::map(pares, \(v) valores_sav(sav[[v]]))
   dic <- purrr::imap(valores, \(x, k) dplyr::count(x, codigo, etiqueta, nr) |> dplyr::mutate(concepto = k)) |>
     purrr::list_rbind() |>
@@ -186,8 +192,8 @@ armonizar_estudio <- function(lectura, canon, insumos) {
   ed <- v$edad
   out$edad <- ifelse(ed$nr, NA_real_, ed$codigo)
   out$edad_g <- grupo_edad(out$edad)
-  # valoración de líderes: 1-10; el resto (no conoce, NS, NC, no procede) queda fuera de la media
-  for (k in grep("^lider_", names(v), value = TRUE)) {
+  # valoración de líderes y ministros: 1-10; el resto (no conoce, NS, NC, no procede) queda fuera de la media
+  for (k in grep("^(lider|ministro)_", names(v), value = TRUE)) {
     x <- v[[k]]
     out[[k]] <- ifelse(!x$nr & x$codigo %in% 1:10, x$codigo, NA_real_)
   }
@@ -197,7 +203,7 @@ armonizar_estudio <- function(lectura, canon, insumos) {
 # Une los estudios; las variables categóricas se guardan como diccionario en el Parquet
 unir_estudios <- function(armonizados) {
   d <- dplyr::bind_rows(armonizados)
-  lideres <- sort(grep("^lider_", names(d), value = TRUE))
+  lideres <- c(sort(grep("^lider_", names(d), value = TRUE)), sort(grep("^ministro_", names(d), value = TRUE)))
   d <- dplyr::relocate(d, estudio, mes, peso, peso_ccaa, dplyr::any_of(c(CONCEPTOS_PARTIDO, "pref_presidente",
                        CONCEPTOS_PROBLEMA, "eco_esp", "eco_per", "ideologia", "ideologia_cat", "ideologia_g")),
                        dplyr::all_of(lideres))

@@ -24,7 +24,7 @@ _targets.R, R/                  armonización en R: .sav -> microdatos armonizad
 datos/publicacion/              microdatos.parquet y metadatos.json (generados)
 scripts/07_web.R                datos de la web: una columna comprimida por pregunta (web/datos/, generado)
 web/                            la web: index.html, css/, js/app.js (d3 autoalojado, sin dependencias externas)
-.github/workflows/publicar.yml  construcción y publicación en GitHub Pages; veda electoral automática
+.github/workflows/publicar.yml  construcción y publicación en GitHub Pages
 ```
 
 **Reparto de lenguajes.** Python (`scripts/`) lee la documentación del CIS y produce el inventario y las tablas de revisión. R (`_targets.R`, `R/`) aplica esas tablas a los microdatos. Las decisiones de armonización viven en CSV editables (`inventario/`), no en el código.
@@ -155,9 +155,10 @@ R19 y R22 coinciden con una reordenación del cuestionario en octubre de 2023, s
 ## Web
 
 - **Cálculo en el navegador.** Cada vista descarga solo las columnas que necesita (unos cientos de KB) y agrega los microdatos con la ponderación del estudio. No hay servidor.
-- **Paneles configurables:** pregunta, cruce por una variable de perfil, filtro por otra, periodo, exclusión de NS/NC de la base y margen de error. Tabla, CSV y PNG por panel; enlace compartible con la configuración.
+- **Paneles configurables:** pregunta, tipo de gráfico (evolución mensual en líneas o un barómetro en barras), cruce por una variable de perfil, filtro por otra, periodo o barómetro, exclusión de NS/NC de la base y margen de error. Hasta 12 respuestas o grupos por panel. Tabla, CSV y PNG por panel; enlace compartible con la configuración.
+- **Líderes y ministros.** La valoración de líderes (batería VALORALIDERES) y la de ministros (VALMINIS, trimestral) se emparejan por nombre. Gabriel Rufián no figura en ninguna de las dos baterías: solo aparece en la preferencia como presidente (desde feb-2025). Irene Montero se valora como ministra entre jul-2021 y oct-2023 y aparece en la preferencia como presidente desde dic-2022.
 - **Reglas fijas:** no se muestra ningún punto con menos de 50 entrevistas sin ponderar; margen de error al 95 % con el efecto de diseño de cada estudio; rupturas C marcadas en color y B en punteado; no se calcula la variación mensual a través de una ruptura C (decisión sobre R19).
-- **Veda (art. 69.7 LOREG).** El flujo de publicación retira las series de intención, simpatía, cercanía, preferencia como presidente y líderes, y la descarga del fichero completo, entre el 23-nov a las 19:00 y el 29-nov a las 21:00 (hora peninsular). Las fechas están en `publicar.yml`.
+- **Veda (art. 69.7 LOREG).** Sin retirada automática. El flujo de publicación conserva un interruptor manual (Actions > Publicar > Run workflow > «Forzar el modo veda») que publica la web sin las series electorales ni la descarga del fichero completo.
 
 ## Pendiente
 

@@ -1,5 +1,6 @@
 # Construye los datos armonizados y publica la web en GitHub Pages.
-# Se ejecuta con cada cambio en main, a mano (Actions > Publicar > Run workflow) y en las fechas de la veda electoral.
+# Se ejecuta con cada cambio en main y a mano (Actions > Publicar > Run workflow). El modo veda (sin series
+# electorales) solo se activa a mano, marcando la casilla al lanzar el flujo.
 name: Publicar
 
 on:
@@ -11,13 +12,6 @@ on:
         description: "Forzar el modo veda (sin series electorales)"
         type: boolean
         default: false
-  schedule:
-    # Veda del art. 69.7 LOREG para las generales del 29-N: retirada el 23-nov por la tarde (dos intentos,
-    # por si GitHub retrasa la ejecución) y restauración el 29-nov tras el cierre de los colegios en Canarias.
-    - cron: "0 18 23 11 *"
-    - cron: "30 21 23 11 *"
-    - cron: "15 20 29 11 *"
-    - cron: "0 23 29 11 *"
 
 permissions:
   contents: read
@@ -27,11 +21,6 @@ permissions:
 concurrency:
   group: pages
   cancel-in-progress: false
-
-env:
-  # Ventana de la veda en UTC: 23-nov 18:00 (19:00 en Madrid) a 29-nov 20:00 (21:00 en Madrid, 20:00 en Canarias)
-  VEDA_DESDE: "2026-11-23T18:00:00Z"
-  VEDA_HASTA: "2026-11-29T20:00:00Z"
 
 jobs:
   construir:
@@ -64,15 +53,9 @@ jobs:
       - name: Armonizar y validar (targets)
         run: Rscript -e 'targets::tar_make()'
 
-      - name: ¿Veda?
-        id: veda
+      - name: Modo de publicación
         run: |
-          ahora=$(date -u +%s); desde=$(date -u -d "$VEDA_DESDE" +%s); hasta=$(date -u -d "$VEDA_HASTA" +%s)
-          if [ "${{ inputs.veda }}" = "true" ] || { [ "$ahora" -ge "$desde" ] && [ "$ahora" -lt "$hasta" ]; }; then
-            echo "VEDA=1" >> "$GITHUB_ENV"; echo "Modo veda: sin series electorales"
-          else
-            echo "VEDA=0" >> "$GITHUB_ENV"; echo "Publicación completa"
-          fi
+          if [ "${{ inputs.veda }}" = "true" ]; then echo "VEDA=1" >> "$GITHUB_ENV"; echo "Modo veda (manual)"; else echo "VEDA=0" >> "$GITHUB_ENV"; fi
 
       - name: Datos de la web
         run: Rscript scripts/07_web.R

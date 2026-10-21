@@ -5,7 +5,7 @@
 const BASE = 'datos/';
 const NR = new Set(['NS', 'NC', 'NR', 'NP']);
 const MIN_N = 50;
-const MAX_SERIES = 8;
+const MAX_SERIES = 12;
 const MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
 const MESES_C = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
 const $ = (s, el = document) => el.querySelector(s);
@@ -28,6 +28,7 @@ const PREG = [
   { g: 'Voto', id: 'recuerdo_voto', t: 'Recuerdo de voto en las últimas generales' },
   { g: 'Voto', id: 'pref_presidente', t: 'Preferencia como presidente del Gobierno' },
   { g: 'Líderes', id: 'lideres', t: 'Valoración de líderes', tipo: 'medias' },
+  { g: 'Líderes', id: 'ministros', t: 'Valoración de ministros', tipo: 'medias' },
   { g: 'Problemas', id: 'prob_esp', t: 'Principales problemas de España', tipo: 'multi', cols: ['prob_esp_1', 'prob_esp_2', 'prob_esp_3'] },
   { g: 'Problemas', id: 'prob_esp_1', t: 'Primer problema de España' },
   { g: 'Problemas', id: 'prob_per', t: 'Problemas que más le afectan personalmente', tipo: 'multi', cols: ['prob_per_1', 'prob_per_2', 'prob_per_3'] },
@@ -76,15 +77,18 @@ const PARTIDO_CANDIDATO = {
 const DEFECTO = [
   { preg: 'intencion_voto' },
   { preg: 'voto_simpatia' },
+  { tipo: 'barras', preg: 'intencion_voto', cruce: 'edad_g', ancho: true, cats: ['PSOE', 'PP', 'VOX', 'SUMAR', 'PODEMOS', 'SALF', 'NS'] },
   { preg: 'lideres' },
+  { preg: 'pref_presidente', catsEtq: ['Pedro Sánchez', 'Alberto Núñez Feijóo', 'Santiago Abascal', 'Yolanda Díaz', 'Gabriel Rufián', 'Irene Montero'] },
   { preg: 'prob_esp' },
-  { preg: 'intencion_voto', cruce: 'edad_g', cat1: 'VOX' },
+  { preg: 'prob_per' },
   { preg: 'eco_esp' },
 ];
+const CLAVE = 'bet-paneles-v2';
 const DEFECTO_VEDA = [{ preg: 'prob_esp' }, { preg: 'eco_esp' }, { preg: 'ideologia' }, { preg: 'prob_per' }];
 
 /* ================= datos ================= */
-let META, EST = [], ESTI = {}, LAB = {}, LIDERES = [];
+let META, EST = [], ESTI = {}, LAB = {}, LIDERES = [], MINISTROS = [];
 const COLS = {}, PEND = {};
 
 async function cargarMeta() {
@@ -98,6 +102,7 @@ async function cargarMeta() {
     LAB[k] = Object.fromEntries((c.categorias || []).map(x => [x.id, x.etiqueta]));
   }
   LIDERES = Object.keys(META.columnas).filter(k => k.startsWith('lider_'));
+  MINISTROS = Object.keys(META.columnas).filter(k => k.startsWith('ministro_'));
 }
 async function col(name) {
   if (COLS[name]) return COLS[name];
@@ -116,14 +121,15 @@ const preg = id => {
   const p = PREG.find(x => x.id === id);
   if (!p) return null;
   const tipo = p.tipo || 'cat';
-  const cols = p.cols || (tipo === 'medias' ? LIDERES : [p.id]);
+  const cols = p.cols || (tipo === 'medias' ? (p.id === 'ministros' ? MINISTROS : LIDERES) : [p.id]);
   return { ...p, tipo, cols };
 };
 const disponible = p => p && p.cols.length && p.cols.every(c => META.columnas[c]);
 const etiqueta = (concepto, id) => {
   if (NR.has(id)) return META.no_respuesta[id] || id;
-  if (concepto.startsWith('lider_') || id.startsWith('lider_')) {
-    const k = id.startsWith('lider_') ? id : concepto;
+  const persona = /^(lider|ministro)_/;
+  if (persona.test(concepto) || persona.test(id)) {
+    const k = persona.test(id) ? id : concepto;
     return (META.conceptos[k]?.etiqueta || k).replace(/^Valoración de /, '').replace(/ \(1-10\)$/, '');
   }
   return String(LAB[concepto]?.[id] ?? id).replace(/^\(NO LEER\)\s*/i, '');
@@ -219,19 +225,20 @@ async function calcular(cfg) {
 }
 
 /* Series a dibujar a partir de la agregación */
+function puntoDe(res, f, g, id) {
+  const media = res.unidad === 'media';
+  const gr = f.grupos[g]; if (!gr) return { v: null, n: 0 };
+  const v = gr.vals[id];
+  const n = media ? (gr.ns[id] || 0) : gr.n;
+  if (v == null || n < MIN_N) return { v: null, n, omit: v != null && n > 0 };
+  let se;
+  if (media) se = Math.sqrt(f.e.deff * gr.sd[id] ** 2 / n);
+  else { const p = v / 100; se = 100 * Math.sqrt(f.e.deff * p * (1 - p) / n); }
+  return { v, n, lo: Math.max(0, v - 1.96 * se), hi: v + 1.96 * se };
+}
 function series(res, cfg) {
   const { P, filas, glev } = res;
-  const media = res.unidad === 'media';
-  const punto = (f, g, id) => {
-    const gr = f.grupos[g]; if (!gr) return null;
-    const v = gr.vals[id];
-    const n = media ? (gr.ns[id] || 0) : gr.n;
-    if (v == null || n < MIN_N) return { v: null, n, omit: v != null && n > 0 };
-    let se;
-    if (media) se = Math.sqrt(f.e.deff * gr.sd[id] ** 2 / n);
-    else { const p = v / 100; se = 100 * Math.sqrt(f.e.deff * p * (1 - p) / n); }
-    return { v, n, lo: v - 1.96 * se, hi: v + 1.96 * se };
-  };
+  const punto = (f, g, id) => puntoDe(res, f, g, id);
   const conc = P.tipo === 'multi' ? P.cols[0] : P.cols[0];
   let out;
   if (!cfg.cruce) {
@@ -258,7 +265,13 @@ const ultimoCon = (res, g, id) => {
 };
 function catsDefecto(res) {
   const { P, ids } = res;
-  if (res.unidad === 'media') return ids.filter(id => ultimoCon(res, 0, id) != null && res.filas.slice(-6).some(f => f.grupos[0].vals[id] != null));
+  if (res.unidad === 'media') {
+    const rec = ids.filter(id => res.filas.slice(-6).some(f => f.grupos[0].vals[id] != null));
+    if (rec.length <= 8) return rec;
+    // muchas personas (ministros): las ocho más conocidas en el último barómetro con datos
+    const nUlt = id => { for (let i = res.filas.length - 1; i >= 0; i--) { const n = res.filas[i].grupos[0].ns[id]; if (n) return n; } return 0; };
+    return rec.sort((a, z) => nUlt(z) - nUlt(a)).slice(0, 8);
+  }
   const sust = ids.filter(id => !NR.has(id));
   if (sust.length <= 7) return ordenMeta(P.cols[0], sust);
   // últimos valores (último barómetro con la pregunta), los seis mayores
@@ -297,13 +310,13 @@ function leerPaleta() {
   const cs = getComputedStyle(document.documentElement);
   const v = n => cs.getPropertyValue(n).trim();
   PAL = { surface: v('--surface'), ink: v('--ink'), ink2: v('--ink2'), ink3: v('--ink3'), line: v('--line'), line2: v('--line2'),
-    acc: v('--acc'), band: +v('--band') || .12, cat: [1, 2, 3, 4, 5, 6, 7, 8].map(i => v('--c' + i)), font: getComputedStyle(document.body).fontFamily,
+    acc: v('--acc'), band: +v('--band') || .12, cat: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(i => v('--c' + i)), font: getComputedStyle(document.body).fontFamily,
     fontD: v('--font-d') };
 }
-function colores(lista, cfg) {
+function colores(lista, cfg, dim = 'cat') {
   const P = preg(cfg.preg);
   const partidoDe = id => {
-    if (cfg.cruce) return ['recuerdo_voto', 'intencion_voto', 'voto_simpatia'].includes(cfg.cruce) ? id : null;
+    if (dim === 'grupo') return ['recuerdo_voto', 'intencion_voto', 'voto_simpatia'].includes(cfg.cruce) ? id : null;
     if (P.tipo === 'medias') return PARTIDO_LIDER[id];
     if (P.id === 'pref_presidente') return PARTIDO_CANDIDATO[etiqueta('pref_presidente', id)];
     return ['intencion_voto', 'voto_simpatia', 'simpatia', 'cercania', 'intencion_alternativa', 'intencion_voto_r', 'recuerdo_voto'].includes(P.id) ? id : null;
@@ -317,8 +330,8 @@ function colores(lista, cfg) {
   let slot = 0;
   lista.forEach(s => {
     if (out[s.id]) return;
-    while (slot < 8 && usados.has(PAL.cat[slot])) slot++;
-    out[s.id] = PAL.cat[slot % 8]; usados.add(out[s.id]); slot++;
+    while (slot < PAL.cat.length && usados.has(PAL.cat[slot])) slot++;
+    out[s.id] = PAL.cat[slot % PAL.cat.length]; usados.add(out[s.id]); slot++;
   });
   return out;
 }
@@ -339,7 +352,7 @@ function dibujar(host, res, cfg) {
   const ser = series(res, cfg);
   const visibles = ser.filter(s => s.pts.some(p => p.v != null));
   if (!visibles.length) return { vacio: 'No hay datos suficientes para esta combinación (cada punto necesita al menos 50 entrevistas).' };
-  const col = colores(ser, cfg);
+  const col = colores(ser, cfg, cfg.cruce ? 'grupo' : 'cat');
   const media = res.unidad === 'media';
   const W = Math.max(300, Math.round(host.clientWidth || 600));
   const H = Math.round(Math.max(270, Math.min(440, W * 0.6)));
@@ -393,19 +406,22 @@ function dibujar(host, res, cfg) {
       .attr('font-weight', 600).attr('fill', PAL.acc).text(txt);
   });
 
-  // bandas, líneas y puntos aislados
+  // bandas, líneas y puntos aislados. La línea une los meses en que se hizo la pregunta (los ministros se valoran
+  // cada tres meses; algunas preguntas faltan un mes) y se corta donde la respuesta no existe o no llega a 50 casos.
   const def = p => p.v != null;
+  const preguntados = s => s.pts.filter(p => p.n > 0 || p.v != null);
   if (banda) {
     const area = d3.area().defined(def).x(p => x(fecha(p.mes))).y0(p => y(p.lo)).y1(p => y(p.hi));
-    ser.forEach(s => svg.append('path').attr('d', area(s.pts)).attr('fill', col[s.id]).attr('fill-opacity', PAL.band).attr('stroke', 'none'));
+    ser.forEach(s => svg.append('path').attr('d', area(preguntados(s))).attr('fill', col[s.id]).attr('fill-opacity', PAL.band).attr('stroke', 'none'));
   }
   const line = d3.line().defined(def).x(p => x(fecha(p.mes))).y(p => y(p.v));
   ser.forEach(s => {
-    svg.append('path').attr('d', line(s.pts)).attr('fill', 'none').attr('stroke', col[s.id]).attr('stroke-width', 2)
+    const pts = preguntados(s);
+    svg.append('path').attr('d', line(pts)).attr('fill', 'none').attr('stroke', col[s.id]).attr('stroke-width', 2)
       .attr('stroke-linejoin', 'round').attr('stroke-linecap', 'round');
-    s.pts.forEach((p, i) => {
+    pts.forEach((p, i) => {
       if (p.v == null) return;
-      const prev = s.pts[i - 1], next = s.pts[i + 1];
+      const prev = pts[i - 1], next = pts[i + 1];
       if ((!prev || prev.v == null) && (!next || next.v == null))
         svg.append('circle').attr('cx', x(fecha(p.mes))).attr('cy', y(p.v)).attr('r', 2.5).attr('fill', col[s.id]);
     });
@@ -460,6 +476,83 @@ function dibujar(host, res, cfg) {
   return { ser, col, rup, omitidos, cat1: ser.cat1 };
 }
 
+
+/* Barras: un barómetro, respuestas (colores) por grupo del cruce (eje horizontal) */
+function datosBarras(res, cfg) {
+  const f = res.filas[0];
+  const cats0 = cfg.cats && cfg.cats.length ? cfg.cats.filter(id => res.ids.includes(id)) : catsDefecto(res);
+  const conc = res.P.cols[0];
+  const cats = (res.P.tipo === 'cat' && res.ids.filter(id => !NR.has(id)).length <= 7 ? ordenMeta(conc, cats0) : cats0).slice(0, MAX_SERIES);
+  const nomCat = id => res.unidad === 'media' ? etiqueta(id, id) : etiqueta(conc, id);
+  const grupos = cfg.cruce ? ordenMeta(cfg.cruce, cfg.gcats && cfg.gcats.length ? cfg.gcats : gruposDefecto(res)).slice(0, MAX_SERIES) : ['TOTAL'];
+  const nomGrupo = id => cfg.cruce ? etiqueta(cfg.cruce, id) : 'Total';
+  const celdas = grupos.flatMap(gid => cats.map(cid => ({ gid, cid, ...puntoDe(res, f, res.glev.indexOf(gid), cid) })));
+  return { f, cats, grupos, nomCat, nomGrupo, celdas };
+}
+function dibujarBarras(host, res, cfg) {
+  const B = datosBarras(res, cfg);
+  if (!B.celdas.some(c => c.v != null)) return { vacio: 'No hay datos suficientes para esta combinación (cada barra necesita al menos 50 entrevistas).' };
+  const media = res.unidad === 'media';
+  const ser = B.cats.map(id => ({ id, label: B.nomCat(id) }));
+  const col = colores(ser, cfg, 'cat');
+  const sinCruce = !cfg.cruce;
+  const W = Math.max(300, Math.round(host.clientWidth || 600));
+  const H = Math.round(Math.max(300, Math.min(460, W * 0.52)));
+  const perRow = Math.max(1, Math.min(ser.length, Math.floor(W / (W < 520 ? 150 : 170))));
+  const colW = (W - 16) / perRow, maxL = Math.floor((colW - 24) / 6.4);
+  const legendRows = sinCruce ? 0 : Math.ceil(ser.length / perRow);
+  const m = { l: 40, r: 12, t: 14 + legendRows * 18, b: sinCruce ? 46 : 30 };
+  host.innerHTML = '';
+  const svg = d3.select(host).append('svg').attr('xmlns', 'http://www.w3.org/2000/svg').attr('viewBox', `0 0 ${W} ${H}`)
+    .attr('width', W).attr('height', H).attr('font-family', PAL.font).attr('font-size', 12).style('background', PAL.surface)
+    .attr('role', 'img').attr('aria-label', tituloPanel(cfg, res));
+  const banda = cfg.banda ?? false;
+  const vals = B.celdas.flatMap(c => c.v == null ? [] : banda ? [c.hi, c.v] : [c.v]);
+  const y = d3.scaleLinear().domain([0, Math.max(media ? 5 : 5, d3.max(vals) * 1.08)]).nice().range([H - m.b, m.t]);
+  const ejeX = sinCruce ? B.cats : B.grupos;
+  const x0 = d3.scaleBand().domain(ejeX).range([m.l, W - m.r]).paddingInner(sinCruce ? 0.3 : 0.18).paddingOuter(0.05);
+  const x1 = d3.scaleBand().domain(sinCruce ? ['_'] : B.cats).range([0, x0.bandwidth()]).padding(0.08);
+  const bw = Math.min(sinCruce ? 40 : 24, x1.bandwidth());
+  const axis = g => { g.selectAll('text').attr('fill', PAL.ink3).attr('font-size', 11); g.selectAll('line').attr('stroke', PAL.line2); g.selectAll('path').attr('stroke', PAL.line2); };
+  svg.append('g').attr('transform', `translate(${m.l},0)`)
+    .call(d3.axisLeft(y).ticks(Math.max(3, Math.round((H - m.t - m.b) / 55))).tickSize(-(W - m.l - m.r)).tickFormat(v => media ? fmt1(v) : fmtInt(v)))
+    .call(g => { axis(g); g.selectAll('.tick line').attr('stroke', PAL.line); g.select('.domain').remove(); });
+  const nomEje = sinCruce ? B.nomCat : B.nomGrupo;
+  const maxC = Math.max(4, Math.floor(x0.bandwidth() / 6.2));
+  svg.append('g').attr('transform', `translate(0,${H - m.b})`)
+    .call(d3.axisBottom(x0).tickSizeOuter(0).tickFormat(id => { const t = nomEje(id); return t.length > maxC ? t.slice(0, maxC - 1) + '…' : t; }))
+    .call(axis).call(g => g.selectAll('.tick').append('title').text(id => nomEje(id)));
+  const etiquetas = bw >= 20;
+  B.celdas.forEach(c => {
+    if (c.v == null) return;
+    const gx = sinCruce ? x0(c.cid) : x0(c.gid);
+    const xx = gx + (sinCruce ? x1('_') : x1(c.cid)) + (x1.bandwidth() - bw) / 2;
+    const g = svg.append('g');
+    g.append('rect').attr('x', xx).attr('y', y(c.v)).attr('width', bw).attr('height', Math.max(0, y(0) - y(c.v))).attr('fill', col[c.cid]);
+    if (banda && c.lo != null) {
+      g.append('line').attr('x1', xx + bw / 2).attr('x2', xx + bw / 2).attr('y1', y(c.lo)).attr('y2', y(c.hi)).attr('stroke', PAL.ink2).attr('stroke-width', 1);
+      [c.lo, c.hi].forEach(v => g.append('line').attr('x1', xx + bw / 2 - 3).attr('x2', xx + bw / 2 + 3).attr('y1', y(v)).attr('y2', y(v)).attr('stroke', PAL.ink2));
+    }
+    if (etiquetas) g.append('text').attr('x', xx + bw / 2).attr('y', y(banda ? c.hi : c.v) - 4).attr('text-anchor', 'middle').attr('font-size', 10)
+      .attr('fill', PAL.ink2).text(media ? fmt2(c.v) : fmt1(c.v));
+    g.append('rect').attr('x', gx + (sinCruce ? x1('_') : x1(c.cid))).attr('y', m.t).attr('width', Math.max(x1.bandwidth(), 8)).attr('height', H - m.b - m.t)
+      .attr('fill', 'transparent').attr('class', 'hit')
+      .on('pointermove', ev => showTip(`<b>${esc(sinCruce ? B.nomCat(c.cid) : B.nomGrupo(c.gid))}</b>` +
+        `<div class="r"><span><i class="sw" style="background:${col[c.cid]}"></i>${esc(B.nomCat(c.cid))}</span><span>${media ? fmt2(c.v) : fmt1(c.v) + ' %'}</span></div>` +
+        `<div class="tnote">Margen al 95 %: ${media ? fmt2(c.lo) : fmt1(c.lo)} a ${media ? fmt2(c.hi) : fmt1(c.hi)}. Base: ${fmtInt(c.n)} entrevistas.</div>`, ev))
+      .on('pointerleave', hideTip);
+  });
+  if (!sinCruce) ser.forEach((s, i) => {
+    const gx = 8 + (i % perRow) * colW, gy = 2 + Math.floor(i / perRow) * 18;
+    svg.append('rect').attr('x', gx).attr('y', gy + 2).attr('width', 10).attr('height', 10).attr('fill', col[s.id]);
+    svg.append('text').attr('x', gx + 16).attr('y', gy + 11).attr('fill', PAL.ink2).attr('font-size', 11.5)
+      .text(s.label.length > maxL ? s.label.slice(0, maxL - 1) + '…' : s.label).append('title').text(s.label);
+  });
+  svg.selectAll('text, line, rect:not(.hit)').attr('pointer-events', 'none');
+  const omitidos = B.celdas.filter(c => c.omit).length;
+  return { barras: B, ser, col, rup: [], omitidos };
+}
+
 /* ================= paneles ================= */
 let PANELES = [];
 let SEQ = 0;
@@ -467,6 +560,7 @@ const nuevoId = () => 'p' + (++SEQ);
 
 function tituloPanel(cfg, res) {
   const P = preg(cfg.preg);
+  if (cfg.tipo === 'barras') return cfg.cruce ? `${P.t}, por ${CRUCE_DE[cfg.cruce].toLowerCase()}` : P.t;
   if (!cfg.cruce) return P.t;
   const cat1 = res && res.cat1 ? res.cat1 : cfg.cat1;
   const nom = cat1 ? (P.tipo === 'medias' ? etiqueta(cat1, cat1) : etiqueta(P.cols[0], cat1)) : '';
@@ -477,7 +571,7 @@ function metaPanel(cfg, res) {
   const P = preg(cfg.preg);
   const f = res.filas;
   const ud = res.unidad === 'media' ? 'Media de 1 a 10' : P.tipo === 'multi' ? '% de entrevistados (hasta tres menciones)' : '% de entrevistados';
-  const per = f.length ? `${mesCorto(f[0].e.mes)} a ${mesCorto(f[f.length - 1].e.mes)}` : '';
+  const per = !f.length ? '' : cfg.tipo === 'barras' ? `${mesLargo(f[0].e.mes)} (estudio ${f[0].e.estudio})` : `${mesCorto(f[0].e.mes)} a ${mesCorto(f[f.length - 1].e.mes)}`;
   const fil = cfg.filtro ? `. Solo ${etiqueta(cfg.filtro.col, cfg.filtro.val)}` : '';
   const exn = cfg.exNR && res.unidad !== 'media' ? '. Sin NS/NC en la base' : '';
   return `${ud}. ${per}${fil}${exn}`;
@@ -525,8 +619,10 @@ async function renderPanel(el, cfg) {
   }
   el.classList.add('cargando');
   try {
-    const res = await calcular(cfg);
-    const out = dibujar(host, res, cfg);
+    const barras = cfg.tipo === 'barras';
+    const mesB = barras ? (cfg.mes && ESTI[cfg.mes] != null ? cfg.mes : EST[EST.length - 1].mes) : null;
+    const res = await calcular(barras ? { ...cfg, desde: mesB, hasta: mesB } : cfg);
+    const out = barras ? dibujarBarras(host, res, cfg) : dibujar(host, res, cfg);
     res.cat1 = out.cat1;
     h2.textContent = tituloPanel(cfg, res);
     meta.textContent = metaPanel(cfg, res);
@@ -536,7 +632,8 @@ async function renderPanel(el, cfg) {
     const vistas = new Set();
     const ns = out.rup.filter(r => !vistas.has(r.ruptura_id) && vistas.add(r.ruptura_id))
       .map(r => `<p class="note"><span class="rid">${esc(r.ruptura_id)}</span> (${esc(mesCorto(r.m))}, tipo ${esc(r.tipo)}): ${esc(breveRuptura(r.descripcion))}</p>`);
-    if (out.omitidos) ns.push(`<p class="note">${out.omitidos} ${out.omitidos === 1 ? 'punto omitido' : 'puntos omitidos'} por tener menos de ${MIN_N} entrevistas.</p>`);
+    if (out.barras) notasEstudio(cfg, res.filas[0].e.mes).forEach(t => ns.push(`<p class="note">${esc(t)}</p>`));
+    if (out.omitidos) ns.push(`<p class="note">${out.omitidos} ${out.barras ? (out.omitidos === 1 ? 'barra omitida' : 'barras omitidas') : (out.omitidos === 1 ? 'punto omitido' : 'puntos omitidos')} por tener menos de ${MIN_N} entrevistas.</p>`);
     notas.innerHTML = ns.join('');
     tabla.innerHTML = tablaHTML(out, res);
   } catch (e) {
@@ -547,6 +644,12 @@ async function renderPanel(el, cfg) {
 function tablaHTML(out, res) {
   const media = res.unidad === 'media';
   const f = media ? fmt2 : fmt1;
+  if (out.barras) {
+    const B = out.barras;
+    const val = (g, c) => { const x = B.celdas.find(d => d.gid === g && d.cid === c); return x.v != null ? f(x.v) : x.omit ? 'n < 50' : '—'; };
+    const nG = g => { const x = B.celdas.find(d => d.gid === g); return x ? fmtInt(x.n || 0) : ''; };
+    return `<table><thead><tr><th>${esc(res.cfg.cruce ? CRUCE_DE[res.cfg.cruce] : '')}</th>${B.cats.map(c => `<th>${esc(B.nomCat(c))}</th>`).join('')}${media ? '' : '<th>Base (n)</th>'}</tr></thead><tbody>${B.grupos.map(g => `<tr><td>${esc(B.nomGrupo(g))}</td>${B.cats.map(c => `<td>${val(g, c)}</td>`).join('')}${media ? '' : `<td>${nG(g)}</td>`}</tr>`).join('')}</tbody></table>`;
+  }
   const head = `<tr><th>Mes</th>${out.ser.map(s => `<th>${esc(s.label)}</th>`).join('')}${!res.cfg.cruce && !media ? '<th>Base (n)</th>' : ''}</tr>`;
   const rows = res.filas.map((fl, i) => `<tr><td>${esc(mesCorto(fl.e.mes))}</td>${out.ser.map(s => `<td>${s.pts[i].v != null ? f(s.pts[i].v) : s.pts[i].omit ? 'n < 50' : '—'}</td>`).join('')}${!res.cfg.cruce && !media ? `<td>${fmtInt(out.ser[0].pts[i].n || 0)}</td>` : ''}</tr>`).reverse();
   return `<table><thead>${head}</thead><tbody>${rows.join('')}</tbody></table>`;
@@ -561,9 +664,16 @@ function exportarCSV(el) {
   if (!el._res) return;
   const { out, res, cfg } = el._res;
   const q = s => `"${String(s).replace(/"/g, '""')}"`;
-  const lines = [['mes', 'estudio', 'serie', 'valor', 'margen_inferior', 'margen_superior', 'n_base'].join(',')];
-  out.ser.forEach(s => s.pts.forEach((p, i) => lines.push([res.filas[i].e.mes, res.filas[i].e.estudio, q(s.label),
-    p.v != null ? p.v.toFixed(3) : '', p.lo != null ? p.lo.toFixed(3) : '', p.hi != null ? p.hi.toFixed(3) : '', p.n ?? ''].join(','))));
+  const num = v => v != null ? v.toFixed(3) : '';
+  let lines;
+  if (out.barras) {
+    const B = out.barras, e = res.filas[0].e;
+    lines = [['mes', 'estudio', 'grupo', 'respuesta', 'valor', 'margen_inferior', 'margen_superior', 'n_base'].join(',')];
+    B.celdas.forEach(c => lines.push([e.mes, e.estudio, q(B.nomGrupo(c.gid)), q(B.nomCat(c.cid)), num(c.v), num(c.lo), num(c.hi), c.n ?? ''].join(',')));
+  } else {
+    lines = [['mes', 'estudio', 'serie', 'valor', 'margen_inferior', 'margen_superior', 'n_base'].join(',')];
+    out.ser.forEach(s => s.pts.forEach((p, i) => lines.push([res.filas[i].e.mes, res.filas[i].e.estudio, q(s.label), num(p.v), num(p.lo), num(p.hi), p.n ?? ''].join(','))));
+  }
   lines.push('', q(`${tituloPanel(cfg, res)}. ${metaPanel(cfg, res)}`), q('Fuente: CIS, barómetros mensuales (microdatos). Elaboración: Barómetros en el tiempo.'));
   descargar(slug(tituloPanel(cfg, res)) + '.csv', new Blob(['﻿' + lines.join('\n')], { type: 'text/csv;charset=utf-8' }));
 }
@@ -593,15 +703,24 @@ function rerender() { leerPaleta(); grid.querySelectorAll('.panel').forEach(el =
 
 /* ================= estado ================= */
 const limpio = p => { const { id, ...r } = p; return r; };
-function guardar() { try { localStorage.setItem('bet-paneles', JSON.stringify(PANELES.map(limpio))); } catch (e) { /* sin almacenamiento */ } }
+function guardar() { try { localStorage.setItem(CLAVE, JSON.stringify(PANELES.map(limpio))); } catch (e) { /* sin almacenamiento */ } }
 const b64e = s => btoa(unescape(encodeURIComponent(s))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 const b64d = s => decodeURIComponent(escape(atob(s.replace(/-/g, '+').replace(/_/g, '/'))));
 function cargarPaneles() {
   let ps = null;
   if (location.hash.startsWith('#p=')) { try { ps = JSON.parse(b64d(location.hash.slice(3))); } catch (e) { ps = null; } }
-  if (!ps) { try { ps = JSON.parse(localStorage.getItem('bet-paneles') || 'null'); } catch (e) { ps = null; } }
-  if (!Array.isArray(ps) || !ps.length) ps = META.veda ? DEFECTO_VEDA : DEFECTO;
+  if (!ps) { try { ps = JSON.parse(localStorage.getItem(CLAVE) || 'null'); } catch (e) { ps = null; } }
+  if (!Array.isArray(ps) || !ps.length) ps = defecto();
   PANELES = ps.filter(p => preg(p.preg)).map(p => ({ ...p, id: nuevoId() }));
+}
+// paneles de partida; las categorías indicadas por etiqueta se traducen a identificadores
+function defecto() {
+  return (META.veda ? DEFECTO_VEDA : DEFECTO).map(p => {
+    if (!p.catsEtq) return { ...p };
+    const inv = Object.fromEntries(Object.entries(LAB[p.preg] || {}).map(([id, et]) => [et, id]));
+    const { catsEtq, ...r } = p;
+    return { ...r, cats: catsEtq.map(e => inv[e]).filter(Boolean) };
+  });
 }
 
 /* ================= editor ================= */
@@ -619,81 +738,99 @@ function abrirEditor(cfg) {
 }
 async function pintarEditor() {
   const b = BORRADOR;
+  const barras = b.tipo === 'barras';
+  const ultMes = EST[EST.length - 1].mes;
   const grupos = [...new Set(PREG.map(p => p.g))];
   const optPreg = grupos.map(g => `<optgroup label="${esc(g)}">${PREG.filter(p => p.g === g && disponible(preg(p.id))).map(p => `<option value="${p.id}"${p.id === b.preg ? ' selected' : ''}>${esc(p.t)}</option>`).join('')}</optgroup>`).join('');
   const optCruce = `<option value="">Sin cruce</option>` + CRUCES.filter(([k]) => META.columnas[k] && k !== b.preg).map(([k, t]) => `<option value="${k}"${k === b.cruce ? ' selected' : ''}>${esc(t)}</option>`).join('');
   const optFiltro = `<option value="">Sin filtro</option>` + FILTROS.filter(([k]) => META.columnas[k]).map(([k, t]) => `<option value="${k}"${b.filtro && k === b.filtro.col ? ' selected' : ''}>${esc(t)}</option>`).join('');
   const valFiltro = b.filtro ? nivelesDe(b.filtro.col).filter(id => id !== 'NP').map(id => `<option value="${esc(id)}"${id === b.filtro.val ? ' selected' : ''}>${esc(etiqueta(b.filtro.col, id))}</option>`).join('') : '';
+  const periodo = barras
+    ? `<div class="fld"><label for="f-mes">Barómetro</label><select id="f-mes">${opcionesMes(b.mes || ultMes)}</select></div><div class="fld"></div>`
+    : `<div class="fld"><label for="f-desde">Desde</label><select id="f-desde">${opcionesMes(b.desde || EST[0].mes)}</select></div>
+       <div class="fld"><label for="f-hasta">Hasta</label><select id="f-hasta">${opcionesMes(b.hasta || ultMes)}</select></div>`;
   edb.innerHTML = `
     <div class="fld full"><label for="f-preg">Pregunta</label><select id="f-preg">${optPreg}</select></div>
-    <div class="fld"><label for="f-cruce">Cruzar por</label><select id="f-cruce">${optCruce}</select><span class="hint">Con cruce, cada línea es un grupo y se elige una sola respuesta.</span></div>
+    <div class="fld full"><label for="f-tipo">Tipo de gráfico</label><select id="f-tipo">
+      <option value="lineas"${barras ? '' : ' selected'}>Evolución mensual (líneas)</option>
+      <option value="barras"${barras ? ' selected' : ''}>Un barómetro (barras)</option></select></div>
+    <div class="fld"><label for="f-cruce">Cruzar por</label><select id="f-cruce">${optCruce}</select><span class="hint">${barras ? 'Con cruce, cada grupo es un bloque de barras.' : 'Con cruce, cada línea es un grupo y se elige una sola respuesta.'}</span></div>
     <div class="fld"><label for="f-filtro">Filtrar por</label><div class="row"><select id="f-filtro">${optFiltro}</select><select id="f-fval" ${b.filtro ? '' : 'hidden'} aria-label="Valor del filtro">${valFiltro}</select></div></div>
-    <div class="fld"><label for="f-desde">Desde</label><select id="f-desde">${opcionesMes(b.desde || EST[0].mes)}</select></div>
-    <div class="fld"><label for="f-hasta">Hasta</label><select id="f-hasta">${opcionesMes(b.hasta || EST[EST.length - 1].mes)}</select></div>
+    ${periodo}
     <div class="fld full" id="f-cats"><span class="lab">Respuestas</span><p class="hint">Calculando…</p></div>
     <div class="fld full"><span class="lab">Opciones</span>
       <label class="row"><input type="checkbox" id="f-exnr"${b.exNR ? ' checked' : ''}> Excluir de la base «no sabe», «no contesta» y «no recuerda»</label>
-      <label class="row"><input type="checkbox" id="f-banda"${(b.banda ?? !b.cruce) ? ' checked' : ''}> Mostrar el margen de error</label>
+      <label class="row"><input type="checkbox" id="f-banda"${(b.banda ?? (!b.cruce && !barras)) ? ' checked' : ''}> Mostrar el margen de error</label>
       <label class="row"><input type="checkbox" id="f-ancho"${b.ancho ? ' checked' : ''}> Panel a todo el ancho</label></div>`;
   const leer = () => {
     b.preg = $('#f-preg').value;
+    b.tipo = $('#f-tipo').value === 'barras' ? 'barras' : undefined;
     b.cruce = $('#f-cruce').value || null;
     const fc = $('#f-filtro').value;
     b.filtro = fc ? { col: fc, val: (b.filtro && b.filtro.col === fc ? $('#f-fval').value : null) || nivelesDe(fc).find(id => !NR.has(id)) } : null;
-    b.desde = $('#f-desde').value === EST[0].mes ? null : $('#f-desde').value;
-    b.hasta = $('#f-hasta').value === EST[EST.length - 1].mes ? null : $('#f-hasta').value;
+    if ($('#f-mes')) b.mes = $('#f-mes').value === ultMes ? null : $('#f-mes').value;
+    if ($('#f-desde')) {
+      b.desde = $('#f-desde').value === EST[0].mes ? null : $('#f-desde').value;
+      b.hasta = $('#f-hasta').value === ultMes ? null : $('#f-hasta').value;
+    }
     b.exNR = $('#f-exnr').checked; b.banda = $('#f-banda').checked; b.ancho = $('#f-ancho').checked;
   };
-  ['#f-preg', '#f-cruce', '#f-filtro', '#f-fval', '#f-desde', '#f-hasta', '#f-exnr'].forEach(s => $(s).addEventListener('change', ev => {
-    const antes = b.preg, cruceAntes = b.cruce;
+  ['#f-preg', '#f-tipo', '#f-cruce', '#f-filtro', '#f-fval', '#f-desde', '#f-hasta', '#f-mes', '#f-exnr'].forEach(sel => $(sel)?.addEventListener('change', () => {
+    const antes = b.preg, cruceAntes = b.cruce, tipoAntes = b.tipo;
     leer();
     if (b.preg !== antes) { b.cats = null; b.cat1 = null; if (b.cruce === b.preg) b.cruce = null; }
     if (b.cruce !== cruceAntes) b.gcats = null;
+    if (b.tipo !== tipoAntes) { b.banda = undefined; if (b.tipo === 'barras') b.ancho = b.ancho || !!b.cruce; }
     pintarEditor();
   }));
-  ['#f-banda', '#f-ancho'].forEach(s => $(s).addEventListener('change', leer));
-  // listas de respuestas y grupos con su último valor
+  ['#f-banda', '#f-ancho'].forEach(sel => $(sel).addEventListener('change', leer));
+  // listas de respuestas y grupos, con el último valor (o el del barómetro elegido)
   try {
-    const res = await calcular({ ...b, cats: null, gcats: null });
+    const mesB = barras ? (b.mes || ultMes) : null;
+    const base = { ...b, cats: null, gcats: null, ...(barras ? { desde: mesB, hasta: mesB } : {}) };
+    const res = await calcular(base);
     if (BORRADOR !== b) return;
     const P = res.P, media = res.unidad === 'media';
     const conc = P.cols[0];
-    const ult = id => ultimoCon(res, 0, id);
     const fmtv = v => v == null ? '' : media ? fmt2(v) : fmt1(v) + ' %';
-    // para el cálculo del último valor sin cruce
-    const resTot = b.cruce ? await calcular({ ...b, cruce: null, cats: null, gcats: null }) : res;
+    const resTot = b.cruce ? await calcular({ ...base, cruce: null }) : res;
+    if (BORRADOR !== b) return;
     const ultT = id => ultimoCon(resTot, 0, id);
     const orden = res.ids.filter(id => ultT(id) != null || media).sort((a, z) => (NR.has(a) - NR.has(z)) || ((ultT(z) ?? -1) - (ultT(a) ?? -1)));
     const nom = id => media ? etiqueta(id, id) : etiqueta(conc, id);
     const box = $('#f-cats');
-    if (!b.cruce) {
+    const listaCats = sel => `<input type="search" id="f-buscar" placeholder="Buscar" aria-label="Buscar respuesta">
+        <div class="chks" id="chk-cats">${orden.map(id => `<label><input type="checkbox" value="${esc(id)}"${sel.has(id) ? ' checked' : ''}> ${esc(nom(id))}<span class="v">${fmtv(ultT(id))}</span></label>`).join('')}</div>
+        <span class="hint">A la derecha, ${barras ? 'el valor en ese barómetro' : 'el último valor disponible'} de cada respuesta.</span>`;
+    const listaGrupos = gsel => `<span class="lab" style="margin-top:8px">Grupos de ${esc(CRUCE_DE[b.cruce].toLowerCase())} (hasta ${MAX_SERIES})</span>
+        <div class="chks" id="chk-grupos">${ordenMeta(b.cruce, res.glev.filter(id => id !== 'NP')).map(id => `<label><input type="checkbox" value="${esc(id)}"${gsel.has(id) ? ' checked' : ''}> ${esc(etiqueta(b.cruce, id))}</label>`).join('')}</div>`;
+    if (barras || !b.cruce) {
       const sel = new Set(b.cats && b.cats.length ? b.cats : catsDefecto(resTot));
-      box.innerHTML = `<span class="lab">Respuestas (hasta ${MAX_SERIES})</span><input type="search" id="f-buscar" placeholder="Buscar" aria-label="Buscar respuesta">
-        <div class="chks">${orden.map(id => `<label><input type="checkbox" value="${esc(id)}"${sel.has(id) ? ' checked' : ''}> ${esc(nom(id))}<span class="v">${fmtv(ultT(id))}</span></label>`).join('')}</div>
-        <span class="hint">A la derecha, el último valor disponible de cada respuesta.</span>`;
+      box.innerHTML = `<span class="lab">Respuestas (hasta ${MAX_SERIES})</span>` + listaCats(sel) + (barras && b.cruce ? listaGrupos(new Set(b.gcats && b.gcats.length ? b.gcats : gruposDefecto(res))) : '');
     } else {
       const c1 = b.cat1 && res.ids.includes(b.cat1) ? b.cat1 : catsDefecto(resTot)[0];
-      const gsel = new Set(b.gcats && b.gcats.length ? b.gcats : gruposDefecto(res, c1));
-      box.innerHTML = `<span class="lab">Respuesta</span><select id="f-cat1">${orden.map(id => `<option value="${esc(id)}"${id === c1 ? ' selected' : ''}>${esc(nom(id))}${ultT(id) != null ? ' (' + fmtv(ultT(id)) + ')' : ''}</option>`).join('')}</select>
-        <span class="lab" style="margin-top:8px">Grupos de ${esc(CRUCE_DE[b.cruce].toLowerCase())} (hasta ${MAX_SERIES})</span>
-        <div class="chks">${ordenMeta(b.cruce, res.glev.filter(id => id !== 'NP')).map(id => `<label><input type="checkbox" value="${esc(id)}"${gsel.has(id) ? ' checked' : ''}> ${esc(etiqueta(b.cruce, id))}</label>`).join('')}</div>`;
+      box.innerHTML = `<span class="lab">Respuesta</span><select id="f-cat1">${orden.map(id => `<option value="${esc(id)}"${id === c1 ? ' selected' : ''}>${esc(nom(id))}${ultT(id) != null ? ' (' + fmtv(ultT(id)) + ')' : ''}</option>`).join('')}</select>` +
+        listaGrupos(new Set(b.gcats && b.gcats.length ? b.gcats : gruposDefecto(res)));
     }
     const busc = $('#f-buscar');
     if (busc) busc.addEventListener('input', () => {
       const q = slug(busc.value);
-      box.querySelectorAll('.chks label').forEach(l => { l.hidden = q && !slug(l.textContent).includes(q); });
+      box.querySelectorAll('#chk-cats label').forEach(l => { l.hidden = q && !slug(l.textContent).includes(q); });
     });
   } catch (e) { $('#f-cats').innerHTML = `<p class="err">${esc(e.message)}</p>`; }
 }
 $('#ed-ok').addEventListener('click', () => {
   const b = BORRADOR;
-  const box = $('#f-cats');
-  const marcadas = [...box.querySelectorAll('.chks input:checked')].map(i => i.value);
-  if (marcadas.length > MAX_SERIES) { $('#ed-err').textContent = `Marca como máximo ${MAX_SERIES}.`; return; }
-  if (!marcadas.length) { $('#ed-err').textContent = 'Marca al menos una opción.'; return; }
-  if (b.cruce) { b.gcats = marcadas; b.cat1 = $('#f-cat1')?.value || null; b.cats = null; }
-  else { b.cats = marcadas; b.gcats = null; b.cat1 = null; }
-  if (b.desde && b.hasta && b.desde > b.hasta) { $('#ed-err').textContent = 'El mes inicial es posterior al final.'; return; }
+  const marc = sel => [...document.querySelectorAll(sel + ' input:checked')].map(i => i.value);
+  const cats = marc('#chk-cats'), gcats = marc('#chk-grupos');
+  const err = t => { $('#ed-err').textContent = t; };
+  if (cats.length > MAX_SERIES || gcats.length > MAX_SERIES) return err(`Marca como máximo ${MAX_SERIES} en cada lista.`);
+  if ($('#chk-cats') && !cats.length) return err('Marca al menos una respuesta.');
+  if ($('#chk-grupos') && !gcats.length) return err('Marca al menos un grupo.');
+  if (b.desde && b.hasta && b.desde > b.hasta) return err('El mes inicial es posterior al final.');
+  b.cats = $('#chk-cats') ? cats : null;
+  b.gcats = $('#chk-grupos') ? gcats : null;
+  b.cat1 = $('#f-cat1')?.value || null;
   if (EDITANDO) { const i = PANELES.findIndex(p => p.id === EDITANDO); PANELES[i] = { ...b, id: EDITANDO }; }
   else PANELES.unshift({ ...b, id: nuevoId() });
   guardar(); ed.close(); renderTodo();
@@ -742,7 +879,7 @@ document.querySelectorAll('#tema button').forEach(b => b.addEventListener('click
 document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => pestana(b.dataset.tab)));
 document.querySelectorAll('[data-goto]').forEach(a => a.addEventListener('click', ev => { ev.preventDefault(); pestana(a.dataset.goto); scrollTo(0, 0); }));
 $('#b-add').addEventListener('click', () => abrirEditor(null));
-$('#b-reset').addEventListener('click', () => { PANELES = (META.veda ? DEFECTO_VEDA : DEFECTO).map(p => ({ ...p, id: nuevoId() })); try { localStorage.removeItem('bet-paneles'); } catch (e) { /* */ } history.replaceState(null, '', location.pathname); renderTodo(); });
+$('#b-reset').addEventListener('click', () => { PANELES = defecto().map(p => ({ ...p, id: nuevoId() })); try { localStorage.removeItem(CLAVE); } catch (e) { /* */ } history.replaceState(null, '', location.pathname); renderTodo(); });
 $('#b-link').addEventListener('click', async ev => {
   const url = location.origin + location.pathname + '#p=' + b64e(JSON.stringify(PANELES.map(limpio)));
   history.replaceState(null, '', url);

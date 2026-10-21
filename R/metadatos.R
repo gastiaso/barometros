@@ -52,9 +52,10 @@ construir_metadatos <- function(d, canon, insumos, lecturas) {
     edad_g = list(etiqueta = "Edad (6 grupos)", base = "edad")
   )
   cols <- setdiff(names(d), c("estudio", "mes", "peso", "peso_ccaa"))
-  lideres <- grep("^lider_", cols, value = TRUE)
-  nom_lider <- insumos$lideres |> dplyr::distinct(lider_norm, lider) |>
-    dplyr::mutate(id = paste0("lider_", gsub(" ", "_", lider_norm)))
+  lideres <- grep("^(lider|ministro)_", cols, value = TRUE)
+  nom_lider <- dplyr::bind_rows(
+    insumos$lideres |> dplyr::distinct(lider_norm, lider) |> dplyr::transmute(id = paste0("lider_", gsub(" ", "_", lider_norm)), lider),
+    insumos$ministros |> dplyr::distinct(id, lider = ministro))
   conceptos <- purrr::map(stats::setNames(cols, cols), \(k) {
     base <- if (k %in% names(derivados)) derivados[[k]]$base else k
     fila <- dplyr::filter(conc, concepto == base)

@@ -205,7 +205,7 @@ estudio,mes,concepto,variable,codigo,etiqueta,partido_armonizado,es_no_respuesta
 3307,2021-01,voto_simpatia,VOTOSIMG,77,Voto nulo,NULO,False
 3307,2021-01,voto_simpatia,VOTOSIMG,95,Otro partido,OTRO,False
 3307,2021-01,voto_simpatia,VOTOSIMG,96,En blanco,BLANCO,False
-3307,2021-01,voto_simpatia,VOTOSIMG,97,No votaría,NO_VOTARIA,False
+3307,2021-01,voto_simpatia,VOTOSIMG,97,No votaría,NO_VOTA_NINGUNO,False
 3307,2021-01,voto_simpatia,VOTOSIMG,98,No sabe todavía,NS,True
 3307,2021-01,voto_simpatia,VOTOSIMG,99,N.C.,NC,True
 3307,2021-01,simpatia,SIMPATIA,1,PP,PP,False
@@ -580,7 +580,7 @@ estudio,mes,concepto,variable,codigo,etiqueta,partido_armonizado,es_no_respuesta
 3309,2021-02,voto_simpatia,VOTOSIMG,77,Voto nulo,NULO,False
 3309,2021-02,voto_simpatia,VOTOSIMG,95,Otro partido,OTRO,False
 3309,2021-02,voto_simpatia,VOTOSIMG,96,En blanco,BLANCO,False
-3309,2021-02,voto_simpatia,VOTOSIMG,97,No votaría,NO_VOTARIA,False
+3309,2021-02,voto_simpatia,VOTOSIMG,97,No votaría,NO_VOTA_NINGUNO,False
 3309,2021-02,voto_simpatia,VOTOSIMG,98,No sabe todavía,NS,True
 3309,2021-02,voto_simpatia,VOTOSIMG,99,N.C.,NC,True
 3309,2021-02,simpatia,SIMPATIA,0,No procede,NP,True
@@ -969,7 +969,7 @@ estudio,mes,concepto,variable,codigo,etiqueta,partido_armonizado,es_no_respuesta
 3313,2021-03,voto_simpatia,VOTOSIMG,77,Voto nulo,NULO,False
 3313,2021-03,voto_simpatia,VOTOSIMG,95,Otro partido,OTRO,False
 3313,2021-03,voto_simpatia,VOTOSIMG,96,En blanco,BLANCO,False
-3313,2021-03,voto_simpatia,VOTOSIMG,97,No votaría,NO_VOTARIA,False
+3313,2021-03,voto_simpatia,VOTOSIMG,97,No votaría,NO_VOTA_NINGUNO,False
 3313,2021-03,voto_simpatia,VOTOSIMG,98,No sabe todavía,NS,True
 3313,2021-03,voto_simpatia,VOTOSIMG,99,N.C.,NC,True
 3313,2021-03,simpatia,SIMPATIA,0,No procede,NP,True
@@ -1314,7 +1314,7 @@ estudio,mes,concepto,variable,codigo,etiqueta,partido_armonizado,es_no_respuesta
 3318,2021-04,voto_simpatia,VOTOSIMG,77,Voto nulo,NULO,False
 3318,2021-04,voto_simpatia,VOTOSIMG,95,Otro partido,OTRO,False
 3318,2021-04,voto_simpatia,VOTOSIMG,96,En blanco,BLANCO,False
-3318,2021-04,voto_simpatia,VOTOSIMG,97,No votaría,NO_VOTARIA,False
+3318,2021-04,voto_simpatia,VOTOSIMG,97,No votaría,NO_VOTA_NINGUNO,False
 3318,2021-04,voto_simpatia,VOTOSIMG,98,No sabe todavía,NS,True
 3318,2021-04,voto_simpatia,VOTOSIMG,99,N.C.,NC,True
 3318,2021-04,simpatia,SIMPATIA,0,N.P.,NP,True
@@ -1642,7 +1642,7 @@ estudio,mes,concepto,variable,codigo,etiqueta,partido_armonizado,es_no_respuesta
 3322,2021-05,voto_simpatia,VOTOSIMG,77,Voto nulo,NULO,False
 3322,2021-05,voto_simpatia,VOTOSIMG,95,Otro partido,OTRO,False
 3322,2021-05,voto_simpatia,VOTOSIMG,96,En blanco,BLANCO,False
-3322,2021-05,voto_simpatia,VOTOSIMG,97,No votaría,NO_VOTARIA,False
+3322,2021-05,voto_simpatia,VOTOSIMG,97,No votaría,NO_VOTA_NINGUNO,False
 3322,2021-05,voto_simpatia,VOTOSIMG,98,No sabe todavía,NS,True
 3322,2021-05,voto_simpatia,VOTOSIMG,99,N.C.,NC,True
 3322,2021-05,simpatia,SIMPATIA,0,N.P.,NP,True
@@ -2052,7 +2052,7 @@ estudio,mes,concepto,variable,codigo,etiqueta,partido_armonizado,es_no_respuesta
 3326,2021-06,voto_simpatia,VOTOSIMG,77,Voto nulo,NULO,False
 3326,2021-06,voto_simpatia,VOTOSIMG,95,Otro partido,OTRO,False
 3326,2021-06,voto_simpatia,VOTOSIMG,96,En blanco,BLANCO,False
-3326,2021-06,voto_simpatia,VOTOSIMG,97,No votaría,NO_VOTARIA,False
+3326,2021-06,voto_simpatia,VOTOSIMG,97,No votaría,NO_VOTA_NINGUNO,False
 3326,2021-06,voto_simpatia,VOTOSIMG,98,No sabe todavía,NS,True
 3326,2021-06,voto_simpatia,VOTOSIMG,99,N.C.,NC,True
 3326,2021-06,simpatia,SIMPATIA,0,N.P.,NP,True
@@ -2474,7 +2474,7 @@ estudio,mes,concepto,variable,codigo,etiqueta,partido_armonizado,es_no_respuesta
 3330,2021-07,voto_simpatia,VOTOSIMG,77,Voto nulo,NULO,False
 3330,2021-07,voto_simpatia,VOTOSIMG,95,Otro partido,OTRO,False
 3330,2021-07,voto_simpatia,VOTOSIMG,96,En blanco,BLANCO,False
-3330,2021-07,voto_simpatia,VOTOSIMG,97,No votaría,NO_VOTARIA,False
+3330,2021-07,voto_simpatia,VOTOSIMG,97,No votaría,NO_VOTA_NINGUNO,False
 3330,2021-07,voto_simpatia,VOTOSIMG,98,No sabe todavía,NS,True
 3330,2021-07,voto_simpatia,VOTOSIMG,99,N.C.,NC,True
 3330,2021-07,simpatia,SIMPATIA,0,N.P.,NP,True
@@ -2889,7 +2889,7 @@ estudio,mes,concepto,variable,codigo,etiqueta,partido_armonizado,es_no_respuesta
 3334,2021-09,voto_simpatia,VOTOSIMG,77,Voto nulo,NULO,False
 3334,2021-09,voto_simpatia,VOTOSIMG,95,Otro partido,OTRO,False
 3334,2021-09,voto_simpatia,VOTOSIMG,96,En blanco,BLANCO,False
-3334,2021-09,voto_simpatia,VOTOSIMG,97,No votaría,NO_VOTARIA,False
+3334,2021-09,voto_simpatia,VOTOSIMG,97,No votaría,NO_VOTA_NINGUNO,False
 3334,2021-09,voto_simpatia,VOTOSIMG,98,No sabe todavía,NS,True
 3334,2021-09,voto_simpatia,VOTOSIMG,99,N.C.,NC,True
 3334,2021-09,simpatia,SIMPATIA,-99,N.P.,NP,True
@@ -3305,7 +3305,7 @@ estudio,mes,concepto,variable,codigo,etiqueta,partido_armonizado,es_no_respuesta
 3337,2021-10,voto_simpatia,VOTOSIMG,77,Voto nulo,NULO,False
 3337,2021-10,voto_simpatia,VOTOSIMG,95,Otro partido,OTRO,False
 3337,2021-10,voto_simpatia,VOTOSIMG,96,En blanco,BLANCO,False
-3337,2021-10,voto_simpatia,VOTOSIMG,97,No votaría,NO_VOTARIA,False
+3337,2021-10,voto_simpatia,VOTOSIMG,97,No votaría,NO_VOTA_NINGUNO,False
 3337,2021-10,voto_simpatia,VOTOSIMG,98,No sabe todavía,NS,True
 3337,2021-10,voto_simpatia,VOTOSIMG,99,N.C.,NC,True
 3337,2021-10,simpatia,SIMPATIA,0,N.P.,NP,True
@@ -3766,7 +3766,7 @@ estudio,mes,concepto,variable,codigo,etiqueta,partido_armonizado,es_no_respuesta
 3340,2021-11,voto_simpatia,VOTOSIMG,77,Voto nulo,NULO,False
 3340,2021-11,voto_simpatia,VOTOSIMG,95,Otro partido,OTRO,False
 3340,2021-11,voto_simpatia,VOTOSIMG,96,En blanco,BLANCO,False
-3340,2021-11,voto_simpatia,VOTOSIMG,97,No votaría,NO_VOTARIA,False
+3340,2021-11,voto_simpatia,VOTOSIMG,97,No votaría,NO_VOTA_NINGUNO,False
 3340,2021-11,voto_simpatia,VOTOSIMG,98,No sabe todavía,NS,True
 3340,2021-11,voto_simpatia,VOTOSIMG,99,N.C.,NC,True
 3340,2021-11,simpatia,SIMPATIA,0,N.P.,NP,True
@@ -4180,7 +4180,7 @@ estudio,mes,concepto,variable,codigo,etiqueta,partido_armonizado,es_no_respuesta
 3344,2021-12,voto_simpatia,VOTOSIMG,77,Voto nulo,NULO,False
 3344,2021-12,voto_simpatia,VOTOSIMG,95,Otro partido,OTRO,False
 3344,2021-12,voto_simpatia,VOTOSIMG,96,En blanco,BLANCO,False
-3344,2021-12,voto_simpatia,VOTOSIMG,97,No votaría,NO_VOTARIA,False
+3344,2021-12,voto_simpatia,VOTOSIMG,97,No votaría,NO_VOTA_NINGUNO,False
 3344,2021-12,voto_simpatia,VOTOSIMG,98,No sabe todavía,NS,True
 3344,2021-12,voto_simpatia,VOTOSIMG,99,N.C.,NC,True
 3344,2021-12,simpatia,SIMPATIA,0,N.P.,NP,True
@@ -4634,7 +4634,7 @@ estudio,mes,concepto,variable,codigo,etiqueta,partido_armonizado,es_no_respuesta
 3347,2022-01,voto_simpatia,VOTOSIMG,77,Voto nulo,NULO,False
 3347,2022-01,voto_simpatia,VOTOSIMG,95,Otro partido,OTRO,False
 3347,2022-01,voto_simpatia,VOTOSIMG,96,En blanco,BLANCO,False
-3347,2022-01,voto_simpatia,VOTOSIMG,97,No votaría,NO_VOTARIA,False
+3347,2022-01,voto_simpatia,VOTOSIMG,97,No votaría,NO_VOTA_NINGUNO,False
 3347,2022-01,voto_simpatia,VOTOSIMG,98,No sabe todavía,NS,True
 3347,2022-01,voto_simpatia,VOTOSIMG,99,N.C.,NC,True
 3347,2022-01,simpatia,SIMPATIA,0,N.P.,NP,True
@@ -5051,7 +5051,7 @@ estudio,mes,concepto,variable,codigo,etiqueta,partido_armonizado,es_no_respuesta
 3351,2022-02,voto_simpatia,VOTOSIMG,77,Voto nulo,NULO,False
 3351,2022-02,voto_simpatia,VOTOSIMG,95,Otro partido,OTRO,False
 3351,2022-02,voto_simpatia,VOTOSIMG,96,En blanco,BLANCO,False
-3351,2022-02,voto_simpatia,VOTOSIMG,97,No votaría,NO_VOTARIA,False
+3351,2022-02,voto_simpatia,VOTOSIMG,97,No votaría,NO_VOTA_NINGUNO,False
 3351,2022-02,voto_simpatia,VOTOSIMG,98,No sabe todavía,NS,True
 3351,2022-02,voto_simpatia,VOTOSIMG,99,N.C.,NC,True
 3351,2022-02,simpatia,SIMPATIA,0,N.P.,NP,True
@@ -5485,7 +5485,7 @@ estudio,mes,concepto,variable,codigo,etiqueta,partido_armonizado,es_no_respuesta
 3355,2022-03,voto_simpatia,VOTOSIMG,77,Voto nulo,NULO,False
 3355,2022-03,voto_simpatia,VOTOSIMG,95,Otro partido,OTRO,False
 3355,2022-03,voto_simpatia,VOTOSIMG,96,En blanco,BLANCO,False
-3355,2022-03,voto_simpatia,VOTOSIMG,97,No votaría,NO_VOTARIA,False
+3355,2022-03,voto_simpatia,VOTOSIMG,97,No votaría,NO_VOTA_NINGUNO,False
 3355,2022-03,voto_simpatia,VOTOSIMG,98,No sabe todavía,NS,True
 3355,2022-03,voto_simpatia,VOTOSIMG,99,N.C.,NC,True
 3355,2022-03,simpatia,SIMPATIA,0,No procede,NP,True
@@ -5942,7 +5942,7 @@ estudio,mes,concepto,variable,codigo,etiqueta,partido_armonizado,es_no_respuesta
 3359,2022-04,voto_simpatia,VOTOSIMG,77,Voto nulo,NULO,False
 3359,2022-04,voto_simpatia,VOTOSIMG,95,Otro partido,OTRO,False
 3359,2022-04,voto_simpatia,VOTOSIMG,96,En blanco,BLANCO,False
-3359,2022-04,voto_simpatia,VOTOSIMG,97,No votaría,NO_VOTARIA,False
+3359,2022-04,voto_simpatia,VOTOSIMG,97,No votaría,NO_VOTA_NINGUNO,False
 3359,2022-04,voto_simpatia,VOTOSIMG,98,No sabe todavía,NS,True
 3359,2022-04,voto_simpatia,VOTOSIMG,99,N.C.,NC,True
 3359,2022-04,simpatia,SIMPATIA,0,No procede,NP,True
@@ -6407,7 +6407,7 @@ estudio,mes,concepto,variable,codigo,etiqueta,partido_armonizado,es_no_respuesta
 3363,2022-05,voto_simpatia,VOTOSIMG,77,Voto nulo,NULO,False
 3363,2022-05,voto_simpatia,VOTOSIMG,95,Otro partido,OTRO,False
 3363,2022-05,voto_simpatia,VOTOSIMG,96,En blanco,BLANCO,False
-3363,2022-05,voto_simpatia,VOTOSIMG,97,No votaría,NO_VOTARIA,False
+3363,2022-05,voto_simpatia,VOTOSIMG,97,No votaría,NO_VOTA_NINGUNO,False
 3363,2022-05,voto_simpatia,VOTOSIMG,98,No sabe todavía,NS,True
 3363,2022-05,voto_simpatia,VOTOSIMG,99,N.C.,NC,True
 3363,2022-05,simpatia,SIMPATIA,0,No procede,NP,True
@@ -6884,7 +6884,7 @@ estudio,mes,concepto,variable,codigo,etiqueta,partido_armonizado,es_no_respuesta
 3366,2022-06,voto_simpatia,VOTOSIMG,977,Voto nulo,NULO,False
 3366,2022-06,voto_simpatia,VOTOSIMG,995,Otro partido,OTRO,False
 3366,2022-06,voto_simpatia,VOTOSIMG,996,En blanco,BLANCO,False
-3366,2022-06,voto_simpatia,VOTOSIMG,997,No votaría,NO_VOTARIA,False
+3366,2022-06,voto_simpatia,VOTOSIMG,997,No votaría,NO_VOTA_NINGUNO,False
 3366,2022-06,voto_simpatia,VOTOSIMG,998,No sabe todavía,NS,True
 3366,2022-06,voto_simpatia,VOTOSIMG,999,N.C.,NC,True
 3366,2022-06,simpatia,SIMPATIA,0,No procede,NP,True
@@ -7369,7 +7369,7 @@ estudio,mes,concepto,variable,codigo,etiqueta,partido_armonizado,es_no_respuesta
 3371,2022-07,voto_simpatia,VOTOSIMG,977,Voto nulo,NULO,False
 3371,2022-07,voto_simpatia,VOTOSIMG,995,Otro partido,OTRO,False
 3371,2022-07,voto_simpatia,VOTOSIMG,996,En blanco,BLANCO,False
-3371,2022-07,voto_simpatia,VOTOSIMG,997,No votaría,NO_VOTARIA,False
+3371,2022-07,voto_simpatia,VOTOSIMG,997,No votaría,NO_VOTA_NINGUNO,False
 3371,2022-07,voto_simpatia,VOTOSIMG,998,No sabe todavía,NS,True
 3371,2022-07,voto_simpatia,VOTOSIMG,999,N.C.,NC,True
 3371,2022-07,simpatia,SIMPATIA,0,N.P.,NP,True
@@ -7854,7 +7854,7 @@ estudio,mes,concepto,variable,codigo,etiqueta,partido_armonizado,es_no_respuesta
 3375,2022-09,voto_simpatia,VOTOSIMG,977,Voto nulo,NULO,False
 3375,2022-09,voto_simpatia,VOTOSIMG,995,Otro partido,OTRO,False
 3375,2022-09,voto_simpatia,VOTOSIMG,996,En blanco,BLANCO,False
-3375,2022-09,voto_simpatia,VOTOSIMG,997,No votaría,NO_VOTARIA,False
+3375,2022-09,voto_simpatia,VOTOSIMG,997,No votaría,NO_VOTA_NINGUNO,False
 3375,2022-09,voto_simpatia,VOTOSIMG,998,No sabe todavía,NS,True
 3375,2022-09,voto_simpatia,VOTOSIMG,999,N.C.,NC,True
 3375,2022-09,simpatia,SIMPATIA,0,No procede,NP,True
@@ -8341,7 +8341,7 @@ estudio,mes,concepto,variable,codigo,etiqueta,partido_armonizado,es_no_respuesta
 3380,2022-10,voto_simpatia,VOTOSIMG,8995,Otros partidos,OTRO,False
 3380,2022-10,voto_simpatia,VOTOSIMG,8996,En blanco,BLANCO,False
 3380,2022-10,voto_simpatia,VOTOSIMG,9977,Nulo,NULO,False
-3380,2022-10,voto_simpatia,VOTOSIMG,9997,No votaría,NO_VOTARIA,False
+3380,2022-10,voto_simpatia,VOTOSIMG,9997,No votaría,NO_VOTA_NINGUNO,False
 3380,2022-10,voto_simpatia,VOTOSIMG,9998,No sabe todavía,NS,True
 3380,2022-10,voto_simpatia,VOTOSIMG,9999,N.C.,NC,True
 3380,2022-10,simpatia,SIMPATIA,0,No procede,NP,True
@@ -8833,7 +8833,7 @@ estudio,mes,concepto,variable,codigo,etiqueta,partido_armonizado,es_no_respuesta
 3384,2022-11,voto_simpatia,VOTOSIMG,8995,Otros partidos,OTRO,False
 3384,2022-11,voto_simpatia,VOTOSIMG,8996,En blanco,BLANCO,False
 3384,2022-11,voto_simpatia,VOTOSIMG,9977,Nulo,NULO,False
-3384,2022-11,voto_simpatia,VOTOSIMG,9997,No votaría,NO_VOTARIA,False
+3384,2022-11,voto_simpatia,VOTOSIMG,9997,No votaría,NO_VOTA_NINGUNO,False
 3384,2022-11,voto_simpatia,VOTOSIMG,9998,No sabe todavía,NS,True
 3384,2022-11,voto_simpatia,VOTOSIMG,9999,N.C.,NC,True
 3384,2022-11,simpatia,SIMPATIA,0,No procede,NP,True
@@ -9324,7 +9324,7 @@ estudio,mes,concepto,variable,codigo,etiqueta,partido_armonizado,es_no_respuesta
 3388,2022-12,voto_simpatia,VOTOSIMG,8995,Otros partidos,OTRO,False
 3388,2022-12,voto_simpatia,VOTOSIMG,8996,En blanco,BLANCO,False
 3388,2022-12,voto_simpatia,VOTOSIMG,9977,Nulo,NULO,False
-3388,2022-12,voto_simpatia,VOTOSIMG,9997,No votaría,NO_VOTARIA,False
+3388,2022-12,voto_simpatia,VOTOSIMG,9997,No votaría,NO_VOTA_NINGUNO,False
 3388,2022-12,voto_simpatia,VOTOSIMG,9998,No sabe todavía,NS,True
 3388,2022-12,voto_simpatia,VOTOSIMG,9999,N.C.,NC,True
 3388,2022-12,simpatia,SIMPATIA,0,No procede,NP,True
@@ -9817,7 +9817,7 @@ estudio,mes,concepto,variable,codigo,etiqueta,partido_armonizado,es_no_respuesta
 3390,2023-01,voto_simpatia,VOTOSIMG,8995,Otros partidos,OTRO,False
 3390,2023-01,voto_simpatia,VOTOSIMG,8996,En blanco,BLANCO,False
 3390,2023-01,voto_simpatia,VOTOSIMG,9977,Nulo,NULO,False
-3390,2023-01,voto_simpatia,VOTOSIMG,9997,No votaría,NO_VOTARIA,False
+3390,2023-01,voto_simpatia,VOTOSIMG,9997,No votaría,NO_VOTA_NINGUNO,False
 3390,2023-01,voto_simpatia,VOTOSIMG,9998,No sabe todavía,NS,True
 3390,2023-01,voto_simpatia,VOTOSIMG,9999,N.C.,NC,True
 3390,2023-01,simpatia,SIMPATIA,1,PSOE,PSOE,False
@@ -10310,7 +10310,7 @@ estudio,mes,concepto,variable,codigo,etiqueta,partido_armonizado,es_no_respuesta
 3395,2023-02,voto_simpatia,VOTOSIMG,8995,Otros partidos,OTRO,False
 3395,2023-02,voto_simpatia,VOTOSIMG,8996,En blanco,BLANCO,False
 3395,2023-02,voto_simpatia,VOTOSIMG,9977,Nulo,NULO,False
-3395,2023-02,voto_simpatia,VOTOSIMG,9997,No votaría,NO_VOTARIA,False
+3395,2023-02,voto_simpatia,VOTOSIMG,9997,No votaría,NO_VOTA_NINGUNO,False
 3395,2023-02,voto_simpatia,VOTOSIMG,9998,No sabe todavía,NS,True
 3395,2023-02,voto_simpatia,VOTOSIMG,9999,N.C.,NC,True
 3395,2023-02,simpatia,SIMPATIA,1,PSOE,PSOE,False
@@ -10803,7 +10803,7 @@ estudio,mes,concepto,variable,codigo,etiqueta,partido_armonizado,es_no_respuesta
 3398,2023-03,voto_simpatia,VOTOSIMG,8995,Otros partidos,OTRO,False
 3398,2023-03,voto_simpatia,VOTOSIMG,8996,En blanco,BLANCO,False
 3398,2023-03,voto_simpatia,VOTOSIMG,9977,Nulo,NULO,False
-3398,2023-03,voto_simpatia,VOTOSIMG,9997,No votaría,NO_VOTARIA,False
+3398,2023-03,voto_simpatia,VOTOSIMG,9997,No votaría,NO_VOTA_NINGUNO,False
 3398,2023-03,voto_simpatia,VOTOSIMG,9998,No sabe todavía,NS,True
 3398,2023-03,voto_simpatia,VOTOSIMG,9999,N.C.,NC,True
 3398,2023-03,simpatia,SIMPATIA,1,PSOE,PSOE,False
@@ -11303,7 +11303,7 @@ estudio,mes,concepto,variable,codigo,etiqueta,partido_armonizado,es_no_respuesta
 3403,2023-04,voto_simpatia,VOTOSIMG,8995,Otros partidos,OTRO,False
 3403,2023-04,voto_simpatia,VOTOSIMG,8996,En blanco,BLANCO,False
 3403,2023-04,voto_simpatia,VOTOSIMG,9977,Nulo,NULO,False
-3403,2023-04,voto_simpatia,VOTOSIMG,9997,No votaría,NO_VOTARIA,False
+3403,2023-04,voto_simpatia,VOTOSIMG,9997,No votaría,NO_VOTA_NINGUNO,False
 3403,2023-04,voto_simpatia,VOTOSIMG,9998,No sabe todavía,NS,True
 3403,2023-04,voto_simpatia,VOTOSIMG,9999,N.C.,NC,True
 3403,2023-04,simpatia,SIMPATIA,1,PSOE,PSOE,False
@@ -11817,7 +11817,7 @@ estudio,mes,concepto,variable,codigo,etiqueta,partido_armonizado,es_no_respuesta
 3405,2023-05,voto_simpatia,VOTOSIMG,8995,Otros partidos,OTRO,False
 3405,2023-05,voto_simpatia,VOTOSIMG,8996,En blanco,BLANCO,False
 3405,2023-05,voto_simpatia,VOTOSIMG,9977,Nulo,NULO,False
-3405,2023-05,voto_simpatia,VOTOSIMG,9997,No votaría,NO_VOTARIA,False
+3405,2023-05,voto_simpatia,VOTOSIMG,9997,No votaría,NO_VOTA_NINGUNO,False
 3405,2023-05,voto_simpatia,VOTOSIMG,9998,No sabe todavía,NS,True
 3405,2023-05,voto_simpatia,VOTOSIMG,9999,N.C.,NC,True
 3405,2023-05,simpatia,SIMPATIA,1,PSOE,PSOE,False
@@ -12325,7 +12325,7 @@ estudio,mes,concepto,variable,codigo,etiqueta,partido_armonizado,es_no_respuesta
 3410,2023-06,voto_simpatia,VOTOSIMG,8995,Otros partidos,OTRO,False
 3410,2023-06,voto_simpatia,VOTOSIMG,8996,En blanco,BLANCO,False
 3410,2023-06,voto_simpatia,VOTOSIMG,9977,Nulo,NULO,False
-3410,2023-06,voto_simpatia,VOTOSIMG,9997,No votaría,NO_VOTARIA,False
+3410,2023-06,voto_simpatia,VOTOSIMG,9997,No votaría,NO_VOTA_NINGUNO,False
 3410,2023-06,voto_simpatia,VOTOSIMG,9998,No sabe todavía,NS,True
 3410,2023-06,voto_simpatia,VOTOSIMG,9999,N.C.,NC,True
 3410,2023-06,simpatia,SIMPATIA,1,PSOE,PSOE,False
@@ -12994,7 +12994,7 @@ estudio,mes,concepto,variable,codigo,etiqueta,partido_armonizado,es_no_respuesta
 3413,2023-07,voto_simpatia,VOTOSIMG,8995,Otro partido,OTRO,False
 3413,2023-07,voto_simpatia,VOTOSIMG,8996,En blanco,BLANCO,False
 3413,2023-07,voto_simpatia,VOTOSIMG,9977,Nulo,NULO,False
-3413,2023-07,voto_simpatia,VOTOSIMG,9997,No votaría,NO_VOTARIA,False
+3413,2023-07,voto_simpatia,VOTOSIMG,9997,No votaría,NO_VOTA_NINGUNO,False
 3413,2023-07,voto_simpatia,VOTOSIMG,9998,No sabe todavía,NS,True
 3413,2023-07,voto_simpatia,VOTOSIMG,9999,N.C.,NC,True
 3413,2023-07,simpatia,SIMPATIA,1,PSOE,PSOE,False
@@ -13669,7 +13669,7 @@ estudio,mes,concepto,variable,codigo,etiqueta,partido_armonizado,es_no_respuesta
 3420,2023-09,voto_simpatia,VOTOSIMG,8995,Otro partido,OTRO,False
 3420,2023-09,voto_simpatia,VOTOSIMG,8996,En blanco,BLANCO,False
 3420,2023-09,voto_simpatia,VOTOSIMG,9977,Nulo,NULO,False
-3420,2023-09,voto_simpatia,VOTOSIMG,9997,No votaría,NO_VOTARIA,False
+3420,2023-09,voto_simpatia,VOTOSIMG,9997,No votaría,NO_VOTA_NINGUNO,False
 3420,2023-09,voto_simpatia,VOTOSIMG,9998,No sabe todavía,NS,True
 3420,2023-09,voto_simpatia,VOTOSIMG,9999,N.C.,NC,True
 3420,2023-09,simpatia,SIMPATIA,1,PSOE,PSOE,False
@@ -14349,7 +14349,7 @@ estudio,mes,concepto,variable,codigo,etiqueta,partido_armonizado,es_no_respuesta
 3423,2023-10,voto_simpatia,VOTOSIMG,8995,Otro partido,OTRO,False
 3423,2023-10,voto_simpatia,VOTOSIMG,8996,En blanco,BLANCO,False
 3423,2023-10,voto_simpatia,VOTOSIMG,9977,Nulo,NULO,False
-3423,2023-10,voto_simpatia,VOTOSIMG,9997,No votaría,NO_VOTARIA,False
+3423,2023-10,voto_simpatia,VOTOSIMG,9997,No votaría,NO_VOTA_NINGUNO,False
 3423,2023-10,voto_simpatia,VOTOSIMG,9998,No sabe todavía,NS,True
 3423,2023-10,voto_simpatia,VOTOSIMG,9999,N.C.,NC,True
 3423,2023-10,simpatia,SIMPATIA,1,PSOE,PSOE,False
@@ -15009,7 +15009,7 @@ estudio,mes,concepto,variable,codigo,etiqueta,partido_armonizado,es_no_respuesta
 3427,2023-11,voto_simpatia,VOTOSIMG,8995,Otro partido,OTRO,False
 3427,2023-11,voto_simpatia,VOTOSIMG,8996,En blanco,BLANCO,False
 3427,2023-11,voto_simpatia,VOTOSIMG,9977,Nulo,NULO,False
-3427,2023-11,voto_simpatia,VOTOSIMG,9997,No votaría,NO_VOTARIA,False
+3427,2023-11,voto_simpatia,VOTOSIMG,9997,No votaría,NO_VOTA_NINGUNO,False
 3427,2023-11,voto_simpatia,VOTOSIMG,9998,No sabe todavía,NS,True
 3427,2023-11,voto_simpatia,VOTOSIMG,9999,N.C.,NC,True
 3427,2023-11,simpatia,SIMPATIA,1,PSOE,PSOE,False
@@ -15669,7 +15669,7 @@ estudio,mes,concepto,variable,codigo,etiqueta,partido_armonizado,es_no_respuesta
 3431,2023-12,voto_simpatia,VOTOSIMG,8995,Otro partido,OTRO,False
 3431,2023-12,voto_simpatia,VOTOSIMG,8996,En blanco,BLANCO,False
 3431,2023-12,voto_simpatia,VOTOSIMG,9977,Nulo,NULO,False
-3431,2023-12,voto_simpatia,VOTOSIMG,9997,No votaría,NO_VOTARIA,False
+3431,2023-12,voto_simpatia,VOTOSIMG,9997,No votaría,NO_VOTA_NINGUNO,False
 3431,2023-12,voto_simpatia,VOTOSIMG,9998,No sabe todavía,NS,True
 3431,2023-12,voto_simpatia,VOTOSIMG,9999,N.C.,NC,True
 3431,2023-12,simpatia,SIMPATIA,1,PSOE,PSOE,False
@@ -16154,7 +16154,7 @@ estudio,mes,concepto,variable,codigo,etiqueta,partido_armonizado,es_no_respuesta
 3435,2024-01,voto_simpatia,VOTOSIMG,8995,Otro partido,OTRO,False
 3435,2024-01,voto_simpatia,VOTOSIMG,8996,En blanco,BLANCO,False
 3435,2024-01,voto_simpatia,VOTOSIMG,9977,Nulo,NULO,False
-3435,2024-01,voto_simpatia,VOTOSIMG,9997,No votaría,NO_VOTARIA,False
+3435,2024-01,voto_simpatia,VOTOSIMG,9997,No votaría,NO_VOTA_NINGUNO,False
 3435,2024-01,voto_simpatia,VOTOSIMG,9998,No sabe todavía,NS,True
 3435,2024-01,voto_simpatia,VOTOSIMG,9999,N.C.,NC,True
 3435,2024-01,simpatia,SIMPATIA,1,PSOE,PSOE,False
@@ -16647,7 +16647,7 @@ estudio,mes,concepto,variable,codigo,etiqueta,partido_armonizado,es_no_respuesta
 3441,2024-02,voto_simpatia,VOTOSIMG,8995,Otro partido,OTRO,False
 3441,2024-02,voto_simpatia,VOTOSIMG,8996,En blanco,BLANCO,False
 3441,2024-02,voto_simpatia,VOTOSIMG,9977,Nulo,NULO,False
-3441,2024-02,voto_simpatia,VOTOSIMG,9997,No votaría,NO_VOTARIA,False
+3441,2024-02,voto_simpatia,VOTOSIMG,9997,No votaría,NO_VOTA_NINGUNO,False
 3441,2024-02,voto_simpatia,VOTOSIMG,9998,No sabe todavía,NS,True
 3441,2024-02,voto_simpatia,VOTOSIMG,9999,N.C.,NC,True
 3441,2024-02,simpatia,SIMPATIA,1,PSOE,PSOE,False
@@ -17230,7 +17230,7 @@ estudio,mes,concepto,variable,codigo,etiqueta,partido_armonizado,es_no_respuesta
 3445,2024-03,voto_simpatia,VOTOSIMG,8995,Otro partido,OTRO,False
 3445,2024-03,voto_simpatia,VOTOSIMG,8996,En blanco,BLANCO,False
 3445,2024-03,voto_simpatia,VOTOSIMG,9977,Nulo,NULO,False
-3445,2024-03,voto_simpatia,VOTOSIMG,9997,No votaría,NO_VOTARIA,False
+3445,2024-03,voto_simpatia,VOTOSIMG,9997,No votaría,NO_VOTA_NINGUNO,False
 3445,2024-03,voto_simpatia,VOTOSIMG,9998,No sabe todavía,NS,True
 3445,2024-03,voto_simpatia,VOTOSIMG,9999,N.C.,NC,True
 3445,2024-03,simpatia,SIMPATIA,1,PSOE,PSOE,False
@@ -17735,7 +17735,7 @@ estudio,mes,concepto,variable,codigo,etiqueta,partido_armonizado,es_no_respuesta
 3450,2024-04,voto_simpatia,VOTOSIMG,8995,Otro partido,OTRO,False
 3450,2024-04,voto_simpatia,VOTOSIMG,8996,En blanco,BLANCO,False
 3450,2024-04,voto_simpatia,VOTOSIMG,9977,Nulo,NULO,False
-3450,2024-04,voto_simpatia,VOTOSIMG,9997,No votaría,NO_VOTARIA,False
+3450,2024-04,voto_simpatia,VOTOSIMG,9997,No votaría,NO_VOTA_NINGUNO,False
 3450,2024-04,voto_simpatia,VOTOSIMG,9998,No sabe todavía,NS,True
 3450,2024-04,voto_simpatia,VOTOSIMG,9999,N.C.,NC,True
 3450,2024-04,simpatia,SIMPATIA,0,No procede,NP,True
@@ -18242,7 +18242,7 @@ estudio,mes,concepto,variable,codigo,etiqueta,partido_armonizado,es_no_respuesta
 3457,2024-05,voto_simpatia,VOTOSIMG,8995,Otro partido,OTRO,False
 3457,2024-05,voto_simpatia,VOTOSIMG,8996,En blanco,BLANCO,False
 3457,2024-05,voto_simpatia,VOTOSIMG,9977,Voto nulo,NULO,False
-3457,2024-05,voto_simpatia,VOTOSIMG,9997,Ninguno,NINGUNO,False
+3457,2024-05,voto_simpatia,VOTOSIMG,9997,Ninguno,NO_VOTA_NINGUNO,False
 3457,2024-05,voto_simpatia,VOTOSIMG,9998,N.S.,NS,True
 3457,2024-05,voto_simpatia,VOTOSIMG,9999,N.C.,NC,True
 3457,2024-05,simpatia,SIMPATIA,0,No procede,NP,True
@@ -18781,7 +18781,7 @@ estudio,mes,concepto,variable,codigo,etiqueta,partido_armonizado,es_no_respuesta
 3463,2024-06,voto_simpatia,VOTOSIMG,8995,Otro partido,OTRO,False
 3463,2024-06,voto_simpatia,VOTOSIMG,8996,En blanco,BLANCO,False
 3463,2024-06,voto_simpatia,VOTOSIMG,9977,Voto nulo,NULO,False
-3463,2024-06,voto_simpatia,VOTOSIMG,9997,Ninguno,NINGUNO,False
+3463,2024-06,voto_simpatia,VOTOSIMG,9997,Ninguno,NO_VOTA_NINGUNO,False
 3463,2024-06,voto_simpatia,VOTOSIMG,9998,N.S.,NS,True
 3463,2024-06,voto_simpatia,VOTOSIMG,9999,N.C.,NC,True
 3463,2024-06,simpatia,SIMPATIA,0,No procede,NP,True
@@ -19350,7 +19350,7 @@ estudio,mes,concepto,variable,codigo,etiqueta,partido_armonizado,es_no_respuesta
 3468,2024-07,voto_simpatia,VOTOSIMG,8995,Otro partido,OTRO,False
 3468,2024-07,voto_simpatia,VOTOSIMG,8996,En blanco,BLANCO,False
 3468,2024-07,voto_simpatia,VOTOSIMG,9977,Voto nulo,NULO,False
-3468,2024-07,voto_simpatia,VOTOSIMG,9997,Ninguno,NINGUNO,False
+3468,2024-07,voto_simpatia,VOTOSIMG,9997,Ninguno,NO_VOTA_NINGUNO,False
 3468,2024-07,voto_simpatia,VOTOSIMG,9998,N.S.,NS,True
 3468,2024-07,voto_simpatia,VOTOSIMG,9999,N.C.,NC,True
 3468,2024-07,simpatia,SIMPATIA,0,No procede,NP,True
@@ -20021,7 +20021,7 @@ estudio,mes,concepto,variable,codigo,etiqueta,partido_armonizado,es_no_respuesta
 3474,2024-09,voto_simpatia,VOTOSIMG,8995,Otro partido,OTRO,False
 3474,2024-09,voto_simpatia,VOTOSIMG,8996,En blanco,BLANCO,False
 3474,2024-09,voto_simpatia,VOTOSIMG,9977,Voto nulo,NULO,False
-3474,2024-09,voto_simpatia,VOTOSIMG,9997,Ninguno,NINGUNO,False
+3474,2024-09,voto_simpatia,VOTOSIMG,9997,Ninguno,NO_VOTA_NINGUNO,False
 3474,2024-09,voto_simpatia,VOTOSIMG,9998,N.S.,NS,True
 3474,2024-09,voto_simpatia,VOTOSIMG,9999,N.C.,NC,True
 3474,2024-09,simpatia,SIMPATIA,1,PSOE,PSOE,False
@@ -20593,7 +20593,7 @@ estudio,mes,concepto,variable,codigo,etiqueta,partido_armonizado,es_no_respuesta
 3478,2024-10,voto_simpatia,VOTOSIMG,8995,Otro partido,OTRO,False
 3478,2024-10,voto_simpatia,VOTOSIMG,8996,En blanco,BLANCO,False
 3478,2024-10,voto_simpatia,VOTOSIMG,9977,Voto nulo,NULO,False
-3478,2024-10,voto_simpatia,VOTOSIMG,9997,Ninguno,NINGUNO,False
+3478,2024-10,voto_simpatia,VOTOSIMG,9997,Ninguno,NO_VOTA_NINGUNO,False
 3478,2024-10,voto_simpatia,VOTOSIMG,9998,N.S.,NS,True
 3478,2024-10,voto_simpatia,VOTOSIMG,9999,N.C.,NC,True
 3478,2024-10,simpatia,SIMPATIA,1,PSOE,PSOE,False
@@ -21166,7 +21166,7 @@ estudio,mes,concepto,variable,codigo,etiqueta,partido_armonizado,es_no_respuesta
 3485,2024-11,voto_simpatia,VOTOSIMG,8995,Otro partido,OTRO,False
 3485,2024-11,voto_simpatia,VOTOSIMG,8996,En blanco,BLANCO,False
 3485,2024-11,voto_simpatia,VOTOSIMG,9977,Voto nulo,NULO,False
-3485,2024-11,voto_simpatia,VOTOSIMG,9997,Ninguno,NINGUNO,False
+3485,2024-11,voto_simpatia,VOTOSIMG,9997,Ninguno,NO_VOTA_NINGUNO,False
 3485,2024-11,voto_simpatia,VOTOSIMG,9998,N.S.,NS,True
 3485,2024-11,voto_simpatia,VOTOSIMG,9999,N.C.,NC,True
 3485,2024-11,simpatia,SIMPATIA,1,PSOE,PSOE,False
@@ -21739,7 +21739,7 @@ estudio,mes,concepto,variable,codigo,etiqueta,partido_armonizado,es_no_respuesta
 3489,2024-12,voto_simpatia,VOTOSIMG,8995,Otro partido,OTRO,False
 3489,2024-12,voto_simpatia,VOTOSIMG,8996,En blanco,BLANCO,False
 3489,2024-12,voto_simpatia,VOTOSIMG,9977,Voto nulo,NULO,False
-3489,2024-12,voto_simpatia,VOTOSIMG,9997,Ninguno,NINGUNO,False
+3489,2024-12,voto_simpatia,VOTOSIMG,9997,Ninguno,NO_VOTA_NINGUNO,False
 3489,2024-12,voto_simpatia,VOTOSIMG,9998,N.S.,NS,True
 3489,2024-12,voto_simpatia,VOTOSIMG,9999,N.C.,NC,True
 3489,2024-12,simpatia,SIMPATIA,1,PSOE,PSOE,False
@@ -22256,7 +22256,7 @@ estudio,mes,concepto,variable,codigo,etiqueta,partido_armonizado,es_no_respuesta
 3492,2025-01,voto_simpatia,VOTOSIMG,8995,Otro partido,OTRO,False
 3492,2025-01,voto_simpatia,VOTOSIMG,8996,En blanco,BLANCO,False
 3492,2025-01,voto_simpatia,VOTOSIMG,9977,Voto nulo,NULO,False
-3492,2025-01,voto_simpatia,VOTOSIMG,9997,Ninguno,NINGUNO,False
+3492,2025-01,voto_simpatia,VOTOSIMG,9997,Ninguno,NO_VOTA_NINGUNO,False
 3492,2025-01,voto_simpatia,VOTOSIMG,9998,N.S.,NS,True
 3492,2025-01,voto_simpatia,VOTOSIMG,9999,N.C.,NC,True
 3492,2025-01,simpatia,SIMPATIA,1,PSOE,PSOE,False
@@ -22578,7 +22578,7 @@ estudio,mes,concepto,variable,codigo,etiqueta,partido_armonizado,es_no_respuesta
 3496,2025-02,voto_simpatia,VOTOSIMG,8995,Otro partido,OTRO,False
 3496,2025-02,voto_simpatia,VOTOSIMG,8996,En blanco,BLANCO,False
 3496,2025-02,voto_simpatia,VOTOSIMG,9977,Voto nulo,NULO,False
-3496,2025-02,voto_simpatia,VOTOSIMG,9997,Ninguno,NINGUNO,False
+3496,2025-02,voto_simpatia,VOTOSIMG,9997,Ninguno,NO_VOTA_NINGUNO,False
 3496,2025-02,voto_simpatia,VOTOSIMG,9998,N.S.,NS,True
 3496,2025-02,voto_simpatia,VOTOSIMG,9999,N.C.,NC,True
 3496,2025-02,simpatia,SIMPATIA,0,N.P.,NP,True
@@ -22835,7 +22835,7 @@ estudio,mes,concepto,variable,codigo,etiqueta,partido_armonizado,es_no_respuesta
 3502,2025-03,voto_simpatia,VOTOSIMG,8995,Otro partido,OTRO,False
 3502,2025-03,voto_simpatia,VOTOSIMG,8996,En blanco,BLANCO,False
 3502,2025-03,voto_simpatia,VOTOSIMG,9977,Voto nulo,NULO,False
-3502,2025-03,voto_simpatia,VOTOSIMG,9997,Ninguno,NINGUNO,False
+3502,2025-03,voto_simpatia,VOTOSIMG,9997,Ninguno,NO_VOTA_NINGUNO,False
 3502,2025-03,voto_simpatia,VOTOSIMG,9998,N.S.,NS,True
 3502,2025-03,voto_simpatia,VOTOSIMG,9999,N.C.,NC,True
 3502,2025-03,simpatia,SIMPATIA,0,N.P.,NP,True
@@ -23344,7 +23344,7 @@ estudio,mes,concepto,variable,codigo,etiqueta,partido_armonizado,es_no_respuesta
 3505,2025-04,voto_simpatia,VOTOSIMG,8995,Otro partido,OTRO,False
 3505,2025-04,voto_simpatia,VOTOSIMG,8996,En blanco,BLANCO,False
 3505,2025-04,voto_simpatia,VOTOSIMG,9977,Voto nulo,NULO,False
-3505,2025-04,voto_simpatia,VOTOSIMG,9997,Ninguno,NINGUNO,False
+3505,2025-04,voto_simpatia,VOTOSIMG,9997,Ninguno,NO_VOTA_NINGUNO,False
 3505,2025-04,voto_simpatia,VOTOSIMG,9998,N.S.,NS,True
 3505,2025-04,voto_simpatia,VOTOSIMG,9999,N.C.,NC,True
 3505,2025-04,simpatia,SIMPATIA,1,PSOE,PSOE,False
@@ -23917,7 +23917,7 @@ estudio,mes,concepto,variable,codigo,etiqueta,partido_armonizado,es_no_respuesta
 3510,2025-05,voto_simpatia,VOTOSIMG,8995,Otro partido,OTRO,False
 3510,2025-05,voto_simpatia,VOTOSIMG,8996,En blanco,BLANCO,False
 3510,2025-05,voto_simpatia,VOTOSIMG,9977,Voto nulo,NULO,False
-3510,2025-05,voto_simpatia,VOTOSIMG,9997,Ninguno,NINGUNO,False
+3510,2025-05,voto_simpatia,VOTOSIMG,9997,Ninguno,NO_VOTA_NINGUNO,False
 3510,2025-05,voto_simpatia,VOTOSIMG,9998,N.S.,NS,True
 3510,2025-05,voto_simpatia,VOTOSIMG,9999,N.C.,NC,True
 3510,2025-05,simpatia,SIMPATIA,1,PSOE,PSOE,False
@@ -24490,7 +24490,7 @@ estudio,mes,concepto,variable,codigo,etiqueta,partido_armonizado,es_no_respuesta
 3514,2025-06,voto_simpatia,VOTOSIMG,8995,Otro partido,OTRO,False
 3514,2025-06,voto_simpatia,VOTOSIMG,8996,En blanco,BLANCO,False
 3514,2025-06,voto_simpatia,VOTOSIMG,9977,Voto nulo,NULO,False
-3514,2025-06,voto_simpatia,VOTOSIMG,9997,Ninguno,NINGUNO,False
+3514,2025-06,voto_simpatia,VOTOSIMG,9997,Ninguno,NO_VOTA_NINGUNO,False
 3514,2025-06,voto_simpatia,VOTOSIMG,9998,N.S.,NS,True
 3514,2025-06,voto_simpatia,VOTOSIMG,9999,N.C.,NC,True
 3514,2025-06,simpatia,SIMPATIA,1,PSOE,PSOE,False
@@ -25065,7 +25065,7 @@ estudio,mes,concepto,variable,codigo,etiqueta,partido_armonizado,es_no_respuesta
 3517,2025-07,voto_simpatia,VOTOSIMG,8995,Otro partido,OTRO,False
 3517,2025-07,voto_simpatia,VOTOSIMG,8996,En blanco,BLANCO,False
 3517,2025-07,voto_simpatia,VOTOSIMG,9977,Voto nulo,NULO,False
-3517,2025-07,voto_simpatia,VOTOSIMG,9997,Ninguno,NINGUNO,False
+3517,2025-07,voto_simpatia,VOTOSIMG,9997,Ninguno,NO_VOTA_NINGUNO,False
 3517,2025-07,voto_simpatia,VOTOSIMG,9998,N.S.,NS,True
 3517,2025-07,voto_simpatia,VOTOSIMG,9999,N.C.,NC,True
 3517,2025-07,simpatia,SIMPATIA,0,N.P.,NP,True
@@ -25740,7 +25740,7 @@ estudio,mes,concepto,variable,codigo,etiqueta,partido_armonizado,es_no_respuesta
 3524,2025-09,voto_simpatia,VOTOSIMG,8995,Otro partido,OTRO,False
 3524,2025-09,voto_simpatia,VOTOSIMG,8996,En blanco,BLANCO,False
 3524,2025-09,voto_simpatia,VOTOSIMG,9977,Voto nulo,NULO,False
-3524,2025-09,voto_simpatia,VOTOSIMG,9997,Ninguno,NINGUNO,False
+3524,2025-09,voto_simpatia,VOTOSIMG,9997,Ninguno,NO_VOTA_NINGUNO,False
 3524,2025-09,voto_simpatia,VOTOSIMG,9998,N.S.,NS,True
 3524,2025-09,voto_simpatia,VOTOSIMG,9999,N.C.,NC,True
 3524,2025-09,simpatia,SIMPATIA,1,PSOE,PSOE,False
@@ -26415,7 +26415,7 @@ estudio,mes,concepto,variable,codigo,etiqueta,partido_armonizado,es_no_respuesta
 3528,2025-10,voto_simpatia,VOTOSIMG,8995,Otro partido,OTRO,False
 3528,2025-10,voto_simpatia,VOTOSIMG,8996,En blanco,BLANCO,False
 3528,2025-10,voto_simpatia,VOTOSIMG,9977,Voto nulo,NULO,False
-3528,2025-10,voto_simpatia,VOTOSIMG,9997,Ninguno,NINGUNO,False
+3528,2025-10,voto_simpatia,VOTOSIMG,9997,Ninguno,NO_VOTA_NINGUNO,False
 3528,2025-10,voto_simpatia,VOTOSIMG,9998,N.S.,NS,True
 3528,2025-10,voto_simpatia,VOTOSIMG,9999,N.C.,NC,True
 3528,2025-10,simpatia,SIMPATIA,0,No procede,NP,True
@@ -27091,7 +27091,7 @@ estudio,mes,concepto,variable,codigo,etiqueta,partido_armonizado,es_no_respuesta
 3530,2025-11,voto_simpatia,VOTOSIMG,8995,Otro partido,OTRO,False
 3530,2025-11,voto_simpatia,VOTOSIMG,8996,En blanco,BLANCO,False
 3530,2025-11,voto_simpatia,VOTOSIMG,9977,Voto nulo,NULO,False
-3530,2025-11,voto_simpatia,VOTOSIMG,9997,Ninguno,NINGUNO,False
+3530,2025-11,voto_simpatia,VOTOSIMG,9997,Ninguno,NO_VOTA_NINGUNO,False
 3530,2025-11,voto_simpatia,VOTOSIMG,9998,N.S.,NS,True
 3530,2025-11,voto_simpatia,VOTOSIMG,9999,N.C.,NC,True
 3530,2025-11,simpatia,SIMPATIA,1,PSOE,PSOE,False
@@ -27774,7 +27774,7 @@ estudio,mes,concepto,variable,codigo,etiqueta,partido_armonizado,es_no_respuesta
 3536,2025-12,voto_simpatia,VOTOSIMG,8995,Otro partido,OTRO,False
 3536,2025-12,voto_simpatia,VOTOSIMG,8996,En blanco,BLANCO,False
 3536,2025-12,voto_simpatia,VOTOSIMG,9977,Voto nulo,NULO,False
-3536,2025-12,voto_simpatia,VOTOSIMG,9997,Ninguno,NINGUNO,False
+3536,2025-12,voto_simpatia,VOTOSIMG,9997,Ninguno,NO_VOTA_NINGUNO,False
 3536,2025-12,voto_simpatia,VOTOSIMG,9998,N.S.,NS,True
 3536,2025-12,voto_simpatia,VOTOSIMG,9999,N.C.,NC,True
 3536,2025-12,simpatia,SIMPATIA,1,PSOE,PSOE,False
@@ -28357,7 +28357,7 @@ estudio,mes,concepto,variable,codigo,etiqueta,partido_armonizado,es_no_respuesta
 3540,2026-01,voto_simpatia,VOTOSIMG,8995,Otro partido,OTRO,False
 3540,2026-01,voto_simpatia,VOTOSIMG,8996,En blanco,BLANCO,False
 3540,2026-01,voto_simpatia,VOTOSIMG,9977,Voto nulo,NULO,False
-3540,2026-01,voto_simpatia,VOTOSIMG,9997,Ninguno,NINGUNO,False
+3540,2026-01,voto_simpatia,VOTOSIMG,9997,Ninguno,NO_VOTA_NINGUNO,False
 3540,2026-01,voto_simpatia,VOTOSIMG,9998,N.S.,NS,True
 3540,2026-01,voto_simpatia,VOTOSIMG,9999,N.C.,NC,True
 3540,2026-01,simpatia,SIMPATIA,1,PSOE,PSOE,False
@@ -28954,7 +28954,7 @@ estudio,mes,concepto,variable,codigo,etiqueta,partido_armonizado,es_no_respuesta
 3544,2026-02,voto_simpatia,VOTOSIMG,8995,Otro partido,OTRO,False
 3544,2026-02,voto_simpatia,VOTOSIMG,8996,En blanco,BLANCO,False
 3544,2026-02,voto_simpatia,VOTOSIMG,9977,Voto nulo,NULO,False
-3544,2026-02,voto_simpatia,VOTOSIMG,9997,Ninguno,NINGUNO,False
+3544,2026-02,voto_simpatia,VOTOSIMG,9997,Ninguno,NO_VOTA_NINGUNO,False
 3544,2026-02,voto_simpatia,VOTOSIMG,9998,N.S.,NS,True
 3544,2026-02,voto_simpatia,VOTOSIMG,9999,N.C.,NC,True
 3544,2026-02,simpatia,SIMPATIA,1,PSOE,PSOE,False
@@ -29562,7 +29562,7 @@ estudio,mes,concepto,variable,codigo,etiqueta,partido_armonizado,es_no_respuesta
 3546,2026-03,voto_simpatia,VOTOSIMG,8995,Otro partido,OTRO,False
 3546,2026-03,voto_simpatia,VOTOSIMG,8996,En blanco,BLANCO,False
 3546,2026-03,voto_simpatia,VOTOSIMG,9977,Voto nulo,NULO,False
-3546,2026-03,voto_simpatia,VOTOSIMG,9997,Ninguno,NINGUNO,False
+3546,2026-03,voto_simpatia,VOTOSIMG,9997,Ninguno,NO_VOTA_NINGUNO,False
 3546,2026-03,voto_simpatia,VOTOSIMG,9998,N.S.,NS,True
 3546,2026-03,voto_simpatia,VOTOSIMG,9999,N.C.,NC,True
 3546,2026-03,simpatia,SIMPATIA,0,N.P.,NP,True
@@ -30185,7 +30185,7 @@ estudio,mes,concepto,variable,codigo,etiqueta,partido_armonizado,es_no_respuesta
 3557,2026-04,voto_simpatia,VOTOSIMG,8995,Otro partido,OTRO,False
 3557,2026-04,voto_simpatia,VOTOSIMG,8996,En blanco,BLANCO,False
 3557,2026-04,voto_simpatia,VOTOSIMG,9977,Voto nulo,NULO,False
-3557,2026-04,voto_simpatia,VOTOSIMG,9997,Ninguno,NINGUNO,False
+3557,2026-04,voto_simpatia,VOTOSIMG,9997,Ninguno,NO_VOTA_NINGUNO,False
 3557,2026-04,voto_simpatia,VOTOSIMG,9998,N.S.,NS,True
 3557,2026-04,voto_simpatia,VOTOSIMG,9999,N.C.,NC,True
 3557,2026-04,simpatia,SIMPATIA,0,No procede,NP,True
@@ -30808,7 +30808,7 @@ estudio,mes,concepto,variable,codigo,etiqueta,partido_armonizado,es_no_respuesta
 3562,2026-05,voto_simpatia,VOTOSIMG,8995,Otro partido,OTRO,False
 3562,2026-05,voto_simpatia,VOTOSIMG,8996,En blanco,BLANCO,False
 3562,2026-05,voto_simpatia,VOTOSIMG,9977,Voto nulo,NULO,False
-3562,2026-05,voto_simpatia,VOTOSIMG,9997,Ninguno,NINGUNO,False
+3562,2026-05,voto_simpatia,VOTOSIMG,9997,Ninguno,NO_VOTA_NINGUNO,False
 3562,2026-05,voto_simpatia,VOTOSIMG,9998,N.S.,NS,True
 3562,2026-05,voto_simpatia,VOTOSIMG,9999,N.C.,NC,True
 3562,2026-05,simpatia,SIMPATIA,0,No procede,NP,True
@@ -31431,7 +31431,7 @@ estudio,mes,concepto,variable,codigo,etiqueta,partido_armonizado,es_no_respuesta
 3567,2026-06,voto_simpatia,VOTOSIMG,8995,Otro partido,OTRO,False
 3567,2026-06,voto_simpatia,VOTOSIMG,8996,En blanco,BLANCO,False
 3567,2026-06,voto_simpatia,VOTOSIMG,9977,Voto nulo,NULO,False
-3567,2026-06,voto_simpatia,VOTOSIMG,9997,Ninguno,NINGUNO,False
+3567,2026-06,voto_simpatia,VOTOSIMG,9997,Ninguno,NO_VOTA_NINGUNO,False
 3567,2026-06,voto_simpatia,VOTOSIMG,9998,N.S.,NS,True
 3567,2026-06,voto_simpatia,VOTOSIMG,9999,N.C.,NC,True
 3567,2026-06,simpatia,SIMPATIA,0,No procede,NP,True
@@ -32053,7 +32053,7 @@ estudio,mes,concepto,variable,codigo,etiqueta,partido_armonizado,es_no_respuesta
 3571,2026-07,voto_simpatia,VOTOSIMG,8995,Otro partido,OTRO,False
 3571,2026-07,voto_simpatia,VOTOSIMG,8996,En blanco,BLANCO,False
 3571,2026-07,voto_simpatia,VOTOSIMG,9977,Voto nulo,NULO,False
-3571,2026-07,voto_simpatia,VOTOSIMG,9997,Ninguno,NINGUNO,False
+3571,2026-07,voto_simpatia,VOTOSIMG,9997,Ninguno,NO_VOTA_NINGUNO,False
 3571,2026-07,voto_simpatia,VOTOSIMG,9998,N.S.,NS,True
 3571,2026-07,voto_simpatia,VOTOSIMG,9999,N.C.,NC,True
 3571,2026-07,simpatia,SIMPATIA,0,No procede,NP,True
@@ -32493,7 +32493,7 @@ estudio,mes,concepto,variable,codigo,etiqueta,partido_armonizado,es_no_respuesta
 3577,2026-09,voto_simpatia,VOTOSIMG,8995,Otro partido,OTRO,False
 3577,2026-09,voto_simpatia,VOTOSIMG,8996,En blanco,BLANCO,False
 3577,2026-09,voto_simpatia,VOTOSIMG,9977,Voto nulo,NULO,False
-3577,2026-09,voto_simpatia,VOTOSIMG,9997,Ninguno,NINGUNO,False
+3577,2026-09,voto_simpatia,VOTOSIMG,9997,Ninguno,NO_VOTA_NINGUNO,False
 3577,2026-09,voto_simpatia,VOTOSIMG,9998,N.S.,NS,True
 3577,2026-09,voto_simpatia,VOTOSIMG,9999,N.C.,NC,True
 3577,2026-09,simpatia,SIMPATIA,1,PSOE,PSOE,False
@@ -32756,7 +32756,7 @@ estudio,mes,concepto,variable,codigo,etiqueta,partido_armonizado,es_no_respuesta
 3582,2026-10,voto_simpatia,VOTOSIMG,8995,Otro partido,OTRO,False
 3582,2026-10,voto_simpatia,VOTOSIMG,8996,En blanco,BLANCO,False
 3582,2026-10,voto_simpatia,VOTOSIMG,9977,Voto nulo,NULO,False
-3582,2026-10,voto_simpatia,VOTOSIMG,9997,Ninguno,NINGUNO,False
+3582,2026-10,voto_simpatia,VOTOSIMG,9997,Ninguno,NO_VOTA_NINGUNO,False
 3582,2026-10,voto_simpatia,VOTOSIMG,9998,N.S.,NS,True
 3582,2026-10,voto_simpatia,VOTOSIMG,9999,N.C.,NC,True
 3582,2026-10,simpatia,SIMPATIA,0,N.P.,NP,True

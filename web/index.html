@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Barómetros en el tiempo</title>
+<meta name="description" content="Series mensuales de los barómetros del CIS desde enero de 2021, calculadas a partir de los microdatos, con cruces por perfil y rupturas de serie señaladas.">
+<link rel="stylesheet" href="css/estilos.css">
+<script>try{const t=localStorage.getItem('bet-tema');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t;}catch(e){}</script>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="hgroup">
+      <p class="upd" id="upd">Cargando datos…</p>
+      <h1>Barómetros en el tiempo</h1>
+      <p class="lede">Series mensuales de los barómetros del CIS desde enero de 2021, calculadas a partir de los microdatos. Cada panel se puede cruzar por perfil, filtrar y exportar. Las rupturas de serie están marcadas en el gráfico.</p>
+    </div>
+    <div class="toolbar">
+      <div class="seg" id="tema" aria-label="Tema">
+        <button type="button" data-v="system" aria-pressed="true">Sistema</button><button type="button" data-v="light" aria-pressed="false">Claro</button><button type="button" data-v="dark" aria-pressed="false">Oscuro</button>
+      </div>
+    </div>
+  </header>
+
+  <nav class="tabs" role="tablist" aria-label="Secciones">
+    <button type="button" role="tab" data-tab="series" aria-selected="true">Series</button>
+    <button type="button" role="tab" data-tab="meth" aria-selected="false">Nota metodológica</button>
+    <button type="button" role="tab" data-tab="datos" aria-selected="false">Datos y descargas</button>
+  </nav>
+
+  <div class="aviso" id="aviso-veda" hidden><b>Periodo de prohibición de sondeos.</b> Del 24 al 29 de noviembre de 2026 no se publican series de intención de voto, simpatía, cercanía, preferencia como presidente ni valoración de líderes (art. 69.7 de la LOREG). El resto de series sigue disponible.</div>
+
+  <div id="view-series">
+    <div class="addbar">
+      <span class="lab">Añadir:</span>
+      <button class="btn pri" type="button" id="b-add">Nuevo panel</button>
+      <span style="flex:1"></span>
+      <button class="btn" type="button" id="b-link">Copiar enlace a estos paneles</button>
+      <button class="btn" type="button" id="b-reset">Restablecer paneles</button>
+    </div>
+    <main class="grid" id="grid" aria-live="polite"></main>
+    <p class="foot">Porcentajes ponderados sobre el total de entrevistados que reciben la pregunta. Los puntos con menos de 50 entrevistas sin ponderar no se muestran. La banda sombreada es el margen de error al 95 %. Las líneas verticales marcan rupturas de serie: las de tipo C (en color) impiden comparar a ambos lados y las de tipo B indican un cambio con regla de armonización. Detalle en la <a href="#" data-goto="meth">nota metodológica</a>.</p>
+  </div>
+
+  <div id="view-meth" hidden>
+    <div class="meth">
+      <nav aria-label="Índice de la nota metodológica"><ol>
+        <li><a href="#m-objeto">Objeto y cobertura</a></li>
+        <li><a href="#m-calculo">Cómo se calcula</a></li>
+        <li><a href="#m-armon">Armonización</a></li>
+        <li><a href="#m-rupt">Rupturas de serie</a></li>
+        <li><a href="#m-preg">Preguntas</a></li>
+        <li><a href="#m-corr">Correcciones de los ficheros</a></li>
+        <li><a href="#m-est">Estudios</a></li>
+        <li><a href="#m-uso">Fuente y condiciones de uso</a></li>
+        <li><a href="#m-lim">Limitaciones</a></li>
+      </ol></nav>
+      <div class="mbody">
+        <section id="m-objeto"><h2>Objeto y cobertura</h2>
+          <p>La herramienta reconstruye, mes a mes, las respuestas a las preguntas que se repiten en los barómetros mensuales del Centro de Investigaciones Sociológicas (CIS). Parte de los microdatos de cada estudio, no de las tablas publicadas, para poder cruzar cualquier pregunta por cualquier variable de perfil.</p>
+          <p id="m-cobertura">Cobertura: barómetros mensuales desde enero de 2021.</p>
+          <p>Solo incluye barómetros mensuales. Quedan fuera los estudios preelectorales, postelectorales independientes y monográficos. Agosto no tiene barómetro.</p>
+        </section>
+        <section id="m-calculo"><h2>Cómo se calcula</h2>
+          <h3>Ponderación</h3><p>Todos los resultados usan la ponderación general de cada estudio (variable PESO). Desde noviembre de 2023 el CIS ajusta además por nivel educativo, lo que reduce la muestra efectiva (ruptura R10).</p>
+          <h3>Base de los porcentajes</h3><p>Por defecto, el porcentaje se calcula sobre todas las personas que reciben la pregunta, incluidas las que no saben o no contestan, como en las tablas del CIS. Quien no recibe la pregunta por un filtro previo («no procede») queda siempre fuera. El editor permite excluir también «no sabe», «no contesta» y «no recuerda».</p>
+          <h3>Problemas</h3><p>Los «principales problemas» suman hasta tres menciones por persona: el porcentaje es la proporción de entrevistados que citan el problema en cualquiera de las tres, por lo que los porcentajes suman más de 100.</p>
+          <h3>Medias</h3><p>La valoración de líderes y la autoubicación ideológica se resumen con la media ponderada de la escala de 1 a 10, sobre quienes dan una puntuación. Quien no conoce al líder, no sabe o no contesta queda fuera de la media.</p>
+          <h3>Margen de error</h3><p>Intervalo al 95 % para muestreo aleatorio simple corregido por el efecto de diseño de la ponderación de cada estudio (Kish): p ± 1,96 · √(deff · p(1−p)/n), con n el número de entrevistas sin ponderar de la base. En cruces se aplica el efecto de diseño del total, una aproximación.</p>
+          <h3>Mínimo de entrevistas</h3><p>No se muestra ningún punto cuya base tenga menos de 50 entrevistas sin ponderar.</p>
+          <h3>Variaciones</h3><p>El tooltip muestra la variación respecto al barómetro anterior, en puntos. No se calcula cuando entre ambos meses hay una ruptura de tipo C que afecta a la pregunta, al cruce o al filtro.</p>
+        </section>
+        <section id="m-armon"><h2>Armonización</h2>
+          <p><b>Partidos.</b> El CIS renumera los códigos de partido (en octubre de 2022 toda la lista) y reutiliza códigos. La armonización se hace por etiqueta. No se fusionan marcas distintas: Unidas Podemos, Podemos, Sumar, Podemos-IU-AV o Más País aparecen en los meses en que el CIS las ofrece. Solo se unifican variantes de la misma opción (JxCat y Junts, Sumar y Movimiento Sumar, «En blanco» y «Voto blanco», variantes de Coalición Canaria).</p>
+          <p><b>Problemas y candidatos.</b> Se armonizan por etiqueta. Los códigos de problema reutilizados con otro significado en diciembre de 2025 se separan (R17).</p>
+          <p><b>Líderes.</b> Se emparejan por nombre, no por la posición en la batería, que cambia entre estudios.</p>
+          <p><b>No respuesta.</b> Se agrupa por tipo, no por código: no sabe (incluye «no sabe todavía»), no contesta, no recuerda y no procede.</p>
+          <p><b>Variables de perfil.</b> Las variantes de redacción de una misma categoría se llevan a la etiqueta del último estudio. Cuando cambian las categorías (ruptura C), cada tramo conserva las suyas.</p>
+        </section>
+        <section id="m-rupt"><h2>Rupturas de serie</h2>
+          <p>Tipo C: la pregunta deja de ser comparable (cambian las categorías, la definición, la referencia o la ponderación). Tipo B: comparable con una regla de armonización documentada (redacción, contexto electoral, códigos). Las rupturas técnicas, resueltas en la armonización, no se marcan en los gráficos.</p>
+          <div class="tablaw" id="m-rupt-tabla"></div>
+        </section>
+        <section id="m-preg"><h2>Preguntas</h2>
+          <p>Enunciado de cada pregunta según los cuestionarios del CIS, con el periodo de cada versión.</p>
+          <div class="fichas" id="m-preg-fichas"></div>
+        </section>
+        <section id="m-corr"><h2>Correcciones de los ficheros</h2>
+          <ul id="m-corr-lista">
+            <li>Octubre de 2026 (estudio 3582): la variable de nivel de estudios (ESTUDIOS) viene vacía en el fichero publicado (5.010 de 5.024 casos como «no contesta»). Se reconstruye a partir del nivel de estudios detallado (NIVELESTENTREV) con la correspondencia de julio y septiembre de 2026. La ponderación no está afectada.</li>
+            <li>Marzo de 2025 (estudio 3502): el código 0 de la intención de voto alternativa (1.205 personas que no reciben la pregunta) está etiquetado «N.C.»; se trata como «no procede».</li>
+            <li>Mayo de 2024 (estudio 3457) y marzo de 2025 (3502): códigos de partido sin etiqueta en el fichero (Aliança Catalana, Alhora, EH Bildu), resueltos con la etiqueta del mismo código en estudios contiguos o en el libro de códigos.</li>
+          </ul>
+        </section>
+        <section id="m-est"><h2>Estudios</h2>
+          <div class="tablaw" id="m-est-tabla"></div>
+        </section>
+        <section id="m-uso"><h2>Fuente y condiciones de uso</h2>
+          <p>Fuente de los datos: Centro de Investigaciones Sociológicas (CIS), barómetros mensuales, microdatos. Elaboración propia. Los datos se reutilizan conforme a las condiciones generales del CIS: se cita la fuente, no se altera el sentido de la información y no se sugiere que el CIS patrocine o respalde esta herramienta, que es independiente.</p>
+          <p><b>Periodo de prohibición.</b> Conforme al art. 69.7 de la LOREG, durante los cinco días anteriores a una votación no se publican series de intención de voto, simpatía, cercanía, preferencia como presidente ni valoración de líderes.</p>
+          <p>Para citar: «Barómetros en el tiempo, a partir de los microdatos de los barómetros del CIS». Código y tablas de armonización: <a href="https://github.com/gastiaso/barometros">github.com/gastiaso/barometros</a>.</p>
+        </section>
+        <section id="m-lim"><h2>Limitaciones</h2>
+          <p>Las series son de intención directa y de respuestas declaradas, no estimaciones de voto: el CIS publica aparte una estimación con su propio modelo, que esta herramienta no reproduce. Los márgenes de error suponen muestreo aleatorio y no recogen otros errores (cobertura, no respuesta, efecto del cuestionario). Los cruces con pocas entrevistas son volátiles aunque superen el mínimo. La armonización se ha revisado contra cuestionarios y libros de códigos, pero puede contener errores: el registro completo está en el repositorio.</p>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <div id="view-datos" hidden>
+    <div class="mbody">
+      <section><h2>Datos y descargas</h2>
+        <p>El fichero armonizado contiene una fila por entrevista y una columna por pregunta armonizada, con la ponderación de cada estudio. Formato Parquet: se abre en R (<code>arrow::read_parquet()</code>), Python (<code>pandas.read_parquet()</code>) o DuckDB.</p>
+        <ul id="descargas">
+          <li><a href="datos/descargas/barometros_armonizados.parquet" download>Microdatos armonizados (Parquet)</a></li>
+          <li><a href="datos/descargas/metadatos.json" download>Metadatos: categorías, rupturas y estado de cada pregunta por estudio (JSON)</a></li>
+          <li><a href="https://github.com/gastiaso/barometros/tree/main/inventario">Tablas de armonización y revisión (CSV, en el repositorio)</a></li>
+          <li><a href="https://github.com/gastiaso/barometros">Código fuente y microdatos originales del CIS</a></li>
+        </ul>
+        <p class="note">Las categorías de partido, problema y candidato aparecen como identificadores (por ejemplo, PSOE o PROB_001); su etiqueta está en los metadatos. «NS», «NC», «NR» y «NP» son no sabe, no contesta, no recuerda y no procede.</p>
+      </section>
+    </div>
+  </div>
+</div>
+
+<div id="tip" hidden></div>
+
+<dialog id="ed" aria-labelledby="ed-t">
+  <form method="dialog" id="ed-form">
+    <div class="edh"><h2 id="ed-t">Configurar panel</h2><button class="ib" value="cancel" type="submit" aria-label="Cerrar">✕</button></div>
+    <div class="edb" id="ed-body"></div>
+    <div class="edf"><span class="err" id="ed-err" style="margin-right:auto"></span><button class="btn" value="cancel" type="submit">Cancelar</button><button class="btn pri" id="ed-ok" type="button">Aplicar</button></div>
+  </form>
+</dialog>
+
+<script src="js/vendor/d3.min.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

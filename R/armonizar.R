@@ -98,6 +98,7 @@ canon_cerradas <- function(lecturas, insumos) {
     dplyr::distinct(concepto, tramo, estudio, mes, codigo, etiqueta) |>
     dplyr::mutate(categoria = tipo_no_respuesta(etiqueta, codigo), orden = 1e6, registro = "")
   dplyr::bind_rows(sust, nr) |>
+    dplyr::mutate(categoria = sub("^\\(NO LEER\\)\\s*", "", categoria)) |>   # instrucción al entrevistador, no parte de la categoría
     dplyr::select(concepto, tramo, estudio, mes, codigo, etiqueta, categoria, orden, similitud, registro)
 }
 

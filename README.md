@@ -2,7 +2,7 @@
 
 Herramienta de series históricas a partir de los microdatos de los barómetros mensuales del CIS. La ventana va de enero de 2021 a octubre de 2026: **64 estudios**, todos desde el primer barómetro posterior a la etapa COVID.
 
-**Estado:** crosswalk revisado contra cuestionarios, libros de códigos y fichas técnicas. Pipeline de armonización en R operativo: genera `datos/publicacion/microdatos.parquet` (264.081 entrevistas, 6 MB) y `metadatos.json`. La web está en construcción.
+**Estado:** crosswalk revisado contra cuestionarios, libros de códigos y fichas técnicas. Pipeline de armonización en R operativo: genera `datos/publicacion/microdatos.parquet` (264.081 entrevistas, 6 MB) y `metadatos.json`. La web (`web/`) se publica en GitHub Pages con cada cambio en `main`: https://gastiaso.github.io/barometros/
 
 **Fuente de los datos:** Centro de Investigaciones Sociológicas. Se reutilizan según las condiciones generales del CIS: hay que citar la fuente, no desvirtuar el sentido de la información y no sugerir respaldo del CIS. Este proyecto no está patrocinado por el CIS ni cuenta con su respaldo.
 
@@ -21,7 +21,10 @@ scripts/05_revision.py          crosswalk revisado + mapas de partidos, problema
 scripts/06_revision_xlsx.py     inventario/revision.xlsx
 scripts/lib/                    parsers del libro de códigos y del cuestionario
 _targets.R, R/                  armonización en R: .sav -> microdatos armonizados + metadatos + validación
-datos/publicacion/              microdatos.parquet y metadatos.json (generados; los usa la web)
+datos/publicacion/              microdatos.parquet y metadatos.json (generados)
+scripts/07_web.R                datos de la web: una columna comprimida por pregunta (web/datos/, generado)
+web/                            la web: index.html, css/, js/app.js (d3 autoalojado, sin dependencias externas)
+.github/workflows/publicar.yml  construcción y publicación en GitHub Pages; veda electoral automática
 ```
 
 **Reparto de lenguajes.** Python (`scripts/`) lee la documentación del CIS y produce el inventario y las tablas de revisión. R (`_targets.R`, `R/`) aplica esas tablas a los microdatos. Las decisiones de armonización viven en CSV editables (`inventario/`), no en el código.
@@ -37,6 +40,8 @@ python scripts/04_enunciados.py .
 python scripts/05_revision.py .
 python scripts/06_revision_xlsx.py .
 Rscript -e 'targets::tar_make()'
+Rscript scripts/07_web.R              # VEDA=1 para la versión sin series electorales
+python3 -m http.server -d web 8000    # vista previa en http://localhost:8000
 ```
 
 El paso de R necesita los paquetes `targets`, `haven`, `arrow`, `dplyr`, `tidyr`, `purrr`, `readr`, `jsonlite` y `tibble`. Si la validación falla (códigos sin mapa, pesos ausentes o cifras que no reproducen las del CIS), el Parquet no se escribe.
@@ -146,6 +151,13 @@ R19 y R22 coinciden con una reordenación del cuestionario en octubre de 2023, s
   - Los 89 códigos que cambian de etiqueta suman 195 comprobaciones (una por periodo de cada etiqueta). 116 coinciden con el libro de códigos (85) o con el cuestionario (31). 3 son variantes de redacción. 76 no tienen lista disponible, por el formato abreviado de 22 libros de códigos.
 - **Verificación independiente.** Un agente que no había participado en la revisión contrastó 13 afirmaciones con las fuentes primarias. Todas se sostienen. Entre ellas están R04, R06, R19–R23, el hueco de 3355, la sobremuestra de 3489, los códigos de problema reutilizados, el cruce de marcas de 3344, una muestra de partidos y de filas A, y las cifras de `ESCIDEOL` en 3582 (18,9 % en el valor 1 y media de 4,51).
 - **Integridad.** Los 64 ZIP son válidos y los 64 .sav se leen. Todo el pipeline se ejecuta de principio a fin desde esta estructura de carpetas.
+
+## Web
+
+- **Cálculo en el navegador.** Cada vista descarga solo las columnas que necesita (unos cientos de KB) y agrega los microdatos con la ponderación del estudio. No hay servidor.
+- **Paneles configurables:** pregunta, cruce por una variable de perfil, filtro por otra, periodo, exclusión de NS/NC de la base y margen de error. Tabla, CSV y PNG por panel; enlace compartible con la configuración.
+- **Reglas fijas:** no se muestra ningún punto con menos de 50 entrevistas sin ponderar; margen de error al 95 % con el efecto de diseño de cada estudio; rupturas C marcadas en color y B en punteado; no se calcula la variación mensual a través de una ruptura C (decisión sobre R19).
+- **Veda (art. 69.7 LOREG).** El flujo de publicación retira las series de intención, simpatía, cercanía, preferencia como presidente y líderes, y la descarga del fichero completo, entre el 23-nov a las 19:00 y el 29-nov a las 21:00 (hora peninsular). Las fechas están en `publicar.yml`.
 
 ## Pendiente
 

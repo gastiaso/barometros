@@ -5,3 +5,4 @@ _targets/
 __pycache__/
 .Rhistory
 .RData
+web/datos/

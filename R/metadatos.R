@@ -5,7 +5,7 @@ etiquetas_lista <- function(mapa, col_id, col_etq) {
     dplyr::filter(!.data[[col_id]] %in% names(NO_RESPUESTA)) |>
     dplyr::arrange(dplyr::desc(mes)) |>
     dplyr::distinct(id = .data[[col_id]], .keep_all = TRUE) |>
-    dplyr::transmute(id, etiqueta = .data[[col_etq]])
+    dplyr::transmute(id, etiqueta = sub("^\\(NO LEER\\)\\s*", "", .data[[col_etq]]))
 }
 
 construir_metadatos <- function(d, canon, insumos, lecturas) {
@@ -14,7 +14,8 @@ construir_metadatos <- function(d, canon, insumos, lecturas) {
   est <- insumos$estudios
   correcciones <- purrr::map(lecturas, \(l) list(estudio = l$estudio, correcciones = l$correcciones)) |>
     purrr::keep(\(x) length(x$correcciones) > 0)
-  et_part <- etiquetas_lista(insumos$partidos, "partido_armonizado", "etiqueta")
+  et_part <- etiquetas_lista(insumos$partidos, "partido_armonizado", "etiqueta") |>
+    dplyr::mutate(etiqueta = dplyr::if_else(id == "NO_VOTA_NINGUNO", "No votaría o ninguno", etiqueta))
   et_prob <- etiquetas_lista(insumos$problemas, "id_armonizado", "etiqueta_armonizada")
   et_cand <- etiquetas_lista(insumos$candidatos, "id_armonizado", "etiqueta_armonizada")
   et_nr <- tibble::tibble(id = names(NO_RESPUESTA), etiqueta = unname(NO_RESPUESTA))
@@ -65,8 +66,12 @@ construir_metadatos <- function(d, canon, insumos, lecturas) {
       tipo = if (is.numeric(d[[k]])) "numerica" else "categorica",
       categorias = categorias(k),
       estudios = estado_estudios(base),
-      rupturas = insumos$rupturas |> dplyr::filter(grepl(paste0("\\b", base, "\\b"), conceptos_afectados) |
-                                                     conceptos_afectados == "todas") |> dplyr::pull(ruptura_id)
+      rupturas = insumos$rupturas$ruptura_id[purrr::map_lgl(insumos$rupturas$conceptos_afectados, \(ca) {
+        toks <- strsplit(ca, "[,;() ]+")[[1]]
+        any(toks == base | toks == "todas" |
+              (endsWith(toks, "*") & startsWith(base, sub("\\*$", "", toks))) |
+              (toks == "valoracion_lideres" & startsWith(k, "lider_")))
+      })]
     )
   })
   list(

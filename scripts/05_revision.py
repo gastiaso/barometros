@@ -116,6 +116,7 @@ NOTAS_PARTIDOS = {
     "CC": "Variantes de Coalición Canaria (CC-PNC, CCa-PNC, CCa).",
     "VERDES_EQUO": "Equo pasa a llamarse Verdes Equo; el código 11 alterna ambas etiquetas.",
     "NA_SUMA": "Navarra Suma (coalición de 2019), distinta de UPN.",
+    "NO_VOTA_NINGUNO": "Solo en voto + simpatía (VOTOSIMG): el código 97/997/9997 se etiqueta «No votaría» hasta abr-2024 y «Ninguno» desde may-2024, sin salto en la serie (10,0 % y 10,6 %).",
 }
 MANUAL_PARTIDOS["voto blanco"] = "BLANCO"           # «Voto blanco» (3307, INTENCIONGR) = «En blanco»
 NOTAS_PARTIDOS["BLANCO"] = "«En blanco» y «Voto blanco» (solo 3307, INTENCIONGR) son la misma opción."
@@ -161,6 +162,8 @@ for r in listas:
         continue
     nr = r["es_no_respuesta"] == "True"
     pid = mpart.get(r["etiqueta_norm"]) if not nr else no_respuesta(r["etiqueta"], r["codigo"])
+    if r["concepto"] == "voto_simpatia" and pid in ("NO_VOTARIA", "NINGUNO"):
+        pid = "NO_VOTA_NINGUNO"      # VOTOSIMG: el código x997 pasa de «No votaría» a «Ninguno» en may-2024 (misma categoría)
     mp.append({"estudio": r["estudio"], "mes": r["mes"], "concepto": r["concepto"], "variable": r["variable"],
                "codigo": r["codigo"], "etiqueta": r["etiqueta"], "partido_armonizado": pid or "", "es_no_respuesta": nr})
 dump("mapa_partidos.csv", mp)

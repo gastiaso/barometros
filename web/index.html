@@ -67,6 +67,11 @@
           <h3>Base de los porcentajes</h3><p>Por defecto, el porcentaje se calcula sobre todas las personas que reciben la pregunta, incluidas las que no saben o no contestan, como en las tablas del CIS. Quien no recibe la pregunta por un filtro previo («no procede») queda siempre fuera. El editor permite excluir también «no sabe», «no contesta» y «no recuerda».</p>
           <h3>Problemas</h3><p>Los «principales problemas» suman hasta tres menciones por persona: el porcentaje es la proporción de entrevistados que citan el problema en cualquiera de las tres, por lo que los porcentajes suman más de 100.</p>
           <h3>Medias</h3><p>La valoración de líderes, la de ministros y la autoubicación ideológica se resumen con la media ponderada de la escala de 1 a 10, sobre quienes dan una puntuación. Quien no conoce a la persona, no sabe o no contesta queda fuera de la media. Los líderes se valoran en casi todos los barómetros; los ministros, en uno de cada tres (enero, abril, julio y octubre), y se emparejan por nombre.</p>
+          <h3>Barómetros acumulados</h3><p>Las transferencias de voto, la dispersión de grupos y el mapa por comunidades suman varios barómetros consecutivos (los que se elijan, hasta doce) para tener muestra suficiente: se suman las respuestas ponderadas y las entrevistas de todos ellos. La acumulación nunca cruza una ruptura de tipo C, así que puede quedarse en menos meses de los pedidos. La media móvil de las líneas aplica la misma regla con tres barómetros.</p>
+          <h3>Transferencias de voto</h3><p>Cada fila agrupa a quienes recuerdan haber votado a un partido (o no haber votado) en las últimas generales y reparte el 100 % entre lo que responden ahora. Hasta septiembre de 2023 el recuerdo se refiere a las generales de 2019 y desde octubre de 2023 a las de 2023 (R09). El recuadro marca la fidelidad: mismo partido en el recuerdo y en la respuesta actual.</p>
+          <h3>Dispersión de grupos</h3><p>Cada punto es un grupo (por defecto, el electorado de cada partido según voto + simpatía) y cada eje un indicador: el porcentaje de una respuesta o la media de una escala. La relación es descriptiva: compara grupos, no personas.</p>
+          <h3>Mapa por comunidades</h3><p>Los barómetros no están diseñados para dar resultados por comunidad. El mapa acumula seis barómetros por defecto, colorea en cinco tramos de igual amplitud y deja en gris las comunidades con menos de 50 entrevistas. Los márgenes de las comunidades pequeñas son amplios: están en la tabla del panel.</p>
+          <h3>Comparar dos barómetros</h3><p>La diferencia se marca como significativa cuando supera 1,96 veces el error típico combinado de los dos meses, con el efecto de diseño de cada estudio. No se compara a través de una ruptura de tipo C.</p>
           <h3>Gráficos de barras</h3><p>Muestran un solo barómetro. En las preguntas de respuesta única, cada barra es un grupo del cruce (más una barra para el total) y suma 100 %: cada bloque es una respuesta y las no elegidas se agrupan en «Resto de respuestas». En los problemas (hasta tres menciones) y en las medias no tiene sentido apilar, así que las barras se agrupan. Se aplican la misma base, el mismo mínimo de entrevistas y el mismo margen de error que en las series.</p>
           <h3>Margen de error</h3><p>Intervalo al 95 % para muestreo aleatorio simple corregido por el efecto de diseño de la ponderación de cada estudio (Kish): p ± 1,96 · √(deff · p(1−p)/n), con n el número de entrevistas sin ponderar de la base. En cruces se aplica el efecto de diseño del total, una aproximación.</p>
           <h3>Mínimo de entrevistas</h3><p>No se muestra ningún punto cuya base tenga menos de 50 entrevistas sin ponderar.</p>
@@ -135,6 +140,9 @@
 </dialog>
 
 <script src="js/vendor/d3.min.js"></script>
+<script src="js/vendor/topojson-client.min.js"></script>
+<script src="js/vendor/d3-composite-projections.min.js"></script>
+<script src="js/vistas.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

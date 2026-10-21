@@ -78,13 +78,17 @@ const DEFECTO = [
   { preg: 'intencion_voto' },
   { preg: 'voto_simpatia' },
   { tipo: 'barras', preg: 'intencion_voto', cruce: 'edad_g', ancho: true, cats: ['PSOE', 'PP', 'VOX', 'SUMAR', 'PODEMOS', 'SALF', 'NO_VOTARIA', 'NS'] },
+  { tipo: 'transferencias', preg: 'intencion_voto', acum: 3, ancho: true },
   { preg: 'lideres' },
   { preg: 'pref_presidente', catsEtq: ['Pedro Sánchez', 'Alberto Núñez Feijóo', 'Santiago Abascal', 'Yolanda Díaz', 'Gabriel Rufián', 'Irene Montero'] },
-  { preg: 'prob_esp' },
+  { tipo: 'dispersion', grupo: 'voto_simpatia', x: { preg: 'ideologia' }, yEtq: ['prob_esp', 'La vivienda'], acum: 3 },
+  { tipo: 'mapa', indEtq: ['prob_esp', 'La vivienda'], acum: 6 },
+  { tipo: 'calor', preg: 'prob_esp', ancho: true },
   { preg: 'prob_per' },
+  { tipo: 'comparar', preg: 'intencion_voto' },
   { preg: 'eco_esp' },
 ];
-const CLAVE = 'bet-paneles-v2';
+const CLAVE = 'bet-paneles-v3';
 const DEFECTO_VEDA = [{ preg: 'prob_esp' }, { preg: 'eco_esp' }, { preg: 'ideologia' }, { preg: 'prob_per' }];
 
 /* ================= datos ================= */
@@ -685,7 +689,8 @@ function metaPanel(cfg, res) {
   const per = !f.length ? '' : cfg.tipo === 'barras' ? `${mesLargo(f[0].e.mes)} (estudio ${f[0].e.estudio})` : `${mesCorto(f[0].e.mes)} a ${mesCorto(f[f.length - 1].e.mes)}`;
   const fil = cfg.filtro ? `. Solo ${etiqueta(cfg.filtro.col, cfg.filtro.val)}` : '';
   const exn = cfg.exNR && res.unidad !== 'media' ? '. Sin NS/NC en la base' : '';
-  return `${ud}. ${per}${fil}${exn}`;
+  const mov = cfg.movil && cfg.tipo !== 'barras' ? '. Media móvil de 3 barómetros' : '';
+  return `${ud}. ${per}${fil}${exn}${mov}`;
 }
 
 function panelEl(cfg) {
@@ -695,7 +700,7 @@ function panelEl(cfg) {
   el.innerHTML = `<header class="phd"><div class="ttl"><h2></h2><p class="meta"></p></div>
     <div class="acts">
       <button class="ib" type="button" data-a="edit">Configurar</button>
-      ${cfg.tipo === 'barras' ? '' : `<button class="ib" type="button" data-a="rupt" aria-pressed="${!cfg.sinRupturas}">${cfg.sinRupturas ? 'Mostrar rupturas' : 'Ocultar rupturas'}</button>`}
+      ${cfg.tipo && cfg.tipo !== 'calor' ? '' : `<button class="ib" type="button" data-a="rupt" aria-pressed="${!cfg.sinRupturas}">${cfg.sinRupturas ? 'Mostrar rupturas' : 'Ocultar rupturas'}</button>`}
       <button class="ib" type="button" data-a="tabla" aria-pressed="false">Tabla</button>
       <button class="ib" type="button" data-a="csv">CSV</button>
       <button class="ib" type="button" data-a="png">PNG</button>
@@ -727,6 +732,23 @@ async function renderPanel(el, cfg) {
   const P = preg(cfg.preg);
   const h2 = el.querySelector('h2'), meta = el.querySelector('.meta'), host = el.querySelector('.chart'),
     notas = el.querySelector('.notas'), tabla = el.querySelector('.tabla');
+  host.style.overflowX = '';
+  if (VISTAS[cfg.tipo]) {
+    el.classList.add('cargando');
+    try {
+      const out = await VISTAS[cfg.tipo](host, cfg);
+      if (out.vacio) { host.innerHTML = `<p class="empty">${esc(out.vacio)}</p>`; notas.innerHTML = ''; tabla.innerHTML = ''; el._res = null; if (!h2.textContent) h2.textContent = TIPOS.find(t => t[0] === cfg.tipo)[1]; return; }
+      h2.textContent = out.titulo; meta.textContent = out.meta;
+      notas.innerHTML = out.notas.map(t => `<p class="note">${esc(t)}</p>`).join('');
+      tabla.innerHTML = `<table><thead><tr>${out.tabla.cab.map(c => `<th>${esc(c)}</th>`).join('')}</tr></thead><tbody>${out.tabla.filas.map(f => `<tr>${f.map(v => `<td>${esc(v)}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+      el._res = { generico: out, cfg };
+    } catch (e) {
+      h2.textContent = TIPOS.find(t => t[0] === cfg.tipo)[1]; meta.textContent = '';
+      host.innerHTML = `<p class="empty">${esc(META.veda && /no disponible/.test(e.message) ? 'Serie retirada durante el periodo de prohibición de publicación de sondeos.' : e.message)}</p>`;
+      notas.innerHTML = ''; tabla.innerHTML = ''; el._res = null;
+    } finally { el.classList.remove('cargando'); }
+    return;
+  }
   if (!disponible(P) || (cfg.cruce && !META.columnas[cfg.cruce]) || (cfg.filtro && !META.columnas[cfg.filtro.col])) {
     h2.textContent = P ? P.t : 'Panel';
     meta.textContent = '';
@@ -787,8 +809,15 @@ function descargar(nombre, blob) {
 const slug = s => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '').slice(0, 60);
 function exportarCSV(el) {
   if (!el._res) return;
-  const { out, res, cfg } = el._res;
   const q = s => `"${String(s).replace(/"/g, '""')}"`;
+  const titulo = el.querySelector('h2').textContent, metaT = el.querySelector('.meta').textContent;
+  if (el._res.generico) {
+    const G = el._res.generico.csv;
+    const cel = v => v == null || (typeof v === 'number' && !isFinite(v)) ? '' : typeof v === 'number' ? v.toFixed(3) : typeof v === 'boolean' ? (v ? 'sí' : 'no') : q(v);
+    const lines = [G.cab.join(','), ...G.filas.map(f => f.map(cel).join(',')), '', q(`${titulo}. ${metaT}`), q('Fuente: CIS, barómetros mensuales (microdatos). Elaboración: Barómetros en el tiempo.')];
+    return descargar(slug(titulo) + '.csv', new Blob(['\ufeff' + lines.join('\n')], { type: 'text/csv;charset=utf-8' }));
+  }
+  const { out, res, cfg } = el._res;
   const num = v => v != null ? v.toFixed(3) : '';
   let lines;
   if (out.barras && out.barras.apiladas) {
@@ -808,17 +837,17 @@ function exportarCSV(el) {
 }
 function exportarPNG(el) {
   const svg = el.querySelector('.chart svg'); if (!svg || !el._res) return;
-  const { res, cfg } = el._res;
+  const titulo = el.querySelector('h2').textContent, metaT = el.querySelector('.meta').textContent;
   const W = +svg.getAttribute('width'), H = +svg.getAttribute('height');
   const s = 2, top = 52, bot = 34;
   const cv = document.createElement('canvas'); cv.width = W * s; cv.height = (H + top + bot) * s;
   const ctx = cv.getContext('2d'); ctx.scale(s, s);
   ctx.fillStyle = PAL.surface; ctx.fillRect(0, 0, W, H + top + bot);
-  ctx.fillStyle = PAL.ink; ctx.font = `600 16px ${PAL.fontD}`; ctx.fillText(tituloPanel(cfg, res), 8, 22);
-  ctx.fillStyle = PAL.ink3; ctx.font = `12px ${PAL.font}`; ctx.fillText(metaPanel(cfg, res), 8, 42);
+  ctx.fillStyle = PAL.ink; ctx.font = `600 16px ${PAL.fontD}`; ctx.fillText(titulo, 8, 22);
+  ctx.fillStyle = PAL.ink3; ctx.font = `12px ${PAL.font}`; ctx.fillText(metaT, 8, 42);
   ctx.fillText('Fuente: CIS, barómetros mensuales (microdatos). Elaboración: Barómetros en el tiempo.', 8, H + top + 22);
   const img = new Image();
-  img.onload = () => { ctx.drawImage(img, 0, top, W, H); cv.toBlob(b => descargar(slug(tituloPanel(cfg, res)) + '.png', b)); };
+  img.onload = () => { ctx.drawImage(img, 0, top, W, H); cv.toBlob(b => descargar(slug(titulo) + '.png', b)); };
   img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(new XMLSerializer().serializeToString(svg));
 }
 
@@ -840,15 +869,17 @@ function cargarPaneles() {
   if (location.hash.startsWith('#p=')) { try { ps = JSON.parse(b64d(location.hash.slice(3))); } catch (e) { ps = null; } }
   if (!ps) { try { ps = JSON.parse(localStorage.getItem(CLAVE) || 'null'); } catch (e) { ps = null; } }
   if (!Array.isArray(ps) || !ps.length) ps = defecto();
-  PANELES = ps.filter(p => preg(p.preg)).map(p => ({ ...p, id: nuevoId() }));
+  PANELES = ps.filter(p => VISTAS[p.tipo] || preg(p.preg)).map(p => ({ ...p, id: nuevoId() }));
 }
 // paneles de partida; las categorías indicadas por etiqueta se traducen a identificadores
 function defecto() {
+  const porEtq = (concepto, et) => Object.entries(LAB[concepto] || {}).find(([, e]) => e === et)?.[0];
   return (META.veda ? DEFECTO_VEDA : DEFECTO).map(p => {
-    if (!p.catsEtq) return { ...p };
-    const inv = Object.fromEntries(Object.entries(LAB[p.preg] || {}).map(([id, et]) => [et, id]));
-    const { catsEtq, ...r } = p;
-    return { ...r, cats: catsEtq.map(e => inv[e]).filter(Boolean) };
+    const { catsEtq, yEtq, indEtq, ...r } = p;
+    if (catsEtq) r.cats = catsEtq.map(e => porEtq(p.preg, e)).filter(Boolean);
+    if (yEtq) r.y = { preg: yEtq[0], cat: porEtq(preg(yEtq[0]).cols[0], yEtq[1]) };
+    if (indEtq) r.ind = { preg: indEtq[0], cat: porEtq(preg(indEtq[0]).cols[0], indEtq[1]) };
+    return r;
   });
 }
 
@@ -865,95 +896,161 @@ function abrirEditor(cfg) {
   pintarEditor();
   ed.showModal();
 }
+const TIPOS = [
+  ['lineas', 'Evolución mensual (líneas)'], ['barras', 'Un barómetro (barras)'], ['comparar', 'Comparar dos barómetros'],
+  ['calor', 'Mapa de calor: meses × respuestas'], ['transferencias', 'Transferencias de voto'],
+  ['dispersion', 'Dispersión de grupos'], ['mapa', 'Mapa por comunidades'],
+];
+const GRUPOS_DISP = [['voto_simpatia', 'Voto + simpatía (electorados)'], ['intencion_voto', 'Intención directa de voto'], ['recuerdo_voto', 'Recuerdo de voto'],
+  ...CRUCES.filter(([k]) => !['voto_simpatia', 'intencion_voto', 'recuerdo_voto'].includes(k)), ['provincia', 'Provincia']];
+const ACUM = [1, 3, 6, 12];
+// valores por defecto al cambiar de tipo
+function ajustarTipo(b) {
+  const t = b.tipo || 'lineas';
+  if (t === 'transferencias') { if (!PARTIDISTAS.includes(b.preg)) b.preg = 'intencion_voto'; b.acum = b.acum || 3; b.cruce = null; }
+  if (t === 'calor') { const P = preg(b.preg); if (!P || !['cat', 'multi'].includes(P.tipo)) b.preg = 'prob_esp'; b.cruce = null; }
+  if (t === 'comparar') b.cruce = null;
+  if (t === 'dispersion') { b.grupo = b.grupo || 'voto_simpatia'; b.x = b.x || { preg: 'ideologia' }; b.y = b.y || { preg: 'prob_esp', cat: vivienda() }; b.acum = b.acum || 3; }
+  if (t === 'mapa') { b.ind = b.ind || { preg: 'prob_esp', cat: vivienda() }; b.acum = b.acum || 6; }
+}
+function selectorIndicador(pref, ind, titulo) {
+  const grupos = [...new Set(PREG.map(p => p.g))];
+  const opts = grupos.map(g => `<optgroup label="${esc(g)}">${PREG.filter(p => p.g === g && disponible(preg(p.id))).map(p => `<option value="${p.id}"${p.id === ind.preg ? ' selected' : ''}>${esc(p.t)}</option>`).join('')}</optgroup>`).join('');
+  const P = preg(ind.preg);
+  let cats = '';
+  if (P && P.tipo === 'medias') cats = P.cols.map(id => `<option value="${id}"${id === ind.cat ? ' selected' : ''}>${esc(etiqueta(id, id))}</option>`).join('');
+  else if (P && P.tipo !== 'media') cats = (META.conceptos[P.cols[0]]?.categorias || []).filter(c => c.id !== 'NP').map(c => `<option value="${esc(c.id)}"${c.id === ind.cat ? ' selected' : ''}>${esc(c.etiqueta.replace(/^\(NO LEER\)\s*/i, ''))}</option>`).join('');
+  return `<div class="fld full"><label for="f-${pref}-preg">${esc(titulo)}</label><div class="row"><select id="f-${pref}-preg">${opts}</select>${cats ? `<select id="f-${pref}-cat" aria-label="Respuesta">${cats}</select>` : ''}</div></div>`;
+}
 async function pintarEditor() {
   const b = BORRADOR;
-  const barras = b.tipo === 'barras';
+  const tipo = b.tipo || 'lineas';
   const ultMes = EST[EST.length - 1].mes;
   const grupos = [...new Set(PREG.map(p => p.g))];
-  const optPreg = grupos.map(g => `<optgroup label="${esc(g)}">${PREG.filter(p => p.g === g && disponible(preg(p.id))).map(p => `<option value="${p.id}"${p.id === b.preg ? ' selected' : ''}>${esc(p.t)}</option>`).join('')}</optgroup>`).join('');
+  const filtroPreg = p => tipo === 'transferencias' ? PARTIDISTAS.includes(p.id) : tipo === 'calor' ? ['cat', 'multi'].includes(preg(p.id).tipo) : true;
+  const optPreg = grupos.map(g => { const ps = PREG.filter(p => p.g === g && disponible(preg(p.id)) && filtroPreg(p)); return ps.length ? `<optgroup label="${esc(g)}">${ps.map(p => `<option value="${p.id}"${p.id === b.preg ? ' selected' : ''}>${esc(p.t)}</option>`).join('')}</optgroup>` : ''; }).join('');
   const optCruce = `<option value="">Sin cruce</option>` + CRUCES.filter(([k]) => META.columnas[k] && k !== b.preg).map(([k, t]) => `<option value="${k}"${k === b.cruce ? ' selected' : ''}>${esc(t)}</option>`).join('');
   const optFiltro = `<option value="">Sin filtro</option>` + FILTROS.filter(([k]) => META.columnas[k]).map(([k, t]) => `<option value="${k}"${b.filtro && k === b.filtro.col ? ' selected' : ''}>${esc(t)}</option>`).join('');
   const valFiltro = b.filtro ? nivelesDe(b.filtro.col).filter(id => id !== 'NP').map(id => `<option value="${esc(id)}"${id === b.filtro.val ? ' selected' : ''}>${esc(etiqueta(b.filtro.col, id))}</option>`).join('') : '';
-  const periodo = barras
-    ? `<div class="fld"><label for="f-mes">Barómetro</label><select id="f-mes">${opcionesMes(b.mes || ultMes)}</select></div><div class="fld"></div>`
-    : `<div class="fld"><label for="f-desde">Desde</label><select id="f-desde">${opcionesMes(b.desde || EST[0].mes)}</select></div>
-       <div class="fld"><label for="f-hasta">Hasta</label><select id="f-hasta">${opcionesMes(b.hasta || ultMes)}</select></div>`;
-  edb.innerHTML = `
-    <div class="fld full"><label for="f-preg">Pregunta</label><select id="f-preg">${optPreg}</select></div>
-    <div class="fld full"><label for="f-tipo">Tipo de gráfico</label><select id="f-tipo">
-      <option value="lineas"${barras ? '' : ' selected'}>Evolución mensual (líneas)</option>
-      <option value="barras"${barras ? ' selected' : ''}>Un barómetro (barras)</option></select></div>
-    <div class="fld"><label for="f-cruce">Cruzar por</label><select id="f-cruce">${optCruce}</select><span class="hint">${barras ? 'Cada barra es un grupo del cruce y suma 100 %; las respuestas no marcadas van a «Resto». En problemas y medias, barras agrupadas.' : 'Con cruce, cada línea es un grupo y se elige una sola respuesta.'}</span></div>
-    <div class="fld"><label for="f-filtro">Filtrar por</label><div class="row"><select id="f-filtro">${optFiltro}</select><select id="f-fval" ${b.filtro ? '' : 'hidden'} aria-label="Valor del filtro">${valFiltro}</select></div></div>
-    ${periodo}
-    <div class="fld full" id="f-cats"><span class="lab">Respuestas</span><p class="hint">Calculando…</p></div>
-    <div class="fld full"><span class="lab">Opciones</span>
-      <label class="row"><input type="checkbox" id="f-exnr"${b.exNR ? ' checked' : ''}> Excluir de la base «no sabe», «no contesta» y «no recuerda»</label>
-      <label class="row"><input type="checkbox" id="f-banda"${(b.banda ?? (!b.cruce && !barras)) ? ' checked' : ''}> Mostrar el margen de error</label>
-      <label class="row"><input type="checkbox" id="f-ancho"${b.ancho ? ' checked' : ''}> Panel a todo el ancho</label></div>`;
-  const leer = () => {
-    b.preg = $('#f-preg').value;
-    b.tipo = $('#f-tipo').value === 'barras' ? 'barras' : undefined;
-    b.cruce = $('#f-cruce').value || null;
-    const fc = $('#f-filtro').value;
-    b.filtro = fc ? { col: fc, val: (b.filtro && b.filtro.col === fc ? $('#f-fval').value : null) || nivelesDe(fc).find(id => !NR.has(id)) } : null;
-    if ($('#f-mes')) b.mes = $('#f-mes').value === ultMes ? null : $('#f-mes').value;
-    if ($('#f-desde')) {
-      b.desde = $('#f-desde').value === EST[0].mes ? null : $('#f-desde').value;
-      b.hasta = $('#f-hasta').value === ultMes ? null : $('#f-hasta').value;
-    }
-    b.exNR = $('#f-exnr').checked; b.banda = $('#f-banda').checked; b.ancho = $('#f-ancho').checked;
+  const fPreg = `<div class="fld full"><label for="f-preg">Pregunta</label><select id="f-preg">${optPreg}</select></div>`;
+  const fCruce = `<div class="fld"><label for="f-cruce">Cruzar por</label><select id="f-cruce">${optCruce}</select><span class="hint">${tipo === 'barras' ? 'Cada barra es un grupo y suma 100 %; las respuestas no marcadas van a «Resto». En problemas y medias, barras agrupadas.' : 'Cada línea es un grupo y se elige una sola respuesta.'}</span></div>`;
+  const fFiltro = `<div class="fld"><label for="f-filtro">Filtrar por</label><div class="row"><select id="f-filtro">${optFiltro}</select><select id="f-fval" ${b.filtro ? '' : 'hidden'} aria-label="Valor del filtro">${valFiltro}</select></div></div>`;
+  const fPeriodo = `<div class="fld"><label for="f-desde">Desde</label><select id="f-desde">${opcionesMes(b.desde || EST[0].mes)}</select></div><div class="fld"><label for="f-hasta">Hasta</label><select id="f-hasta">${opcionesMes(b.hasta || ultMes)}</select></div>`;
+  const fMes = (id, lab, val) => `<div class="fld"><label for="${id}">${lab}</label><select id="${id}">${opcionesMes(val || ultMes)}</select></div>`;
+  const fAcum = `<div class="fld"><label for="f-acum">Barómetros acumulados</label><select id="f-acum">${ACUM.map(k => `<option value="${k}"${k === (b.acum || 1) ? ' selected' : ''}>${k === 1 ? 'Solo ese barómetro' : `Los ${k} últimos`}</option>`).join('')}</select><span class="hint">Más barómetros, más muestra; no se acumula a través de una ruptura C.</span></div>`;
+  const chk = (id, lab, v) => `<label class="row"><input type="checkbox" id="${id}"${v ? ' checked' : ''}> ${lab}</label>`;
+  const opExNR = chk('f-exnr', 'Excluir de la base «no sabe», «no contesta» y «no recuerda»', b.exNR);
+  const opBanda = chk('f-banda', tipo === 'dispersion' ? 'Mostrar el margen de error en los dos ejes' : 'Mostrar el margen de error', b.banda ?? (tipo === 'lineas' && !b.cruce));
+  const opMovil = chk('f-movil', 'Media móvil de 3 barómetros (suaviza los cruces con poca muestra)', b.movil);
+  const opAncho = chk('f-ancho', 'Panel a todo el ancho', b.ancho);
+  const lista = `<div class="fld full" id="f-cats"><span class="lab">Respuestas</span><p class="hint">Calculando…</p></div>`;
+  const secciones = {
+    lineas: () => fPreg + fCruce + fFiltro + fPeriodo + lista + `<div class="fld full"><span class="lab">Opciones</span>${opExNR}${opBanda}${opMovil}${opAncho}</div>`,
+    barras: () => fPreg + fCruce + fFiltro + fMes('f-mes', 'Barómetro', b.mes) + '<div class="fld"></div>' + lista + `<div class="fld full"><span class="lab">Opciones</span>${opExNR}${opBanda}${opAncho}</div>`,
+    comparar: () => fPreg + fFiltro + '<div class="fld"></div>' + fMes('f-mesA', 'Barómetro inicial', b.mesA || EST[Math.max(0, EST.length - 13)].mes) + fMes('f-mesB', 'Barómetro final', b.mesB) + lista + `<div class="fld full"><span class="lab">Opciones</span>${opExNR}${opBanda}${opAncho}</div>`,
+    calor: () => fPreg + fFiltro + '<div class="fld"></div>' + fPeriodo + lista + `<div class="fld full"><span class="lab">Opciones</span>${opExNR}${opAncho}</div>`,
+    transferencias: () => fPreg + fFiltro + '<div class="fld"></div>' + fMes('f-mes', 'Último barómetro', b.mes) + fAcum + lista + `<div class="fld full"><span class="lab">Opciones</span>${opExNR}${opAncho}</div>`,
+    dispersion: () => `<div class="fld full"><label for="f-grupo">Cada punto es un grupo de</label><select id="f-grupo">${GRUPOS_DISP.filter(([k]) => META.columnas[k]).map(([k, t]) => `<option value="${k}"${k === b.grupo ? ' selected' : ''}>${esc(t)}</option>`).join('')}</select></div>` +
+      selectorIndicador('x', b.x, 'Eje horizontal') + selectorIndicador('y', b.y, 'Eje vertical') + fFiltro + '<div class="fld"></div>' + fMes('f-mes', 'Último barómetro', b.mes) + fAcum + lista + `<div class="fld full"><span class="lab">Opciones</span>${opBanda}${opAncho}</div>`,
+    mapa: () => selectorIndicador('i', b.ind, 'Indicador') + fFiltro + '<div class="fld"></div>' + fMes('f-mes', 'Último barómetro', b.mes) + fAcum + `<div class="fld full"><span class="lab">Opciones</span>${opExNR}${opAncho}</div>`,
   };
-  ['#f-preg', '#f-tipo', '#f-cruce', '#f-filtro', '#f-fval', '#f-desde', '#f-hasta', '#f-mes', '#f-exnr'].forEach(sel => $(sel)?.addEventListener('change', () => {
-    const antes = b.preg, cruceAntes = b.cruce, tipoAntes = b.tipo;
+  edb.innerHTML = `<div class="fld full"><label for="f-tipo">Tipo de gráfico</label><select id="f-tipo">${TIPOS.map(([k, t]) => `<option value="${k}"${k === tipo ? ' selected' : ''}>${esc(t)}</option>`).join('')}</select></div>` + secciones[tipo]();
+  const val = id => $('#' + id)?.value;
+  const leer = () => {
+    b.tipo = val('f-tipo') === 'lineas' ? undefined : val('f-tipo');
+    if ($('#f-preg')) b.preg = val('f-preg');
+    b.cruce = $('#f-cruce') ? (val('f-cruce') || null) : null;
+    const fc = val('f-filtro');
+    b.filtro = fc ? { col: fc, val: (b.filtro && b.filtro.col === fc ? val('f-fval') : null) || nivelesDe(fc).find(id => !NR.has(id)) } : null;
+    if ($('#f-desde')) { b.desde = val('f-desde') === EST[0].mes ? null : val('f-desde'); b.hasta = val('f-hasta') === ultMes ? null : val('f-hasta'); }
+    if ($('#f-mes')) b.mes = val('f-mes') === ultMes ? null : val('f-mes');
+    if ($('#f-mesA')) { b.mesA = val('f-mesA'); b.mesB = val('f-mesB') === ultMes ? null : val('f-mesB'); }
+    if ($('#f-acum')) b.acum = +val('f-acum');
+    if ($('#f-grupo')) b.grupo = val('f-grupo');
+    [['x', 'x'], ['y', 'y'], ['i', 'ind']].forEach(([p, k]) => { if ($(`#f-${p}-preg`)) b[k] = { preg: val(`f-${p}-preg`), cat: val(`f-${p}-cat`) || null }; });
+    b.exNR = !!$('#f-exnr')?.checked; b.ancho = !!$('#f-ancho')?.checked;
+    if ($('#f-banda')) b.banda = $('#f-banda').checked;
+    if ($('#f-movil')) b.movil = $('#f-movil').checked;
+  };
+  edb.querySelectorAll('select, #f-exnr, #f-movil').forEach(elx => elx.addEventListener('change', ev => {
+    const antes = { tipo: b.tipo, preg: b.preg, cruce: b.cruce, grupo: b.grupo, x: b.x?.preg, y: b.y?.preg, i: b.ind?.preg };
     leer();
-    if (b.preg !== antes) { b.cats = null; b.cat1 = null; if (b.cruce === b.preg) b.cruce = null; }
-    if (b.cruce !== cruceAntes) b.gcats = null;
-    if (b.tipo !== tipoAntes) { b.banda = undefined; if (b.tipo === 'barras') b.ancho = b.ancho || !!b.cruce; }
+    if (b.tipo !== antes.tipo) { b.banda = undefined; ajustarTipo(b); b.cats = null; b.gcats = null; }
+    if (b.preg !== antes.preg) { b.cats = null; b.cat1 = null; if (b.cruce === b.preg) b.cruce = null; }
+    if (b.cruce !== antes.cruce || b.grupo !== antes.grupo) b.gcats = null;
+    if (b.x && antes.x && b.x.preg !== antes.x) b.x.cat = null;
+    if (b.y && antes.y && b.y.preg !== antes.y) b.y.cat = null;
+    if (b.ind && antes.i && b.ind.preg !== antes.i) b.ind.cat = null;
+    if (ev.target.id === 'f-ancho' || ev.target.id === 'f-banda') return;
     pintarEditor();
   }));
-  ['#f-banda', '#f-ancho'].forEach(sel => $(sel).addEventListener('change', leer));
-  // listas de respuestas y grupos, con el último valor (o el del barómetro elegido)
+  edb.querySelectorAll('#f-ancho, #f-banda').forEach(elx => elx.addEventListener('change', leer));
+  if (tipo === 'mapa') return;
+  // listas de respuestas y grupos con su valor de referencia
+  const box = $('#f-cats');
   try {
-    const mesB = barras ? (b.mes || ultMes) : null;
-    const base = { ...b, cats: null, gcats: null, ...(barras ? { desde: mesB, hasta: mesB } : {}) };
+    const listaChk = (idc, items, sel, valor) => `<div class="chks" id="${idc}">${items.map(id => `<label><input type="checkbox" value="${esc(id.id)}"${sel.has(id.id) ? ' checked' : ''}> ${esc(id.nom)}<span class="v">${valor ? valor(id.id) : ''}</span></label>`).join('')}</div>`;
+    const buscador = `<input type="search" id="f-buscar" placeholder="Buscar" aria-label="Buscar respuesta">`;
+    if (tipo === 'dispersion') {
+      const { res, idxs } = await calcularPeriodo({ preg: b.x.preg, cruce: b.grupo, filtro: b.filtro }, b.mes, b.acum || 3);
+      if (BORRADOR !== b) return;
+      const I = indicadorInfo(b.x);
+      const nG = gid => acumular(res, idxs, res.glev.indexOf(gid), I.id).n || 0;
+      const cand = res.glev.filter(id => id !== 'NP' && !NR.has(id)).sort((a, z) => nG(z) - nG(a));
+      const sel = new Set(b.gcats && b.gcats.length ? b.gcats : cand.slice(0, 10));
+      box.innerHTML = `<span class="lab">Grupos (hasta ${MAX_SERIES})</span>` + listaChk('chk-grupos', cand.map(id => ({ id, nom: etiqueta(b.grupo, id) })), sel, id => 'n = ' + fmtInt(nG(id)));
+      return;
+    }
+    const mesRef = tipo === 'barras' || tipo === 'transferencias' ? (b.mes || ultMes) : tipo === 'comparar' ? (b.mesB || ultMes) : null;
+    const base = { ...b, cruce: tipo === 'lineas' || tipo === 'barras' ? b.cruce : null, cats: null, gcats: null, movil: false, ...(mesRef ? { desde: mesRef, hasta: mesRef } : {}) };
     const res = await calcular(base);
     if (BORRADOR !== b) return;
     const P = res.P, media = res.unidad === 'media';
     const conc = P.cols[0];
     const fmtv = v => v == null ? '' : media ? fmt2(v) : fmt1(v) + ' %';
-    const resTot = b.cruce ? await calcular({ ...base, cruce: null }) : res;
+    const resTot = base.cruce ? await calcular({ ...base, cruce: null }) : res;
     if (BORRADOR !== b) return;
-    const ultT = id => ultimoCon(resTot, 0, id);
-    const orden = res.ids.filter(id => ultT(id) != null || media).sort((a, z) => (NR.has(a) - NR.has(z)) || ((ultT(z) ?? -1) - (ultT(a) ?? -1)));
+    const ref = tipo === 'calor' ? id => d3.mean(resTot.filas, f => f.grupos[0].vals[id] ?? null) : id => ultimoCon(resTot, 0, id);
+    const orden = res.ids.filter(id => ref(id) != null || media).sort((a, z) => (NR.has(a) - NR.has(z)) || ((ref(z) ?? -1) - (ref(a) ?? -1)));
     const nom = id => media ? etiqueta(id, id) : etiqueta(conc, id);
-    const box = $('#f-cats');
-    const listaCats = sel => `<input type="search" id="f-buscar" placeholder="Buscar" aria-label="Buscar respuesta">
-        <div class="chks" id="chk-cats">${orden.map(id => `<label><input type="checkbox" value="${esc(id)}"${sel.has(id) ? ' checked' : ''}> ${esc(nom(id))}<span class="v">${fmtv(ultT(id))}</span></label>`).join('')}</div>
-        <span class="hint">A la derecha, ${barras ? 'el valor en ese barómetro' : 'el último valor disponible'} de cada respuesta.</span>`;
-    const listaGrupos = gsel => `<span class="lab" style="margin-top:8px">Grupos de ${esc(CRUCE_DE[b.cruce].toLowerCase())} (hasta ${MAX_SERIES})</span>
-        <div class="chks" id="chk-grupos">${ordenMeta(b.cruce, res.glev.filter(id => id !== 'NP')).map(id => `<label><input type="checkbox" value="${esc(id)}"${gsel.has(id) ? ' checked' : ''}> ${esc(etiqueta(b.cruce, id))}</label>`).join('')}</div>`;
-    if (barras || !b.cruce) {
-      const sel = new Set(b.cats && b.cats.length ? b.cats : catsDefecto(resTot));
-      box.innerHTML = `<span class="lab">Respuestas (hasta ${MAX_SERIES})</span>` + listaCats(sel) + (barras && b.cruce ? listaGrupos(new Set(b.gcats && b.gcats.length ? b.gcats : gruposDefecto(res))) : '');
-    } else {
+    const maxC = tipo === 'calor' ? 20 : MAX_SERIES;
+    const defCats = tipo === 'calor' ? orden.filter(id => !NR.has(id)).slice(0, 15) : catsDefecto(resTot);
+    const hintRef = tipo === 'calor' ? 'la media del periodo' : mesRef ? `el valor en ${mesLargo(mesRef)}` : 'el último valor disponible';
+    if (tipo === 'lineas' && b.cruce) {
       const c1 = b.cat1 && res.ids.includes(b.cat1) ? b.cat1 : catsDefecto(resTot)[0];
-      box.innerHTML = `<span class="lab">Respuesta</span><select id="f-cat1">${orden.map(id => `<option value="${esc(id)}"${id === c1 ? ' selected' : ''}>${esc(nom(id))}${ultT(id) != null ? ' (' + fmtv(ultT(id)) + ')' : ''}</option>`).join('')}</select>` +
-        listaGrupos(new Set(b.gcats && b.gcats.length ? b.gcats : gruposDefecto(res)));
+      box.innerHTML = `<span class="lab">Respuesta</span><select id="f-cat1">${orden.map(id => `<option value="${esc(id)}"${id === c1 ? ' selected' : ''}>${esc(nom(id))}${ref(id) != null ? ' (' + fmtv(ref(id)) + ')' : ''}</option>`).join('')}</select>` +
+        `<span class="lab" style="margin-top:8px">Grupos de ${esc(CRUCE_DE[b.cruce].toLowerCase())} (hasta ${MAX_SERIES})</span>` +
+        listaChk('chk-grupos', ordenMeta(b.cruce, res.glev.filter(id => id !== 'NP')).map(id => ({ id, nom: etiqueta(b.cruce, id) })), new Set(b.gcats && b.gcats.length ? b.gcats : gruposDefecto(res)));
+    } else {
+      const sel = new Set(b.cats && b.cats.length ? b.cats : defCats);
+      let html = `<span class="lab">${tipo === 'transferencias' ? 'Columnas: respuestas' : 'Respuestas'} (hasta ${maxC})</span>${buscador}` +
+        listaChk('chk-cats', orden.map(id => ({ id, nom: nom(id) })), sel, id => fmtv(ref(id))) + `<span class="hint">A la derecha, ${hintRef}.</span>`;
+      if (tipo === 'barras' && b.cruce) html += `<span class="lab" style="margin-top:8px">Grupos de ${esc(CRUCE_DE[b.cruce].toLowerCase())} (hasta ${MAX_SERIES})</span>` +
+        listaChk('chk-grupos', ordenMeta(b.cruce, res.glev.filter(id => id !== 'NP')).map(id => ({ id, nom: etiqueta(b.cruce, id) })), new Set(b.gcats && b.gcats.length ? b.gcats : gruposDefecto(res)));
+      if (tipo === 'transferencias') {
+        const rt = await calcularPeriodo({ preg: b.preg, cruce: 'recuerdo_voto', filtro: b.filtro }, b.mes, b.acum || 3);
+        if (BORRADOR !== b) return;
+        const nR = gid => acumular(rt.res, rt.idxs, rt.res.glev.indexOf(gid), rt.res.ids[0]).n || 0;
+        const cand = rt.res.glev.filter(id => id !== 'NP' && !NR.has(id)).sort((a, z) => nR(z) - nR(a));
+        html += `<span class="lab" style="margin-top:8px">Filas: recuerdo de voto (hasta ${MAX_SERIES})</span>` +
+          listaChk('chk-grupos', cand.map(id => ({ id, nom: etiqueta('recuerdo_voto', id) })), new Set(b.gcats && b.gcats.length ? b.gcats : cand.slice(0, 8)), id => 'n = ' + fmtInt(nR(id)));
+      }
+      box.innerHTML = html;
     }
     const busc = $('#f-buscar');
     if (busc) busc.addEventListener('input', () => {
       const q = slug(busc.value);
       box.querySelectorAll('#chk-cats label').forEach(l => { l.hidden = q && !slug(l.textContent).includes(q); });
     });
-  } catch (e) { $('#f-cats').innerHTML = `<p class="err">${esc(e.message)}</p>`; }
+  } catch (e) { box.innerHTML = `<p class="err">${esc(e.message)}</p>`; }
 }
 $('#ed-ok').addEventListener('click', () => {
   const b = BORRADOR;
   const marc = sel => [...document.querySelectorAll(sel + ' input:checked')].map(i => i.value);
   const cats = marc('#chk-cats'), gcats = marc('#chk-grupos');
   const err = t => { $('#ed-err').textContent = t; };
-  if (cats.length > MAX_SERIES || gcats.length > MAX_SERIES) return err(`Marca como máximo ${MAX_SERIES} en cada lista.`);
+  const maxC = b.tipo === 'calor' ? 20 : MAX_SERIES;
+  if (cats.length > maxC || gcats.length > MAX_SERIES) return err(`Marca como máximo ${maxC} respuestas y ${MAX_SERIES} grupos.`);
   if ($('#chk-cats') && !cats.length) return err('Marca al menos una respuesta.');
   if ($('#chk-grupos') && !gcats.length) return err('Marca al menos un grupo.');
   if (b.desde && b.hasta && b.desde > b.hasta) return err('El mes inicial es posterior al final.');

@@ -6,6 +6,7 @@
   --pt:#284e99; --acc:#b2422e; --band:.12;
   --c1:#d64a33; --c2:#1794b5; --c3:#a93772; --c4:#bc9121; --c5:#284e99; --c6:#6f7d1a; --c7:#8c64b7; --c8:#177c52;
   --c9:#e8899a; --c10:#3f8fd0; --c11:#b0652a; --c12:#6a5bd8;
+  --s0:#f3e9ff; --s1:#decaf6; --s2:#c6a7ec; --s3:#ab82d9; --s4:#8c5cbd; --s5:#6b3e96; --s6:#49256b;
   --font-d:Bahnschrift,'DIN Alternate','DIN 2014','D-DIN','Roboto Condensed','Arial Narrow',sans-serif;
   --font-b:system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
   color-scheme:light;
@@ -15,12 +16,14 @@
   --sel:#ffffff; --chip:#25272a; --chip-on:#ecebe8; --chip-on-ink:#141516; --pt:#6f95dd; --acc:#c3513d; --band:.18;
   --c1:#e85b42; --c2:#2a9fc1; --c3:#ba4781; --c4:#b48a12; --c5:#4069b6; --c6:#7d8c2d; --c7:#9c73c8; --c8:#2d8b61;
   --c9:#cf6a92; --c10:#3f84d4; --c11:#b5722a; --c12:#8c7fe6;
+  --s0:#301946; --s1:#462465; --s2:#5f3487; --s3:#7d4dad; --s4:#9d70ce; --s5:#be9be7; --s6:#dfc8fd;
   color-scheme:dark; }}
 :root[data-theme="dark"]{
   --bg:#141516; --surface:#1c1e20; --ink:#ecebe8; --ink2:#b4b3ae; --ink3:#86857f; --line:#2b2d30; --line2:#3e4043;
   --sel:#ffffff; --chip:#25272a; --chip-on:#ecebe8; --chip-on-ink:#141516; --pt:#6f95dd; --acc:#c3513d; --band:.18;
   --c1:#e85b42; --c2:#2a9fc1; --c3:#ba4781; --c4:#b48a12; --c5:#4069b6; --c6:#7d8c2d; --c7:#9c73c8; --c8:#2d8b61;
   --c9:#cf6a92; --c10:#3f84d4; --c11:#b5722a; --c12:#8c7fe6;
+  --s0:#301946; --s1:#462465; --s2:#5f3487; --s3:#7d4dad; --s4:#9d70ce; --s5:#be9be7; --s6:#dfc8fd;
   color-scheme:dark; }
 
 *{box-sizing:border-box;border-radius:0!important}

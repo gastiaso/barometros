@@ -70,6 +70,7 @@ El paso de R necesita los paquetes `targets`, `haven`, `arrow`, `dplyr`, `tidyr`
 
 | Fichero | Contenido |
 |---|---|
+| `referencias_cis.csv` | Cifras publicadas por el CIS (avances de resultados) que el fichero armonizado debe reproducir; entrada editable |
 | `validacion_cifras_cis.csv` | Cifras publicadas por el CIS frente a las calculadas con el fichero armonizado |
 | `validacion_sin_mapa.csv` | Códigos presentes en los datos sin categoría armonizada (debe estar vacío) |
 | `validacion_anomalias_no_respuesta.csv` | Estudios con no respuesta muy por encima de la habitual del concepto |
@@ -143,15 +144,6 @@ R19 y R22 coinciden con una reordenación del cuestionario en octubre de 2023, s
    - Códigos de partido sin etiqueta en 3457 y 3502: se resuelven en `codigos_sin_etiqueta.csv`.
 9. **No respuesta armonizada por tipo, no por código:** NS (no sabe, «no sabe todavía»), NC (no contesta), NR (no recuerda) y NP (no procede: el entrevistado no recibió la pregunta). NP queda fuera de la base de los porcentajes; NS, NC y NR cuentan en ella, como en las publicaciones del CIS.
 
-## Verificación
-
-- **Cifras contra el CIS.** En 3577 y 3582, la distribución ponderada de `ESCIDEOL` reproduce la serie publicada por el CIS: 0,0 pp en las categorías 1–10 y la misma media (4,61 y 4,51).
-- **Revisión contra la documentación.** Se han leído los 64 cuestionarios, libros de códigos y fichas técnicas.
-  - Los enunciados se extraen por la marca de variable del cuestionario. Hay 27 extracciones dudosas o fallidas de 1.406; se comprobaron a mano las que afectaban a cambios de versión.
-  - Los 89 códigos que cambian de etiqueta suman 195 comprobaciones (una por periodo de cada etiqueta). 116 coinciden con el libro de códigos (85) o con el cuestionario (31). 3 son variantes de redacción. 76 no tienen lista disponible, por el formato abreviado de 22 libros de códigos.
-- **Verificación independiente.** Un agente que no había participado en la revisión contrastó 13 afirmaciones con las fuentes primarias. Todas se sostienen. Entre ellas están R04, R06, R19–R23, el hueco de 3355, la sobremuestra de 3489, los códigos de problema reutilizados, el cruce de marcas de 3344, una muestra de partidos y de filas A, y las cifras de `ESCIDEOL` en 3582 (18,9 % en el valor 1 y media de 4,51).
-- **Integridad.** Los 64 ZIP son válidos y los 64 .sav se leen. Todo el pipeline se ejecuta de principio a fin desde esta estructura de carpetas.
-
 ## Web
 
 - **Cálculo en el navegador.** Cada vista descarga solo las columnas que necesita (unos cientos de KB) y agrega los microdatos con la ponderación del estudio. No hay servidor.
@@ -163,7 +155,7 @@ R19 y R22 coinciden con una reordenación del cuestionario en octubre de 2023, s
 ## Pendiente
 
 - R24 (cambio de la población de referencia de la ponderación, mar-2025): sin verificar en los datos.
-- Validar la intención directa y la valoración de líderes contra las cifras publicadas por el CIS (de momento solo se valida `ESCIDEOL`).
+- Ampliar `referencias_cis.csv` a 2021–2022 y a oct-2026 (hoy cubre oct-2023, mar-2025 y mar-2026, más la serie de ideología).
 - Si el CIS corrige el fichero de 3582, retirar la reconstrucción de `ESTUDIOS`.
 - Las 76 comprobaciones de códigos sin lista en el libro de códigos se apoyan solo en el .sav.
 

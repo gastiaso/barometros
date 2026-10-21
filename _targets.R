@@ -20,13 +20,16 @@ list(
   tar_target(f_sin_etiqueta, file.path(INV, "codigos_sin_etiqueta.csv"), format = "file"),
   tar_target(f_variables, file.path(INV, "variables_por_estudio.csv"), format = "file"),
   tar_target(f_referencias, file.path(INV, "referencias_cis.csv"), format = "file"),
+  tar_target(f_resultados, file.path(INV, "resultados_electorales.csv"), format = "file"),
   tar_target(insumos, cargar_insumos(f_crosswalk, f_estudios, f_partidos, f_problemas, f_candidatos, f_lideres,
                                      f_rupturas, f_conceptos, f_decisiones, f_sin_etiqueta, f_variables)),
   tar_target(estudio, insumos$estudios$estudio),
   tar_target(f_sav, ruta_sav(estudio), pattern = map(estudio), format = "file"),
   tar_target(lecturas, aplicar_correcciones(purrr::map2(estudio, f_sav, leer_estudio, insumos = insumos))),
   tar_target(canon, canon_cerradas(lecturas, insumos)),
-  tar_target(microdatos, unir_estudios(purrr::map(lecturas, armonizar_estudio, canon = canon, insumos = insumos))),
+  tar_target(microdatos, unir_estudios(purrr::map(lecturas, armonizar_estudio, canon = canon, insumos = insumos)) |>
+               ponderar_recuerdo(readr::read_csv(f_resultados, col_types = "cccc"))),
+  tar_target(f_deff_recuerdo, { f <- file.path(INV, "deff_recuerdo.csv"); readr::write_csv(deff_recuerdo(microdatos), f); f }, format = "file"),
   tar_target(validacion, validar(microdatos, canon, readr::read_csv(f_referencias, col_types = "cccdc"))),
   tar_target(f_validacion, escribir_validacion(validacion, INV), format = "file"),
   tar_target(f_parquet, {

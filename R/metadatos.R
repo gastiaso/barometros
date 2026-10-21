@@ -80,7 +80,8 @@ construir_metadatos <- function(d, canon, insumos, lecturas) {
     generado = format(Sys.time(), "%Y-%m-%d %H:%M"),
     no_respuesta = as.list(NO_RESPUESTA),
     estudios = dplyr::select(est, estudio, mes, titulo, n, deff = deff_kish, fecha_campo_inicio, fecha_campo_fin) |>
-      dplyr::mutate(n = as.integer(n), deff = as.numeric(deff)),
+      dplyr::mutate(n = as.integer(n), deff = as.numeric(deff)) |>
+      dplyr::left_join(dplyr::transmute(deff_recuerdo(d), estudio = as.character(estudio), deff_recuerdo), by = "estudio"),
     correcciones = correcciones,
     conceptos = conceptos,
     rupturas = insumos$rupturas

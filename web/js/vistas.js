@@ -45,7 +45,7 @@ function indicadorInfo(ind) {
 const fmtV = (v, media) => v == null ? '—' : media ? fmt2(v) : fmt1(v) + ' %';
 async function porGrupos(ind, grupo, cfg, mes, k) {
   const I = indicadorInfo(ind);
-  const spec = { preg: ind.preg, cruce: grupo, filtro: cfg.filtro || null, exNR: cfg.exNR };
+  const spec = { preg: ind.preg, cruce: grupo, filtro: cfg.filtro || null, exNR: cfg.exNR, recuerdo: cfg.recuerdo };
   const { res, idxs } = await calcularPeriodo(spec, mes, k);
   const valores = {};
   res.glev.forEach((gid, g) => { valores[gid] = acumular(res, idxs, g, I.id); });

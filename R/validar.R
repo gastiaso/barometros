@@ -1,29 +1,26 @@
 # Validación del fichero armonizado: integridad interna y cifras publicadas por el CIS
 
-# Cifras publicadas por el CIS que el fichero debe reproducir (se amplían con cada comprobación)
-REFERENCIAS_CIS <- tibble::tribble(
-  ~estudio, ~indicador,                    ~valor, ~tolerancia,
-  3577L,    "media_ideologia",              4.61,  0.005,
-  3582L,    "media_ideologia",              4.51,  0.005,
-  3582L,    "pct_ideologia_1",             18.9,   0.05
-)
+# Cifras publicadas por el CIS que el fichero debe reproducir: inventario/referencias_cis.csv
+# Indicadores: "pct:<columna>:<categoría>" (porcentaje ponderado sin «no procede») y "media:<columna>".
+calcular_referencia <- function(d, estudio, indicador) {
+  x <- d[d$estudio == as.integer(estudio), ]
+  p <- strsplit(indicador, ":", fixed = TRUE)[[1]]
+  if (p[1] == "media") return(stats::weighted.mean(x[[p[2]]], x$peso, na.rm = TRUE))
+  v <- as.character(x[[p[2]]]); ok <- !is.na(v) & v != "NP"
+  100 * sum(x$peso[ok & v == p[3]]) / sum(x$peso[ok])
+}
 
 pct_pond <- function(x, w) 100 * sum(w[x], na.rm = TRUE) / sum(w, na.rm = TRUE)
 
-validar <- function(d, canon) {
+validar <- function(d, canon, referencias) {
   categoricas <- names(d)[vapply(d, is.factor, logical(1))]
   sin_mapa <- purrr::map(categoricas, \(k) d |> dplyr::filter(.data[[k]] == "SIN_MAPA") |>
                            dplyr::count(estudio, mes) |> dplyr::mutate(concepto = k)) |> purrr::list_rbind()
   peso_na <- d |> dplyr::filter(is.na(peso)) |> dplyr::count(estudio)
-  calc <- d |>
-    dplyr::group_by(estudio) |>
-    dplyr::summarise(
-      media_ideologia = stats::weighted.mean(ideologia, peso, na.rm = TRUE),
-      pct_ideologia_1 = pct_pond(ideologia_cat == "1", peso),
-      .groups = "drop") |>
-    tidyr::pivot_longer(-estudio, names_to = "indicador", values_to = "calculado")
-  ext <- dplyr::left_join(REFERENCIAS_CIS, calc, by = c("estudio", "indicador")) |>
-    dplyr::mutate(ok = abs(round(calculado, 2) - valor) <= tolerancia)
+  ext <- referencias |>
+    dplyr::mutate(valor = as.numeric(valor), tolerancia = as.numeric(tolerancia),
+                  calculado = purrr::map2_dbl(estudio, indicador, \(e, i) calcular_referencia(d, e, i)),
+                  ok = abs(calculado - valor) <= tolerancia)
   # anomalías: proporción de no respuesta muy por encima de la habitual del concepto
   nr <- names(NO_RESPUESTA)
   anom <- purrr::map(setdiff(categoricas, c("mes")), \(k) d |>

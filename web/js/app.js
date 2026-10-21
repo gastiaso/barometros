@@ -77,7 +77,7 @@ const PARTIDO_CANDIDATO = {
 const DEFECTO = [
   { preg: 'intencion_voto' },
   { preg: 'voto_simpatia' },
-  { tipo: 'barras', preg: 'intencion_voto', cruce: 'edad_g', ancho: true, cats: ['PSOE', 'PP', 'VOX', 'SUMAR', 'PODEMOS', 'SALF', 'NS'] },
+  { tipo: 'barras', preg: 'intencion_voto', cruce: 'edad_g', ancho: true, cats: ['PSOE', 'PP', 'VOX', 'SUMAR', 'PODEMOS', 'SALF', 'NO_VOTARIA', 'NS'] },
   { preg: 'lideres' },
   { preg: 'pref_presidente', catsEtq: ['Pedro Sánchez', 'Alberto Núñez Feijóo', 'Santiago Abascal', 'Yolanda Díaz', 'Gabriel Rufián', 'Irene Montero'] },
   { preg: 'prob_esp' },
@@ -553,6 +553,83 @@ function dibujarBarras(host, res, cfg) {
   return { barras: B, ser, col, rup: [], omitidos };
 }
 
+
+/* Barras apiladas al 100 %: una barra por grupo del cruce (y otra para el total); cada bloque es una respuesta.
+   Las respuestas no elegidas se agrupan en «Resto» para que cada barra sume 100. Solo para preguntas de respuesta única. */
+const lumin = hex => { const c = d3.color(hex); if (!c) return 0; const f = v => { v /= 255; return v <= .03928 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4; }; const r = c.rgb(); return .2126 * f(r.r) + .7152 * f(r.g) + .0722 * f(r.b); };
+function dibujarApiladas(host, res, cfg, resTot) {
+  const B = datosBarras(res, cfg);
+  const filas = [];
+  const fila = (gid, label, r, g) => {
+    const f = r.filas[0];
+    const segs = B.cats.map(cid => ({ cid, ...puntoDe(r, f, g, cid) }));
+    const n = f.grupos[g]?.n || 0;
+    const ok = n >= MIN_N;
+    const suma = d3.sum(segs, d => d.v ?? (f.grupos[g]?.vals[d.cid] || 0));
+    segs.forEach(d => { if (d.v == null && ok) d.v = f.grupos[g]?.vals[d.cid] || 0; });
+    segs.push({ cid: '__resto', v: ok ? Math.max(0, 100 - suma) : null, n });
+    filas.push({ gid, label, segs, n, ok });
+  };
+  if (cfg.cruce && resTot) fila('__total', 'Total', resTot, 0);
+  B.grupos.forEach(gid => fila(gid, cfg.cruce ? B.nomGrupo(gid) : 'Total', res, cfg.cruce ? res.glev.indexOf(gid) : 0));
+  if (!filas.some(f => f.ok)) return { vacio: 'No hay datos suficientes para esta combinación (cada barra necesita al menos 50 entrevistas).' };
+  const ser = [...B.cats.map(id => ({ id, label: B.nomCat(id) }))];
+  const col = colores(ser, cfg, 'cat');
+  col.__resto = PAL.line;
+  ser.push({ id: '__resto', label: 'Resto de respuestas' });
+  const W = Math.max(300, Math.round(host.clientWidth || 600));
+  const perRow = Math.max(1, Math.min(ser.length, Math.floor(W / (W < 520 ? 150 : 170))));
+  const colW = (W - 16) / perRow, maxL = Math.floor((colW - 24) / 6.4);
+  const legendRows = Math.ceil(ser.length / perRow);
+  const labW = Math.min(170, Math.max(70, d3.max(filas, f => f.label.length) * 6.6 + 10));
+  const rowH = 30, sep = cfg.cruce ? 10 : 0;
+  const m = { l: labW, r: 26, t: 10 + legendRows * 18 + 6, b: 26 };
+  const H = m.t + filas.length * rowH + sep + m.b;
+  host.innerHTML = '';
+  const svg = d3.select(host).append('svg').attr('xmlns', 'http://www.w3.org/2000/svg').attr('viewBox', `0 0 ${W} ${H}`)
+    .attr('width', W).attr('height', H).attr('font-family', PAL.font).attr('font-size', 12).style('background', PAL.surface)
+    .attr('role', 'img').attr('aria-label', tituloPanel(cfg, res));
+  const x = d3.scaleLinear().domain([0, 100]).range([m.l, W - m.r]);
+  const yRow = i => m.t + i * rowH + (cfg.cruce && i > 0 ? sep : 0);
+  svg.append('g').attr('transform', `translate(0,${H - m.b})`)
+    .call(d3.axisBottom(x).tickValues([0, 25, 50, 75, 100]).tickFormat(v => v + ' %').tickSize(-(H - m.t - m.b)).tickSizeOuter(0))
+    .call(g => { g.selectAll('text').attr('fill', PAL.ink3).attr('font-size', 11); g.selectAll('.tick line').attr('stroke', PAL.line); g.select('.domain').remove(); });
+  const barH = 20;
+  filas.forEach((f, i) => {
+    const y0 = yRow(i) + (rowH - barH) / 2;
+    svg.append('text').attr('x', m.l - 8).attr('y', y0 + barH / 2 + 4).attr('text-anchor', 'end').attr('font-size', 12)
+      .attr('font-weight', f.gid === '__total' ? 600 : 400).attr('fill', PAL.ink2)
+      .text(f.label.length > 26 ? f.label.slice(0, 25) + '…' : f.label).append('title').text(f.label);
+    if (!f.ok) { svg.append('text').attr('x', m.l + 4).attr('y', y0 + barH / 2 + 4).attr('font-size', 11).attr('fill', PAL.ink3).text(`n < ${MIN_N}: sin dato`); return; }
+    let acc = 0;
+    f.segs.forEach(d => {
+      const w = x(acc + d.v) - x(acc);
+      const xx = x(acc);
+      acc += d.v;
+      if (w <= 0) return;
+      const g = svg.append('g');
+      g.append('rect').attr('x', xx).attr('y', y0).attr('width', Math.max(0, w - 2)).attr('height', barH).attr('fill', col[d.cid]);
+      const txt = w >= 38 ? fmt1(d.v) : w >= 22 ? String(Math.round(d.v)) : '';
+      if (txt) g.append('text').attr('x', xx + (w - 2) / 2).attr('y', y0 + barH / 2 + 4).attr('text-anchor', 'middle').attr('font-size', 10.5)
+        .attr('font-weight', 600).attr('fill', lumin(col[d.cid]) > .35 ? '#1c1d1f' : '#ffffff').text(txt);
+      const nom = d.cid === '__resto' ? 'Resto de respuestas' : B.nomCat(d.cid);
+      g.append('rect').attr('class', 'hit').attr('x', xx).attr('y', yRow(i)).attr('width', Math.max(w, 6)).attr('height', rowH).attr('fill', 'transparent')
+        .on('pointermove', ev => showTip(`<b>${esc(f.label)}</b><div class="r"><span><i class="sw" style="background:${col[d.cid]}"></i>${esc(nom)}</span><span>${fmt1(d.v)} %</span></div>` +
+          (d.lo != null ? `<div class="tnote">Margen al 95 %: ${fmt1(d.lo)} a ${fmt1(d.hi)}.</div>` : '') + `<div class="tnote">Base: ${fmtInt(f.n)} entrevistas.</div>`, ev))
+        .on('pointerleave', hideTip);
+    });
+  });
+  ser.forEach((s, i) => {
+    const gx = 8 + (i % perRow) * colW, gy = 2 + Math.floor(i / perRow) * 18;
+    svg.append('rect').attr('x', gx).attr('y', gy + 2).attr('width', 10).attr('height', 10).attr('fill', col[s.id]);
+    svg.append('text').attr('x', gx + 16).attr('y', gy + 11).attr('fill', PAL.ink2).attr('font-size', 11.5)
+      .text(s.label.length > maxL ? s.label.slice(0, maxL - 1) + '…' : s.label).append('title').text(s.label);
+  });
+  svg.selectAll('text, line, rect:not(.hit)').attr('pointer-events', 'none');
+  B.apiladas = filas;
+  return { barras: B, ser, col, rup: [], omitidos: filas.filter(f => !f.ok).length };
+}
+
 /* ================= paneles ================= */
 let PANELES = [];
 let SEQ = 0;
@@ -629,7 +706,9 @@ async function renderPanel(el, cfg) {
     const barras = cfg.tipo === 'barras';
     const mesB = barras ? (cfg.mes && ESTI[cfg.mes] != null ? cfg.mes : EST[EST.length - 1].mes) : null;
     const res = await calcular(barras ? { ...cfg, desde: mesB, hasta: mesB } : cfg);
-    const out = barras ? dibujarBarras(host, res, cfg) : dibujar(host, res, cfg);
+    const apilar = barras && res.P.tipo === 'cat';
+    const resTot = apilar && cfg.cruce ? await calcular({ ...cfg, cruce: null, desde: mesB, hasta: mesB }) : null;
+    const out = !barras ? dibujar(host, res, cfg) : apilar ? dibujarApiladas(host, res, cfg, resTot) : dibujarBarras(host, res, cfg);
     res.cat1 = out.cat1;
     h2.textContent = tituloPanel(cfg, res);
     meta.textContent = metaPanel(cfg, res);
@@ -652,6 +731,10 @@ async function renderPanel(el, cfg) {
 function tablaHTML(out, res) {
   const media = res.unidad === 'media';
   const f = media ? fmt2 : fmt1;
+  if (out.barras && out.barras.apiladas) {
+    const B = out.barras, F = B.apiladas;
+    return `<table><thead><tr><th>${esc(res.cfg.cruce ? CRUCE_DE[res.cfg.cruce] : '')}</th>${B.cats.map(c => `<th>${esc(B.nomCat(c))}</th>`).join('')}<th>Resto</th><th>Base (n)</th></tr></thead><tbody>${F.map(r => `<tr><td>${esc(r.label)}</td>${r.segs.map(d => `<td>${r.ok ? fmt1(d.v) : 'n < 50'}</td>`).join('')}<td>${fmtInt(r.n)}</td></tr>`).join('')}</tbody></table>`;
+  }
   if (out.barras) {
     const B = out.barras;
     const val = (g, c) => { const x = B.celdas.find(d => d.gid === g && d.cid === c); return x.v != null ? f(x.v) : x.omit ? 'n < 50' : '—'; };
@@ -674,7 +757,11 @@ function exportarCSV(el) {
   const q = s => `"${String(s).replace(/"/g, '""')}"`;
   const num = v => v != null ? v.toFixed(3) : '';
   let lines;
-  if (out.barras) {
+  if (out.barras && out.barras.apiladas) {
+    const B = out.barras, e = res.filas[0].e;
+    lines = [['mes', 'estudio', 'grupo', 'respuesta', 'valor', 'margen_inferior', 'margen_superior', 'n_base'].join(',')];
+    B.apiladas.forEach(r => r.segs.forEach(d => lines.push([e.mes, e.estudio, q(r.label), q(d.cid === '__resto' ? 'Resto de respuestas' : B.nomCat(d.cid)), r.ok ? num(d.v) : '', num(d.lo), num(d.hi), r.n].join(','))));
+  } else if (out.barras) {
     const B = out.barras, e = res.filas[0].e;
     lines = [['mes', 'estudio', 'grupo', 'respuesta', 'valor', 'margen_inferior', 'margen_superior', 'n_base'].join(',')];
     B.celdas.forEach(c => lines.push([e.mes, e.estudio, q(B.nomGrupo(c.gid)), q(B.nomCat(c.cid)), num(c.v), num(c.lo), num(c.hi), c.n ?? ''].join(',')));
@@ -762,7 +849,7 @@ async function pintarEditor() {
     <div class="fld full"><label for="f-tipo">Tipo de gráfico</label><select id="f-tipo">
       <option value="lineas"${barras ? '' : ' selected'}>Evolución mensual (líneas)</option>
       <option value="barras"${barras ? ' selected' : ''}>Un barómetro (barras)</option></select></div>
-    <div class="fld"><label for="f-cruce">Cruzar por</label><select id="f-cruce">${optCruce}</select><span class="hint">${barras ? 'Con cruce, cada grupo es un bloque de barras.' : 'Con cruce, cada línea es un grupo y se elige una sola respuesta.'}</span></div>
+    <div class="fld"><label for="f-cruce">Cruzar por</label><select id="f-cruce">${optCruce}</select><span class="hint">${barras ? 'Cada barra es un grupo del cruce y suma 100 %; las respuestas no marcadas van a «Resto». En problemas y medias, barras agrupadas.' : 'Con cruce, cada línea es un grupo y se elige una sola respuesta.'}</span></div>
     <div class="fld"><label for="f-filtro">Filtrar por</label><div class="row"><select id="f-filtro">${optFiltro}</select><select id="f-fval" ${b.filtro ? '' : 'hidden'} aria-label="Valor del filtro">${valFiltro}</select></div></div>
     ${periodo}
     <div class="fld full" id="f-cats"><span class="lab">Respuestas</span><p class="hint">Calculando…</p></div>

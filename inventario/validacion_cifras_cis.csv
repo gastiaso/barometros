@@ -1,4 +1,59 @@
-estudio,indicador,valor,tolerancia,calculado,ok
-3577,media_ideologia,4.61,0.005,4.611102870172064,TRUE
-3582,media_ideologia,4.51,0.005,4.505895455281108,TRUE
-3582,pct_ideologia_1,18.9,0.05,18.910175915198764,TRUE
+estudio,indicador,valor,tolerancia,fuente,calculado,ok
+3577,media:ideologia,4.61,0.006,Serie publicada por el CIS (autoubicación ideológica),4.611102870172064,TRUE
+3582,media:ideologia,4.51,0.006,Serie publicada por el CIS (autoubicación ideológica),4.505895455281108,TRUE
+3582,pct:ideologia_cat:1,18.9,0.051,Serie publicada por el CIS (autoubicación ideológica),18.910175915198764,TRUE
+3502,pct:intencion_voto_r:PSOE,23.4,0.051,Avance de resultados 3502 (P.14R),23.37965973550253,TRUE
+3502,pct:intencion_voto_r:PP,18.9,0.051,Avance de resultados 3502 (P.14R),18.929371864013515,TRUE
+3502,pct:intencion_voto_r:VOX,8.8,0.051,Avance de resultados 3502 (P.14R),8.849167528918638,TRUE
+3502,pct:intencion_voto_r:SUMAR,4.9,0.051,Avance de resultados 3502 (P.14R),4.910244523063902,TRUE
+3502,pct:intencion_voto_r:PODEMOS,2.6,0.051,Avance de resultados 3502 (P.14R),2.59455607276944,TRUE
+3502,pct:intencion_voto_r:NO_VOTARIA,8.4,0.051,Avance de resultados 3502 (P.14R),8.37935372474721,TRUE
+3502,pct:intencion_voto_r:NS,16.6,0.051,Avance de resultados 3502 (P.14R),16.56500840295753,TRUE
+3502,pct:intencion_voto_r:NC,3.6,0.051,Avance de resultados 3502 (P.14R),3.5546005753519876,TRUE
+3546,pct:intencion_voto_r:PSOE,22.4,0.051,Avance de resultados 3546 (P.17R),22.375830532071276,TRUE
+3546,pct:intencion_voto_r:PP,15.9,0.051,Avance de resultados 3546 (P.17R),15.90404099240629,TRUE
+3546,pct:intencion_voto_r:VOX,12.1,0.051,Avance de resultados 3546 (P.17R),12.09027405076095,TRUE
+3546,pct:intencion_voto_r:SUMAR,4.9,0.051,Avance de resultados 3546 (P.17R),4.889788224352009,TRUE
+3546,pct:intencion_voto_r:PODEMOS,2.2,0.051,Avance de resultados 3546 (P.17R),2.2057295359899376,TRUE
+3546,pct:intencion_voto_r:ERC,1.7,0.051,Avance de resultados 3546 (P.17R),1.7299825534215636,TRUE
+3546,pct:intencion_voto_r:SALF,1.6,0.051,Avance de resultados 3546 (P.17R),1.647887730942189,TRUE
+3546,pct:intencion_voto_r:BLANCO,5,0.051,Avance de resultados 3546 (P.17R),4.965129066719794,TRUE
+3546,pct:intencion_voto_r:NULO,1.2,0.051,Avance de resultados 3546 (P.17R),1.2416768132618248,TRUE
+3546,pct:intencion_voto_r:NO_VOTARIA,6.7,0.051,Avance de resultados 3546 (P.17R),6.683947284044791,TRUE
+3546,pct:intencion_voto_r:NS,14.4,0.051,Avance de resultados 3546 (P.17R),14.440422077940267,TRUE
+3546,pct:intencion_voto_r:NC,3.5,0.051,Avance de resultados 3546 (P.17R),3.4618744682756475,TRUE
+3546,pct:intencion_voto_r:OTRO,5.5,0.051,Avance de resultados 3546 (P.17R),5.492933787750397,TRUE
+3546,pct:voto_simpatia:PSOE,25.9,0.051,Avance de resultados 3546 (P.19a),25.88790193312511,TRUE
+3546,pct:voto_simpatia:PP,18.3,0.051,Avance de resultados 3546 (P.19a),18.333215367764907,TRUE
+3546,pct:voto_simpatia:VOX,12.5,0.051,Avance de resultados 3546 (P.19a),12.494611961569195,TRUE
+3546,pct:voto_simpatia:SUMAR,6,0.051,Avance de resultados 3546 (P.19a),6.005472581459022,TRUE
+3546,pct:voto_simpatia:PODEMOS,2.6,0.051,Avance de resultados 3546 (P.19a),2.6028042538371516,TRUE
+3546,pct:voto_simpatia:NO_VOTA_NINGUNO,9.8,0.051,Avance de resultados 3546 (P.19a),9.804361543762543,TRUE
+3546,pct:voto_simpatia:NS,2.1,0.051,Avance de resultados 3546 (P.19a),2.1311653365939884,TRUE
+3546,pct:voto_simpatia:NC,2.2,0.051,Avance de resultados 3546 (P.19a),2.1555221450505377,TRUE
+3546,media:lider_pedro_sanchez,4.43,0.006,Avance de resultados 3546 (P.20a),4.426763273845282,TRUE
+3546,media:lider_alberto_nunez_feijoo,3.6,0.006,Avance de resultados 3546 (P.20a),3.595468735535516,TRUE
+3546,media:lider_yolanda_diaz,4.23,0.006,Avance de resultados 3546 (P.20a),4.2342129047386,TRUE
+3546,media:lider_santiago_abascal,2.99,0.006,Avance de resultados 3546 (P.20a),2.988777386609356,TRUE
+3546,media:ideologia,4.71,0.006,Avance de resultados 3546 (P.23),4.710170565100704,TRUE
+3423,pct:intencion_voto_r:PSOE,24.1,0.051,Avance de resultados 3423 (P.14R),24.061186899850743,TRUE
+3423,pct:intencion_voto_r:PP,26.4,0.051,Avance de resultados 3423 (P.14R),26.413526453238262,TRUE
+3423,pct:intencion_voto_r:VOX,6.4,0.051,Avance de resultados 3423 (P.14R),6.371714123465707,TRUE
+3423,pct:intencion_voto_r:SUMAR,11.5,0.051,Avance de resultados 3423 (P.14R),11.522924300663517,TRUE
+3423,pct:intencion_voto_r:BLANCO,1.9,0.051,Avance de resultados 3423 (P.14R),1.8956650304760885,TRUE
+3423,pct:intencion_voto_r:NULO,1.1,0.051,Avance de resultados 3423 (P.14R),1.0693352805810183,TRUE
+3423,pct:intencion_voto_r:NO_VOTARIA,5,0.051,Avance de resultados 3423 (P.14R),5.0413480089410205,TRUE
+3423,pct:intencion_voto_r:NS,11.8,0.051,Avance de resultados 3423 (P.14R),11.789952648210397,TRUE
+3423,pct:intencion_voto_r:NC,3.9,0.051,Avance de resultados 3423 (P.14R),3.94715844027863,TRUE
+3423,pct:intencion_voto_r:OTRO,2,0.051,Avance de resultados 3423 (P.14R),1.9876386538758926,TRUE
+3423,pct:voto_simpatia:PSOE,26.8,0.051,Avance de resultados 3423 (P.16a),26.827657448103878,TRUE
+3423,pct:voto_simpatia:PP,28.5,0.051,Avance de resultados 3423 (P.16a),28.50869071714132,TRUE
+3423,pct:voto_simpatia:VOX,7.1,0.051,Avance de resultados 3423 (P.16a),7.126546780016629,TRUE
+3423,pct:voto_simpatia:SUMAR,12.6,0.051,Avance de resultados 3423 (P.16a),12.581303520763122,TRUE
+3423,pct:voto_simpatia:NC,2.2,0.051,Avance de resultados 3423 (P.16a),2.1912386537220083,TRUE
+3423,pct:voto_simpatia:NO_VOTA_NINGUNO,8.7,0.1,Avance de resultados 3423 (P.16a); el avance usa N=4.031 y el fichero publicado 4.029,8.639855426266193,TRUE
+3423,media:lider_pedro_sanchez,4.51,0.006,Avance de resultados 3423,4.509652599935386,TRUE
+3423,media:lider_alberto_nunez_feijoo,4.48,0.006,Avance de resultados 3423,4.483234982906063,TRUE
+3423,media:lider_yolanda_diaz,4.49,0.006,Avance de resultados 3423,4.490831226028974,TRUE
+3423,media:lider_santiago_abascal,2.83,0.006,Avance de resultados 3423,2.831918150079986,TRUE
+3423,media:ideologia,4.8,0.006,Avance de resultados 3423,4.797246643902536,TRUE

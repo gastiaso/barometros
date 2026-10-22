@@ -1,10 +1,13 @@
 # Construye los datos armonizados y publica la web en GitHub Pages.
 # Se ejecuta con cada cambio en main y a mano (Actions > Publicar > Run workflow). El modo veda (sin series
-# electorales) solo se activa a mano, marcando la casilla al lanzar el flujo.
+# electorales) solo se activa a mano, marcando la casilla al lanzar el flujo. En las pull requests construye y
+# comprueba la web, pero no la publica: el resultado de la prueba aparece en la propia pull request.
 name: Publicar
 
 on:
   push:
+    branches: [main]
+  pull_request:
     branches: [main]
   workflow_dispatch:
     inputs:
@@ -19,7 +22,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: pages
+  group: ${{ github.event_name == 'pull_request' && format('pr-{0}', github.ref) || 'pages' }}
   cancel-in-progress: false
 
 jobs:
@@ -75,11 +78,13 @@ jobs:
           grep -c "?v=$v" web/index.html
 
       - uses: actions/upload-pages-artifact@v3
+        if: github.event_name != 'pull_request'
         with:
           path: web
 
   desplegar:
     needs: construir
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     environment:
       name: github-pages

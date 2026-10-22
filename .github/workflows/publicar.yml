@@ -60,6 +60,14 @@ jobs:
       - name: Datos de la web
         run: Rscript scripts/07_web.R
 
+      # Versión en las direcciones de los scripts y la hoja de estilos: tras cada publicación el navegador
+      # descarga los nuevos en lugar de mezclarlos con los que tenga en caché.
+      - name: Versión de los ficheros de la web
+        run: |
+          v="${GITHUB_SHA::8}"
+          sed -i -E "s#(src=\"js/[^\"?]+\.js)\"#\1?v=$v\"#g; s#(href=\"css/[^\"?]+\.css)\"#\1?v=$v\"#g" web/index.html
+          grep -c "?v=$v" web/index.html
+
       - uses: actions/upload-pages-artifact@v3
         with:
           path: web

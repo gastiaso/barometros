@@ -74,6 +74,7 @@ function iniciarGuia() {
 
 /* Tras un cambio de tema o de tamaño, o al volver a la pestaña */
 function repintarGuia() {
-  if ($('#view-que').hidden) return;
+  const vista = $('#view-que');
+  if (!vista || vista.hidden) return;
   GUIA.cfg.forEach((cfg, el) => { if (el._pintado) renderPanel(el, cfg); });
 }

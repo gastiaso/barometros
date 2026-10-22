@@ -116,7 +116,8 @@ async function col(name) {
   if (!PEND[name]) PEND[name] = (async () => {
     const info = META.columnas[name];
     if (!info) throw new Error('Columna no disponible: ' + name);
-    const r = await fetch(BASE + info.archivo);
+    // la versión de los metadatos evita mezclar columnas de una publicación anterior guardadas en caché
+    const r = await fetch(BASE + info.archivo + '?v=' + encodeURIComponent(META.generado || ''));
     if (!r.ok) throw new Error('No se ha podido descargar ' + name + ' (' + r.status + ').');
     const buf = await new Response(r.body.pipeThrough(new DecompressionStream('deflate'))).arrayBuffer();
     COLS[name] = info.bytes === 1 ? new Uint8Array(buf) : info.bytes === 2 ? new Uint16Array(buf) : new Float32Array(buf);
@@ -894,7 +895,7 @@ function renderTodo() {
 function rerender() {
   leerPaleta();
   grid.querySelectorAll('.panel').forEach(el => { const cfg = PANELES.find(p => p.id === el.dataset.id); if (cfg) renderPanel(el, cfg); });
-  repintarGuia();
+  if (typeof repintarGuia === 'function') repintarGuia();
 }
 
 /* ================= estado ================= */
@@ -1127,7 +1128,7 @@ const VISTAS_WEB = ['que', 'series', 'meth', 'datos'];
 let GRID_LISTO = false;
 function mostrarVista(t) {
   document.querySelectorAll('.tabs button').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === t)));
-  VISTAS_WEB.forEach(v => { $('#view-' + v).hidden = v !== t; });
+  VISTAS_WEB.forEach(v => { const el = $('#view-' + v); if (el) el.hidden = v !== t; });
 }
 function pestana(t) {
   mostrarVista(t);
@@ -1146,9 +1147,9 @@ async function iniciar() {
   document.querySelectorAll('#tema button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === t)));
   leerPaleta();
   cargarPaneles();
-  iniciarGuia();
+  if (typeof iniciarGuia === 'function') iniciarGuia();
   pintarMetodologia();
-  pestana(VISTAS_WEB.find(v => !$('#view-' + v).hidden) || 'que');
+  pestana(VISTAS_WEB.find(v => $('#view-' + v) && !$('#view-' + v).hidden) || ($('#view-que') ? 'que' : 'series'));
 }
 
 document.querySelectorAll('#tema button').forEach(b => b.addEventListener('click', () => tema(b.dataset.v)));

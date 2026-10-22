@@ -51,7 +51,7 @@ select,input[type=search],input[type=text]{background:var(--surface);border:1px 
 .seg button{border:0;background:transparent;color:var(--ink2);padding:5px 10px;cursor:pointer}
 .seg button[aria-pressed="true"]{background:var(--chip-on);color:var(--chip-on-ink);font-weight:500}
 
-.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line2);margin-top:-6px;overflow-x:auto}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line2);margin-top:-6px;overflow-x:auto;overflow-y:hidden}
 .tabs button{background:none;border:0;border-bottom:3px solid transparent;margin-bottom:-1px;padding:8px 12px;font-family:var(--font-d);font-size:13.5px;color:var(--ink2);cursor:pointer;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap}
 .tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--acc);font-weight:600}
 

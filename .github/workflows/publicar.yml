@@ -60,6 +60,12 @@ jobs:
       - name: Datos de la web
         run: Rscript scripts/07_web.R
 
+      - name: Comprobar que la web calcula igual que R y que el CIS
+        run: |
+          pip install playwright==1.56.0
+          python -m playwright install --with-deps chromium
+          python scripts/08_prueba_web.py .
+
       # Versión en las direcciones de los scripts y la hoja de estilos: tras cada publicación el navegador
       # descarga los nuevos en lugar de mezclarlos con los que tenga en caché.
       - name: Versión de los ficheros de la web

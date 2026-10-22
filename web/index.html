@@ -81,10 +81,10 @@
   </header>
 
   <nav class="tabs" role="tablist" aria-label="Secciones">
-    <button type="button" role="tab" data-tab="que" aria-selected="true">¿Qué es esto?</button>
+    <button type="button" role="tab" data-tab="que" aria-selected="true"><span class="lg">¿Qué es esto?</span><span class="ct" aria-hidden="true">Qué es</span></button>
     <button type="button" role="tab" data-tab="series" aria-selected="false">Series</button>
-    <button type="button" role="tab" data-tab="meth" aria-selected="false">Nota metodológica</button>
-    <button type="button" role="tab" data-tab="datos" aria-selected="false">Datos y descargas</button>
+    <button type="button" role="tab" data-tab="meth" aria-selected="false"><span class="lg">Nota metodológica</span><span class="ct" aria-hidden="true">Método</span></button>
+    <button type="button" role="tab" data-tab="datos" aria-selected="false"><span class="lg">Datos y descargas</span><span class="ct" aria-hidden="true">Datos</span></button>
   </nav>
 
   <noscript><p class="aviso">Esta web calcula las series en el navegador y necesita JavaScript. Los microdatos armonizados de los barómetros del CIS (2021-2026) se pueden descargar en formato Parquet en <a href="datos/descargas/barometros_armonizados.parquet">datos/descargas</a>; la documentación está en <a href="https://github.com/gastiaso/barometros">GitHub</a>.</p></noscript>
@@ -197,6 +197,7 @@
   </div>
 
   <div id="view-series" hidden>
+    <details class="resumen" id="resumen" hidden></details>
     <div class="addbar">
       <span class="lab">Añadir:</span>
       <button class="btn pri" type="button" id="b-add">Nuevo panel</button>
@@ -239,6 +240,8 @@
           <h3>Dispersión de grupos</h3><p>Cada punto es un grupo (por defecto, el electorado de cada partido según voto + simpatía) y cada eje un indicador: el porcentaje de una respuesta o la media de una escala. La relación es descriptiva: compara grupos, no personas.</p>
           <h3>Mapa por comunidades</h3><p>Los barómetros no están diseñados para dar resultados por comunidad. El mapa acumula seis barómetros por defecto, colorea en cinco tramos de igual amplitud y deja en gris las comunidades con menos de 50 entrevistas. Los márgenes de las comunidades pequeñas son amplios: están en la tabla del panel.</p>
           <h3>Comparar dos barómetros</h3><p>La diferencia se marca como significativa cuando supera 1,96 veces el error típico combinado de los dos meses, con el efecto de diseño de cada estudio. No se compara a través de una ruptura de tipo C.</p>
+          <h3>Bloques de respuestas</h3><p>El editor permite sumar varias respuestas en un bloque (por ejemplo, varios partidos) que se dibuja como una respuesta más. En las preguntas de respuesta única, el bloque es la suma de sus respuestas; en los problemas, cada persona cuenta una sola vez aunque cite dos problemas del mismo bloque. El margen de error se calcula como para cualquier otra respuesta. La composición la decide quien usa la herramienta y figura en el panel, en el PNG y en el CSV. Las marcas cambian con el tiempo (Unidas Podemos hasta 2023; Sumar y Podemos después), así que un bloque solo suma las respuestas que contiene en cada mes. En las barras apiladas, una respuesta no puede estar a la vez sola y dentro de un bloque.</p>
+          <h3>Qué cambia en el último barómetro</h3><p>El resumen de la pestaña de series compara el último barómetro con el anterior que hizo la misma pregunta. Solo recoge diferencias significativas al 99 % (error típico combinado con el efecto de diseño de cada estudio) y de al menos un punto, o una décima en las valoraciones; deja fuera las respuestas que no llegan al 2 % en ninguno de los dos meses y no compara a través de una ruptura de tipo C. El umbral es más exigente que el del panel «Comparar» porque se hacen muchas comparaciones a la vez. Un cambio significativo no siempre es un cambio de opinión: también puede deberse al cuestionario, por ejemplo a preguntas previas sobre el mismo tema.</p>
           <h3>Gráficos de barras</h3><p>Muestran un solo barómetro. En las preguntas de respuesta única, cada barra es un grupo del cruce (más una barra para el total) y suma 100 %: cada bloque es una respuesta y las no elegidas se agrupan en «Resto de respuestas». En los problemas (hasta tres menciones) y en las medias no tiene sentido apilar, así que las barras se agrupan. Se aplican la misma base, el mismo mínimo de entrevistas y el mismo margen de error que en las series.</p>
           <h3>Margen de error</h3><p>Intervalo al 95 % para muestreo aleatorio simple corregido por el efecto de diseño de la ponderación de cada estudio (Kish): p ± 1,96 · √(deff · p(1−p)/n), con n el número de entrevistas sin ponderar de la base. En cruces se aplica el efecto de diseño del total, una aproximación.</p>
           <h3>Mínimo de entrevistas</h3><p>No se muestra ningún punto cuya base tenga menos de 50 entrevistas sin ponderar.</p>
@@ -250,6 +253,10 @@
           <p><b>Líderes.</b> Se emparejan por nombre, no por la posición en la batería, que cambia entre estudios.</p>
           <p><b>No respuesta.</b> Se agrupa por tipo, no por código: no sabe (incluye «no sabe todavía»), no contesta, no recuerda y no procede.</p>
           <p><b>Variables de perfil.</b> Las variantes de redacción de una misma categoría se llevan a la etiqueta del último estudio. Cuando cambian las categorías (ruptura C), cada tramo conserva las suyas.</p>
+          <p><b>Ingresos netos del hogar</b> (desde junio de 2022). En junio de 2022 el tramo superior era «más de 3.900 €»; desde julio se divide en «de 3.901 a 5.000 €» y «más de 5.000 €», un cambio de categorías que corta esta variable. En febrero de 2025 (estudio 3496) la pregunta se refiere a los ingresos de la persona entrevistada, no del hogar, y ese mes se excluye.</p>
+          <p><b>Situación profesional</b> (desde junio de 2022). Solo se pregunta a quien trabaja; el resto queda como «no procede» y fuera de la base.</p>
+          <p><b>Grupo ocupacional.</b> Agrupa la ocupación recodificada por el CIS (CNO11R: grandes grupos de la Clasificación Nacional de Ocupaciones de 2011 y situaciones de inactividad, desde abril de 2021) en once grupos: directivos y profesionales (grupos 1 y 2); técnicos y administrativos (3 y 4); servicios y comercio (5); trabajadores manuales cualificados (6, 7 y 8); ocupaciones elementales (9); otras ocupaciones (militares y otras); en paro; jubilados y pensionistas; estudiantes; trabajo doméstico no remunerado, y otra situación inactiva. Agrupa ocupaciones con una cualificación parecida; no es un esquema de clase social.</p>
+          <p><b>Nacionalidad y lugar de nacimiento.</b> La nacionalidad distingue entre quien tiene solo la española y quien tiene además otra. El lugar de nacimiento (España u otro país) se pregunta desde mayo de 2024.</p>
         </section>
         <section id="m-rupt"><h2>Rupturas de serie</h2>
           <p>Tipo C: la pregunta deja de ser comparable (cambian las categorías, la definición, la referencia o la ponderación). Tipo B: comparable con una regla de armonización documentada (redacción, contexto electoral, códigos). Las rupturas técnicas, resueltas en la armonización, no se marcan en los gráficos.</p>
@@ -275,7 +282,7 @@
           <p>Licencias: el código, <a href="https://github.com/gastiaso/barometros/blob/main/LICENSE">MIT</a>; los datos armonizados, metadatos y textos de elaboración propia, <a href="https://creativecommons.org/licenses/by/4.0/deed.es">CC BY 4.0</a>. Los datos del CIS siguen sujetos a sus condiciones de reutilización. Detalle en <a href="https://github.com/gastiaso/barometros/blob/main/LICENCIA-DATOS.md">LICENCIA-DATOS.md</a>.</p>
         </section>
         <section id="m-lim"><h2>Limitaciones</h2>
-          <p>Las series son de intención directa y de respuestas declaradas, no estimaciones de voto: el CIS publica aparte una estimación con su propio modelo, que esta herramienta no reproduce. Los márgenes de error suponen muestreo aleatorio y no recogen otros errores (cobertura, no respuesta, efecto del cuestionario). Los cruces con pocas entrevistas son volátiles aunque superen el mínimo. La armonización se ha revisado contra cuestionarios y libros de códigos, pero puede contener errores: el registro completo está en el repositorio.</p>
+          <p>Las series son de intención directa y de respuestas declaradas, no estimaciones de voto: el CIS publica aparte una estimación con su propio modelo, que esta herramienta no reproduce. Los márgenes de error suponen muestreo aleatorio y no recogen otros errores (cobertura, no respuesta, efecto del cuestionario). Los cruces con pocas entrevistas son volátiles aunque superen el mínimo. El universo de los barómetros es la población de nacionalidad española de 18 años y más: no se entrevista a los residentes extranjeros. La armonización se ha revisado contra cuestionarios y libros de códigos, pero puede contener errores: el registro completo está en el repositorio.</p>
         </section>
       </div>
     </div>

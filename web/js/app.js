@@ -46,13 +46,21 @@ const PREG = [
   { g: 'Perfil', id: 'estudios', t: 'Nivel de estudios' },
   { g: 'Perfil', id: 'participacion_g', t: 'Participación en las últimas generales' },
   { g: 'Perfil', id: 'estado_civil', t: 'Estado civil' },
+  { g: 'Perfil', id: 'ocupacion_g', t: 'Grupo ocupacional' },
+  { g: 'Perfil', id: 'ocupacion_r', t: 'Ocupación (grandes grupos de la CNO-11)' },
+  { g: 'Perfil', id: 'situacion_profesional', t: 'Situación profesional' },
+  { g: 'Perfil', id: 'ingresos_hogar', t: 'Ingresos netos del hogar' },
+  { g: 'Perfil', id: 'nacionalidad', t: 'Nacionalidad' },
+  { g: 'Perfil', id: 'lugar_nacimiento', t: 'Lugar de nacimiento' },
 ];
 const CRUCES = [
   ['sexo', 'Sexo'], ['edad_g', 'Edad'], ['ccaa', 'Comunidad autónoma'], ['tamuni', 'Tamaño de municipio'],
   ['estudios', 'Nivel de estudios'], ['sitlab', 'Situación laboral'], ['clase_subjetiva', 'Clase social subjetiva'],
   ['religiosidad', 'Religiosidad'], ['ideologia_g', 'Ideología'], ['recuerdo_voto', 'Recuerdo de voto'],
   ['intencion_voto', 'Intención directa de voto'], ['voto_simpatia', 'Voto + simpatía'], ['estado_civil', 'Estado civil'],
-  ['practica_religiosa', 'Asistencia a oficios religiosos'],
+  ['practica_religiosa', 'Asistencia a oficios religiosos'], ['ocupacion_g', 'Grupo ocupacional'],
+  ['situacion_profesional', 'Situación profesional'], ['ingresos_hogar', 'Ingresos del hogar'],
+  ['nacionalidad', 'Nacionalidad'], ['lugar_nacimiento', 'Lugar de nacimiento'],
 ];
 const FILTROS = [...CRUCES, ['provincia', 'Provincia']];
 const CRUCE_DE = Object.fromEntries(FILTROS);
@@ -89,6 +97,17 @@ const DEFECTO = [
   { tipo: 'comparar', preg: 'intencion_voto' },
   { preg: 'eco_esp' },
 ];
+// En el móvil, menos paneles y sin los que necesitan todo el ancho (transferencias, dispersión, mapa, calor)
+const DEFECTO_MOVIL = [
+  { preg: 'intencion_voto' },
+  { preg: 'voto_simpatia' },
+  { tipo: 'barras', preg: 'intencion_voto', cruce: 'edad_g', cats: ['PSOE', 'PP', 'VOX', 'SUMAR', 'PODEMOS', 'SALF', 'NO_VOTARIA', 'NS'] },
+  { preg: 'lideres' },
+  { preg: 'pref_presidente', catsEtq: ['Pedro Sánchez', 'Alberto Núñez Feijóo', 'Santiago Abascal', 'Yolanda Díaz', 'Gabriel Rufián', 'Irene Montero'] },
+  { preg: 'prob_esp' },
+  { preg: 'eco_esp' },
+];
+const esMovil = () => matchMedia('(max-width: 640px)').matches;
 const CLAVE = 'bet-paneles-v4';
 const NOTA_RECUERDO = 'Reponderado por recuerdo de voto: los pesos del CIS se ajustan para que el recuerdo de quienes podían votar reproduzca la participación y el resultado de las últimas generales (2019 hasta septiembre de 2023; 2023 desde octubre). Es una estimación propia y no coincide con las tablas del CIS. El margen de error usa el efecto de diseño de los nuevos pesos, mayor que el del CIS.';
 const DEFECTO_VEDA = [{ preg: 'prob_esp' }, { preg: 'eco_esp' }, { preg: 'ideologia' }, { preg: 'prob_per' }];
@@ -119,11 +138,26 @@ async function col(name) {
     // la versión de los metadatos evita mezclar columnas de una publicación anterior guardadas en caché
     const r = await fetch(BASE + info.archivo + '?v=' + encodeURIComponent(META.generado || ''));
     if (!r.ok) throw new Error('No se ha podido descargar ' + name + ' (' + r.status + ').');
-    const buf = await new Response(r.body.pipeThrough(new DecompressionStream('deflate'))).arrayBuffer();
+    const buf = await inflar(r);
     COLS[name] = info.bytes === 1 ? new Uint8Array(buf) : info.bytes === 2 ? new Uint16Array(buf) : new Float32Array(buf);
     return COLS[name];
   })();
   return PEND[name];
+}
+/* Los navegadores sin DecompressionStream (Safari anterior a 16.4) cargan fflate solo cuando lo necesitan */
+let FFLATE = null;
+const cargarFflate = () => FFLATE || (FFLATE = new Promise((ok, ko) => {
+  const sc = document.createElement('script');
+  sc.src = 'js/vendor/fflate.min.js';
+  sc.onload = () => ok(window.fflate);
+  sc.onerror = () => ko(new Error('No se ha podido cargar el descompresor de datos.'));
+  document.head.appendChild(sc);
+}));
+async function inflar(r) {
+  if (typeof DecompressionStream !== 'undefined') return new Response(r.body.pipeThrough(new DecompressionStream('deflate'))).arrayBuffer();
+  const ff = await cargarFflate();
+  const u8 = ff.unzlibSync(new Uint8Array(await r.arrayBuffer()));
+  return u8.byteOffset === 0 && u8.byteLength === u8.buffer.byteLength ? u8.buffer : u8.slice().buffer;
 }
 const preg = id => {
   const p = PREG.find(x => x.id === id);
@@ -133,7 +167,29 @@ const preg = id => {
   return { ...p, tipo, cols };
 };
 const disponible = p => p && p.cols.length && p.cols.every(c => META.columnas[c]);
+/* Bloques: suma de respuestas definida por quien usa la herramienta; se tratan como una respuesta más */
+const PREFIJO_BLOQUE = 'BLQ:';
+const idBloque = b => PREFIJO_BLOQUE + b.nombre;
+const esBloque = id => typeof id === 'string' && id.startsWith(PREFIJO_BLOQUE);
+const bloquesDe = cfg => (cfg.bloques || []).filter(b => b && b.nombre && b.ids && b.ids.length);
+function textoBloques(cfg) {
+  const P = preg(cfg.preg), bs = bloquesDe(cfg);
+  if (!P || !bs.length) return '';
+  return '. ' + bs.map(b => `Bloque «${b.nombre}»: ${b.ids.map(id => etiqueta(P.cols[0], id)).join(' + ')}`).join('. ');
+}
+// en las barras apiladas cada respuesta cuenta una vez: un bloque elegido aparta a sus miembros y a los bloques que se solapan
+function sinSolapes(cats, cfg) {
+  const usados = new Set(), out = [];
+  const miembros = id => (esBloque(id) ? (bloquesDe(cfg).find(b => idBloque(b) === id)?.ids || []) : [id]);
+  [...cats.filter(esBloque), ...cats.filter(id => !esBloque(id))].forEach(id => {
+    const m = miembros(id);
+    if (m.some(x => usados.has(x))) return;
+    m.forEach(x => usados.add(x)); out.push(id);
+  });
+  return cats.filter(id => out.includes(id));
+}
 const etiqueta = (concepto, id) => {
+  if (esBloque(id)) return id.slice(PREFIJO_BLOQUE.length);
   if (NR.has(id)) return META.no_respuesta[id] || id;
   const persona = /^(lider|ministro)_/;
   if (persona.test(concepto) || persona.test(id)) {
@@ -172,6 +228,9 @@ async function calcular(cfg) {
     // identificadores comunes a las columnas (las de problemas tienen niveles propios)
     const ids = [], idx = {};
     const mapas = P.cols.map(c => nivelesDe(c).map(id => { if (!(id in idx)) { idx[id] = ids.length; ids.push(id); } return idx[id]; }));
+    const bloques = bloquesDe(cfg);
+    bloques.forEach(b => { const id = idBloque(b); if (!(id in idx)) { idx[id] = ids.length; ids.push(id); } });
+    const enBloque = ids.map(id => bloques.filter(b => b.ids.includes(id)).map(b => idx[idBloque(b)]));
     const isNR = ids.map(id => NR.has(id)), isNP = ids.map(id => id === 'NP');
     const cs = P.cols.map(c => COLS[c]);
     const K = ids.length;
@@ -188,12 +247,13 @@ async function calcular(cfg) {
         if (isNP[k0] || (cfg.exNR && isNR[k0])) continue;
         const w = peso[r];
         base[g] += w; n[g]++;
-        if (P.tipo === 'cat') { num[g * K + k0] += w; continue; }
+        if (P.tipo === 'cat') { num[g * K + k0] += w; for (const kb of enBloque[k0]) num[g * K + kb] += w; continue; }
         for (let j = 0; j < cs.length; j++) {           // hasta tres menciones, sin contar dos veces la misma
           const c = cs[j][r]; if (c === 0) continue;
           const k = mapas[j][c - 1];
           if (isNP[k] || (j > 0 && isNR[k]) || marca[k] === r) continue;
           marca[k] = r; num[g * K + k] += w;
+          for (const kb of enBloque[k]) if (marca[kb] !== r) { marca[kb] = r; num[g * K + kb] += w; }   // un bloque cuenta una vez por persona
         }
       }
       const grupos = [];
@@ -528,7 +588,8 @@ function datosBarras(res, cfg) {
   const f = res.filas[0];
   const cats0 = cfg.cats && cfg.cats.length ? cfg.cats.filter(id => res.ids.includes(id)) : catsDefecto(res);
   const conc = res.P.cols[0];
-  const cats = (res.P.tipo === 'cat' && res.ids.filter(id => !NR.has(id)).length <= 7 ? ordenMeta(conc, cats0) : cats0).slice(0, MAX_SERIES);
+  const cats1 = res.P.tipo === 'cat' ? sinSolapes(cats0, cfg) : cats0;
+  const cats = (res.P.tipo === 'cat' && res.ids.filter(id => !NR.has(id)).length <= 7 ? ordenMeta(conc, cats1) : cats1).slice(0, MAX_SERIES);
   const nomCat = id => res.unidad === 'media' ? etiqueta(id, id) : etiqueta(conc, id);
   const grupos = cfg.cruce ? ordenMeta(cfg.cruce, cfg.gcats && cfg.gcats.length ? cfg.gcats : gruposDefecto(res)).slice(0, MAX_SERIES) : ['TOTAL'];
   const nomGrupo = id => cfg.cruce ? etiqueta(cfg.cruce, id) : 'Total';
@@ -628,6 +689,7 @@ function dibujarApiladas(host, res, cfg, resTot) {
   const colW = (W - 16) / perRow, maxL = Math.floor((colW - 24) / 6.4);
   const legendRows = Math.ceil(ser.length / perRow);
   const labW = Math.min(170, Math.max(70, d3.max(filas, f => f.label.length) * 6.6 + 10));
+  const maxEtq = Math.max(6, Math.floor((labW - 12) / 6.6));   // la etiqueta del grupo no se sale por la izquierda
   const rowH = 30, sep = cfg.cruce ? 10 : 0;
   const m = { l: labW, r: 26, t: 10 + legendRows * 18 + 6, b: 26 };
   const H = m.t + filas.length * rowH + sep + m.b;
@@ -645,7 +707,7 @@ function dibujarApiladas(host, res, cfg, resTot) {
     const y0 = yRow(i) + (rowH - barH) / 2;
     svg.append('text').attr('x', m.l - 8).attr('y', y0 + barH / 2 + 4).attr('text-anchor', 'end').attr('font-size', 12)
       .attr('font-weight', f.gid === '__total' ? 600 : 400).attr('fill', PAL.ink2)
-      .text(f.label.length > 26 ? f.label.slice(0, 25) + '…' : f.label).append('title').text(f.label);
+      .text(f.label.length > maxEtq ? f.label.slice(0, maxEtq - 1) + '…' : f.label).append('title').text(f.label);
     if (!f.ok) { svg.append('text').attr('x', m.l + 4).attr('y', y0 + barH / 2 + 4).attr('font-size', 11).attr('fill', PAL.ink3).text(`n < ${MIN_N}: sin dato`); return; }
     let acc = 0;
     f.segs.forEach(d => {
@@ -709,7 +771,7 @@ function metaPanel(cfg, res) {
   const exn = cfg.exNR && res.unidad !== 'media' ? '. Sin NS/NC en la base' : '';
   const mov = cfg.movil && cfg.tipo !== 'barras' ? '. Media móvil de 3 barómetros' : '';
   const rec = cfg.recuerdo ? '. Pesos ajustados al recuerdo de voto (estimación propia)' : '';
-  return `${ud}. ${per}${fil}${exn}${mov}${rec}${avisoVoto(cfg)}`;
+  return `${ud}. ${per}${fil}${exn}${mov}${rec}${textoBloques(cfg)}${avisoVoto(cfg)}`;
 }
 
 function panelEl(cfg) {
@@ -759,7 +821,7 @@ async function renderPanel(el, cfg) {
       if (out.vacio) { host.innerHTML = `<p class="empty">${esc(out.vacio)}</p>`; notas.innerHTML = ''; tabla.innerHTML = ''; el._res = null; if (!h2.textContent) h2.textContent = TIPOS.find(t => t[0] === cfg.tipo)[1]; return; }
       const rec = cfg.recuerdo && cfg.tipo !== 'transferencias';
       h2.textContent = out.titulo + (rec ? ' (con reponderación por recuerdo)' : '');
-      meta.textContent = out.meta + (rec ? '. Pesos ajustados al recuerdo de voto (estimación propia)' : '') + avisoVoto(cfg);
+      meta.textContent = out.meta + (rec ? '. Pesos ajustados al recuerdo de voto (estimación propia)' : '') + textoBloques(cfg) + avisoVoto(cfg);
       notas.innerHTML = [...(rec ? [NOTA_RECUERDO] : []), ...out.notas].map(t => `<p class="note">${esc(t)}</p>`).join('');
       tabla.innerHTML = `<table><thead><tr>${out.tabla.cab.map(c => `<th>${esc(c)}</th>`).join('')}</tr></thead><tbody>${out.tabla.filas.map(f => `<tr>${f.map(v => `<td>${esc(v)}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
       el._res = { generico: out, cfg };
@@ -887,14 +949,30 @@ function exportarPNG(el) {
 }
 
 const grid = $('#grid');
+/* Cada panel se calcula y se dibuja cuando se acerca a la pantalla: en el móvil no se descargan las columnas de
+   paneles que nadie llega a ver. Sin IntersectionObserver, se pintan todos. */
+let IO_PANELES = null;
+function pintarPanel(el) {
+  el.classList.remove('pendiente'); el._pintado = true;
+  const cfg = PANELES.find(p => p.id === el.dataset.id);
+  if (cfg) renderPanel(el, cfg);
+}
 function renderTodo() {
+  if (IO_PANELES) IO_PANELES.disconnect();
   grid.innerHTML = '';
   if (!PANELES.length) { grid.innerHTML = '<p class="empty">No hay paneles. Usa «Nuevo panel» para añadir uno.</p>'; return; }
-  PANELES.forEach(cfg => { const el = panelEl(cfg); grid.appendChild(el); renderPanel(el, cfg); });
+  IO_PANELES = 'IntersectionObserver' in window ? new IntersectionObserver(es => es.forEach(e => {
+    if (!e.isIntersecting) return;
+    IO_PANELES.unobserve(e.target); pintarPanel(e.target);
+  }), { rootMargin: '600px 0px' }) : null;
+  PANELES.forEach(cfg => {
+    const el = panelEl(cfg); el.classList.add('pendiente'); grid.appendChild(el);
+    if (IO_PANELES) IO_PANELES.observe(el); else pintarPanel(el);
+  });
 }
 function rerender() {
   leerPaleta();
-  grid.querySelectorAll('.panel').forEach(el => { const cfg = PANELES.find(p => p.id === el.dataset.id); if (cfg) renderPanel(el, cfg); });
+  grid.querySelectorAll('.panel').forEach(el => { if (el._pintado) pintarPanel(el); });
   if (typeof repintarGuia === 'function') repintarGuia();
 }
 
@@ -913,7 +991,7 @@ function cargarPaneles() {
 // paneles de partida; las categorías indicadas por etiqueta se traducen a identificadores
 function defecto() {
   const porEtq = (concepto, et) => Object.entries(LAB[concepto] || {}).find(([, e]) => e === et)?.[0];
-  return (META.veda ? DEFECTO_VEDA : DEFECTO).map(p => {
+  return (META.veda ? DEFECTO_VEDA : esMovil() ? DEFECTO_MOVIL : DEFECTO).map(p => {
     const { catsEtq, yEtq, indEtq, ...r } = p;
     if (catsEtq) r.cats = catsEtq.map(e => porEtq(p.preg, e)).filter(Boolean);
     if (yEtq) r.y = { preg: yEtq[0], cat: porEtq(preg(yEtq[0]).cols[0], yEtq[1]) };
@@ -946,6 +1024,7 @@ const ACUM = [1, 3, 6, 12];
 // valores por defecto al cambiar de tipo
 function ajustarTipo(b) {
   const t = b.tipo || 'lineas';
+  if (['transferencias', 'dispersion', 'mapa'].includes(t)) b.bloques = null;
   if (t === 'transferencias') { if (!PARTIDISTAS.includes(b.preg)) b.preg = 'intencion_voto'; b.acum = b.acum || 3; b.cruce = null; }
   if (t === 'calor') { const P = preg(b.preg); if (!P || !['cat', 'multi'].includes(P.tipo)) b.preg = 'prob_esp'; b.cruce = null; }
   if (t === 'comparar') b.cruce = null;
@@ -1017,7 +1096,7 @@ async function pintarEditor() {
     const antes = { tipo: b.tipo, preg: b.preg, cruce: b.cruce, grupo: b.grupo, x: b.x?.preg, y: b.y?.preg, i: b.ind?.preg };
     leer();
     if (b.tipo !== antes.tipo) { b.banda = undefined; ajustarTipo(b); b.cats = null; b.gcats = null; }
-    if (b.preg !== antes.preg) { b.cats = null; b.cat1 = null; if (b.cruce === b.preg) b.cruce = null; }
+    if (b.preg !== antes.preg) { b.cats = null; b.cat1 = null; b.bloques = null; if (b.cruce === b.preg) b.cruce = null; }
     if (b.cruce !== antes.cruce || b.grupo !== antes.grupo) b.gcats = null;
     if (b.x && antes.x && b.x.preg !== antes.x) b.x.cat = null;
     if (b.y && antes.y && b.y.preg !== antes.y) b.y.cat = null;
@@ -1078,12 +1157,57 @@ async function pintarEditor() {
       }
       box.innerHTML = html;
     }
+    if (['cat', 'multi'].includes(P.tipo) && ['lineas', 'barras', 'comparar', 'calor'].includes(tipo)) pintarBloques(box, b, orden, nom, id => fmtv(ref(id)), listaChk);
     const busc = $('#f-buscar');
     if (busc) busc.addEventListener('input', () => {
       const q = slug(busc.value);
       box.querySelectorAll('#chk-cats label').forEach(l => { l.hidden = q && !slug(l.textContent).includes(q); });
     });
   } catch (e) { box.innerHTML = `<p class="err">${esc(e.message)}</p>`; }
+}
+/* Bloques en el editor: se marcan respuestas, se les pone nombre y pasan a ser una respuesta más del panel */
+const MAX_BLOQUES = 6;
+function pintarBloques(box, b, orden, nom, valor, listaChk) {
+  const bs = bloquesDe(b);
+  const sust = orden.filter(id => !NR.has(id) && !esBloque(id));   // de mayor a menor, como la lista de respuestas
+  const lista = bs.map((bl, i) => `<li><b>${esc(bl.nombre)}</b> = ${esc(bl.ids.map(nom).join(' + '))} <button class="ib" type="button" data-quitar="${i}">Quitar</button></li>`).join('');
+  box.insertAdjacentHTML('beforeend', `<details class="bloques"${bs.length ? ' open' : ''}><summary>Agrupar respuestas en bloques${bs.length ? ` (${bs.length})` : ''}</summary>
+    <p class="hint">Un bloque suma varias respuestas (por ejemplo, partidos) y se dibuja como una respuesta más. La composición la decides tú y figura en el panel, la tabla y las descargas. Las marcas cambian con el tiempo (Unidas Podemos hasta 2023; Sumar y Podemos después): incluye todas las que quieras sumar en cada periodo.</p>
+    ${lista ? `<ul class="blq-lista">${lista}</ul>` : ''}
+    ${bs.length < MAX_BLOQUES ? `<div class="row"><input type="text" id="f-blq-nom" maxlength="40" placeholder="Nombre del bloque" aria-label="Nombre del bloque"><button class="btn" type="button" id="f-blq-add">Crear bloque con las marcadas</button></div>
+    ${listaChk('chk-bloque', sust.map(id => ({ id, nom: nom(id) })), new Set(), valor)}` : `<p class="hint">Máximo de ${MAX_BLOQUES} bloques por panel.</p>`}
+  </details>`);
+  const marcadas = sel => [...box.querySelectorAll(sel + ' input:checked')].map(i => i.value);
+  // conserva lo marcado en el editor antes de volver a pintarlo
+  const conservar = () => {
+    if ($('#chk-cats')) b.cats = marcadas('#chk-cats');
+    if ($('#chk-grupos')) b.gcats = marcadas('#chk-grupos');
+    if ($('#f-cat1')) b.cat1 = $('#f-cat1').value;
+  };
+  box.querySelectorAll('[data-quitar]').forEach(bt => bt.addEventListener('click', () => {
+    conservar();
+    const [q] = b.bloques.splice(+bt.dataset.quitar, 1);
+    const id = idBloque(q);
+    if (b.cats) b.cats = b.cats.filter(x => x !== id);
+    if (b.cat1 === id) b.cat1 = null;
+    pintarEditor();
+  }));
+  $('#f-blq-add')?.addEventListener('click', () => {
+    const nombre = $('#f-blq-nom').value.trim().replace(/\s+/g, ' ');
+    const ids = sust.filter(id => marcadas('#chk-bloque').includes(id));
+    const err = t => { $('#ed-err').textContent = t; };
+    if (!nombre) return err('Ponle nombre al bloque.');
+    if (ids.length < 2) return err('Marca al menos dos respuestas para el bloque.');
+    if (bs.some(x => x.nombre.toLowerCase() === nombre.toLowerCase()) || sust.some(id => nom(id).toLowerCase() === nombre.toLowerCase())) return err('Ya hay una respuesta o un bloque con ese nombre.');
+    err('');
+    conservar();
+    b.bloques = [...bs, { nombre, ids }];
+    const id = idBloque({ nombre });
+    if (b.cats) b.cats = [id, ...b.cats.filter(x => !ids.includes(x))];
+    else b.cats = [id];
+    if ($('#f-cat1')) b.cat1 = id;
+    pintarEditor();
+  });
 }
 $('#ed-ok').addEventListener('click', () => {
   const b = BORRADOR;
@@ -1095,6 +1219,8 @@ $('#ed-ok').addEventListener('click', () => {
   if ($('#chk-cats') && !cats.length) return err('Marca al menos una respuesta.');
   if ($('#chk-grupos') && !gcats.length) return err('Marca al menos un grupo.');
   if (b.desde && b.hasta && b.desde > b.hasta) return err('El mes inicial es posterior al final.');
+  if (b.tipo === 'barras' && preg(b.preg)?.tipo === 'cat' && sinSolapes(cats, b).length < cats.length)
+    return err('En las barras apiladas cada respuesta cuenta una vez: no marques a la vez un bloque y alguna de sus respuestas.');
   b.cats = $('#chk-cats') ? cats : null;
   b.gcats = $('#chk-grupos') ? gcats : null;
   b.cat1 = $('#f-cat1')?.value || null;
@@ -1115,6 +1241,98 @@ function pintarMetodologia() {
   $('#m-est-tabla').innerHTML = `<table><thead><tr><th>Mes</th><th>Estudio</th><th>Trabajo de campo</th><th>Entrevistas</th><th>Efecto de diseño</th></tr></thead><tbody>${META.estudios.map(e => `<tr><td>${esc(mesCorto(e.mes))}</td><td>${esc(e.estudio)}</td><td>${esc(e.fecha_campo_inicio)} a ${esc(e.fecha_campo_fin)}</td><td class="n">${fmtInt(+e.n)}</td><td class="n">${fmt2(+e.deff)}</td></tr>`).join('')}</tbody></table>`;
 }
 
+/* ================= qué cambia en el último barómetro ================= */
+/* Compara el último barómetro con el anterior que hizo la misma pregunta. Con tantas comparaciones a la vez, el umbral
+   es más exigente que el del panel «Comparar»: significativa al 99 % y de al menos un punto (una décima en las medias).
+   No compara a través de una ruptura C. */
+const RESUMEN = [
+  { preg: 'intencion_voto', t: 'Intención directa de voto' },
+  { preg: 'voto_simpatia', t: 'Voto + simpatía' },
+  { preg: 'pref_presidente', t: 'Preferencia como presidente' },
+  { preg: 'lideres', t: 'Valoración de líderes' },
+  { preg: 'prob_esp', t: 'Principales problemas de España' },
+  { preg: 'prob_per', t: 'Problemas que más le afectan' },
+  { preg: 'eco_esp', t: 'Situación económica general' },
+  { preg: 'eco_per', t: 'Situación económica personal' },
+  { preg: 'ideologia', t: 'Autoubicación ideológica' },
+];
+const Z_RESUMEN = 2.576, MIN_DIF = 1, MIN_DIF_MEDIA = 0.1, MIN_PCT_RESUMEN = 2, MAX_CAMBIOS = 4;
+async function cambiosUltimo(spec) {
+  const P = preg(spec.preg);
+  if (!disponible(P)) return null;
+  const res = await calcular({ preg: spec.preg, desde: EST[Math.max(0, EST.length - 6)].mes });
+  const media = res.unidad === 'media';
+  const con = res.filas.filter(f => media ? Object.keys(f.grupos[0].vals).length : f.grupos[0].n > 0);
+  const ultimo = EST[EST.length - 1].mes;
+  if (!con.length || con[con.length - 1].e.mes !== ultimo) return { ...spec, ausente: true };
+  if (con.length < 2) return null;
+  const fA = con[con.length - 2], fB = con[con.length - 1];
+  const corte = rupturas({ preg: spec.preg }).find(r => r.tipo === 'C' && r.m > fA.e.mes && r.m <= fB.e.mes);
+  const base = { ...spec, fA, fB, media, conc: P.cols[0] };
+  if (corte) return { ...base, corte };
+  const gA = fA.grupos[0], gB = fB.grupos[0], cambios = [];
+  for (const id of res.ids) {
+    if (NR.has(id) && id !== 'NS') continue;
+    const vA = gA.vals[id], vB = gB.vals[id];
+    if (vA == null || vB == null) continue;            // respuesta que no se ofrecía en uno de los dos meses
+    let se, d = vB - vA;
+    if (media) {
+      const nA = gA.ns[id], nB = gB.ns[id];
+      if (nA < MIN_N || nB < MIN_N || Math.abs(d) < MIN_DIF_MEDIA) continue;
+      se = Math.sqrt(fA.e.deff * gA.sd[id] ** 2 / nA + fB.e.deff * gB.sd[id] ** 2 / nB);
+    } else {
+      if (Math.max(vA, vB) < MIN_PCT_RESUMEN || Math.abs(d) < MIN_DIF) continue;
+      const pA = vA / 100, pB = vB / 100;
+      se = 100 * Math.sqrt(fA.e.deff * pA * (1 - pA) / gA.n + fB.e.deff * pB * (1 - pB) / gB.n);
+    }
+    if (se > 0 && Math.abs(d) / se >= Z_RESUMEN) cambios.push({ id, vA, vB, d });
+  }
+  cambios.sort((a, z) => Math.abs(z.d) - Math.abs(a.d));
+  return { ...base, cambios: cambios.slice(0, MAX_CAMBIOS), mas: Math.max(0, cambios.length - MAX_CAMBIOS) };
+}
+let RESUMEN_LISTO = false;
+async function pintarResumen() {
+  const box = $('#resumen');
+  if (!box || RESUMEN_LISTO) return;
+  RESUMEN_LISTO = true;
+  const n = EST.length;
+  if (n < 2) return;
+  // abierto en pantallas anchas; en el móvil, cerrado para que los paneles no queden tres pantallas más abajo
+  let abierto = !esMovil();
+  try { const v = localStorage.getItem('bet-resumen'); if (v) abierto = v === 'abierto'; } catch (e) { /* */ }
+  const ult = EST[n - 1], ant = EST[n - 2];
+  box.hidden = false;
+  box.open = abierto;
+  box.innerHTML = `<summary><span class="rs-t">Qué cambia en el último barómetro</span><span class="rs-m">${esc(mesLargo(ult.mes))} frente a ${esc(mesLargo(ant.mes))}</span></summary><p class="note">Calculando…</p>`;
+  box.addEventListener('toggle', () => { try { localStorage.setItem('bet-resumen', box.open ? 'abierto' : 'cerrado'); } catch (e) { /* */ } });
+  let rs;
+  try { rs = (await Promise.all(RESUMEN.map(cambiosUltimo))).filter(Boolean); }
+  catch (e) { box.querySelector('.note').textContent = e.message; return; }
+  const fmtv = (v, media) => media ? fmt2(v) : fmt1(v) + ' %';
+  const fmtd = (d, media) => `${d > 0 ? '+' : '−'}${media ? fmt2(Math.abs(d)) : fmt1(Math.abs(d))}`;
+  const nombre = (r, id) => r.media ? etiqueta(id, id) : etiqueta(r.conc, id);
+  const conCambios = rs.filter(r => r.cambios && r.cambios.length);
+  const sin = rs.filter(r => r.cambios && !r.cambios.length).map(r => r.t);
+  const cortes = rs.filter(r => r.corte);
+  const ausentes = rs.filter(r => r.ausente).map(r => r.t);
+  const bloque = r => {
+    const otroMes = r.fA.e.mes !== ant.mes ? `<p class="rs-sub">Frente a ${esc(mesLargo(r.fA.e.mes))}, el último barómetro anterior con la pregunta</p>` : '';
+    const items = r.cambios.map(c => `<li><span class="rs-n">${esc(nombre(r, c.id))}</span><span class="rs-v">${fmtv(c.vB, r.media)}</span><span class="rs-d ${c.d > 0 ? 'sube' : 'baja'}">${fmtd(c.d, r.media)}</span></li>`).join('');
+    return `<div class="rs-it"><h3>${esc(r.t)}</h3>${otroMes}<ul>${items}</ul>${r.mas ? `<p class="rs-sub">y ${r.mas} ${r.mas === 1 ? 'cambio más' : 'cambios más'}</p>` : ''}<button class="ib abrir" type="button" data-comparar="${esc(r.preg)}" data-mesa="${esc(r.fA.e.mes)}">Ver la comparación completa</button></div>`;
+  };
+  box.innerHTML = `<summary><span class="rs-t">Qué cambia en el último barómetro</span><span class="rs-m">${esc(mesLargo(ult.mes))} (estudio ${esc(ult.estudio)}) frente a ${esc(mesLargo(ant.mes))}</span></summary>
+    ${conCambios.length ? `<div class="rs-grid">${conCambios.map(bloque).join('')}</div>` : '<p class="note">Ningún cambio significativo entre los dos barómetros con estos criterios.</p>'}
+    ${sin.length ? `<p class="note"><b>Sin cambios significativos:</b> ${esc(sin.join(', ').toLowerCase())}.</p>` : ''}
+    ${cortes.map(r => `<p class="note"><b>${esc(r.t)}:</b> sin comparación por la ruptura ${esc(r.corte.ruptura_id)} (${esc(breveRuptura(r.corte.descripcion))}).</p>`).join('')}
+    ${ausentes.length ? `<p class="note"><b>No se preguntan en el último barómetro:</b> ${esc(ausentes.join(', ').toLowerCase())}.</p>` : ''}
+    <p class="note rs-crit">Solo cambios significativos al 99 % (con el efecto de diseño de cada estudio) y de al menos un punto, o una décima en las valoraciones. Con tantas comparaciones a la vez, un umbral menos exigente confundiría ruido con cambio. Variación en puntos; respuestas de menos del ${MIN_PCT_RESUMEN} % fuera. Un cambio significativo no siempre es un cambio de opinión: también puede deberse al cuestionario, por ejemplo a preguntas previas sobre el mismo tema.</p>`;
+  box.querySelectorAll('[data-comparar]').forEach(bt => bt.addEventListener('click', () => {
+    PANELES.unshift({ tipo: 'comparar', preg: bt.dataset.comparar, mesA: bt.dataset.mesa, id: nuevoId() });
+    guardar(); renderTodo();
+    grid.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }));
+}
+
 /* ================= arranque ================= */
 function tema(v) {
   try { if (v === 'system') localStorage.removeItem('bet-tema'); else localStorage.setItem('bet-tema', v); } catch (e) { /* */ }
@@ -1133,12 +1351,11 @@ function mostrarVista(t) {
 function pestana(t) {
   mostrarVista(t);
   if (!META) return;
-  if (t === 'series') { if (GRID_LISTO) rerender(); else { GRID_LISTO = true; leerPaleta(); renderTodo(); } }
+  if (t === 'series') { if (GRID_LISTO) rerender(); else { GRID_LISTO = true; leerPaleta(); renderTodo(); } pintarResumen(); }
   if (t === 'que') repintarGuia();
 }
 
 async function iniciar() {
-  if (typeof DecompressionStream === 'undefined') { $('#grid').innerHTML = '<p class="empty">Este navegador no puede descomprimir los datos. Usa una versión reciente de Chrome, Firefox, Safari o Edge.</p>'; return; }
   try { await cargarMeta(); } catch (e) { $('#upd').textContent = e.message; return; }
   const ult = EST[EST.length - 1];
   $('#upd').innerHTML = `Último barómetro: <b>${esc(mesLargo(ult.mes))}</b> (estudio ${esc(ult.estudio)})`;

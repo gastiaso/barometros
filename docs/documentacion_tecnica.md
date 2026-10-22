@@ -19,6 +19,7 @@ scripts/lib/                    parsers del libro de códigos y del cuestionario
 _targets.R, R/                  armonización en R: .sav -> microdatos armonizados + metadatos + validación
 datos/publicacion/              microdatos.parquet y metadatos.json (generados)
 scripts/07_web.R                datos de la web: una columna comprimida por pregunta (web/datos/, generado)
+scripts/08_prueba_web.py        prueba en Chromium: la web recalcula las referencias del CIS y debe dar lo mismo que R
 web/                            la web: index.html, css/, js/app.js (d3 autoalojado, sin dependencias externas)
 .github/workflows/publicar.yml  construcción y publicación en GitHub Pages
 ```
@@ -37,6 +38,7 @@ python scripts/05_revision.py .
 python scripts/06_revision_xlsx.py .
 Rscript -e 'targets::tar_make()'
 Rscript scripts/07_web.R              # VEDA=1 para la versión sin series electorales
+python scripts/08_prueba_web.py .     # la web calcula igual que R y que el CIS (Playwright + Chromium)
 python3 -m http.server -d web 8000    # vista previa en http://localhost:8000
 ```
 
@@ -153,7 +155,7 @@ R19 y R22 coinciden con una reordenación del cuestionario en octubre de 2023, s
 ## Pendiente
 
 - R24 (cambio de la población de referencia de la ponderación, mar-2025): sin verificar en los datos.
-- Ampliar `referencias_cis.csv` a 2021–2022 y a oct-2026 (hoy cubre oct-2023, mar-2025 y mar-2026, más la serie de ideología).
+- `referencias_cis.csv` cubre oct-2021, oct-2022, oct-2023, mar-2025, mar-2026 y oct-2026 (183 cifras, con las nuevas variables de perfil solo en oct-2026), más la serie de ideología.
 - Si el CIS corrige el fichero de 3582, retirar la reconstrucción de `ESTUDIOS`.
 - Las 76 comprobaciones de códigos sin lista en el libro de códigos se apoyan solo en el .sav.
 

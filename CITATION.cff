@@ -1,13 +1,16 @@
 cff-version: 1.2.0
 message: "Si usas estos datos o la herramienta, cítalos así. Fuente de los datos: Centro de Investigaciones Sociológicas (CIS)."
 type: dataset
-title: "Barómetros en el tiempo: series armonizadas de los barómetros del CIS, 2021-2026"
+title: "Barómetro a barómetro: series armonizadas de los barómetros del CIS, 2021-2026"
 authors:
   - family-names: "Astiaso Llamazares"
     given-names: "Guillermo"
 repository-code: "https://github.com/gastiaso/barometros"
 url: "https://gastiaso.github.io/barometros/"
 date-released: "2026-10-22"
+license:
+  - MIT
+  - CC-BY-4.0
 abstract: >-
   Microdatos armonizados y series mensuales de los barómetros del Centro de
   Investigaciones Sociológicas (CIS) desde enero de 2021: intención directa de

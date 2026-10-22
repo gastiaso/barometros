@@ -1,12 +1,12 @@
-# Barómetros en el tiempo
+# Barómetro a barómetro
 
 **Las series de los barómetros mensuales del CIS desde 2021, calculadas desde los microdatos.**
 
 ### → [gastiaso.github.io/barometros](https://gastiaso.github.io/barometros/)
 
-[![Captura de Barómetros en el tiempo: intención directa de voto de enero de 2021 a octubre de 2026, con y sin reponderación por recuerdo](docs/captura.png)](https://gastiaso.github.io/barometros/)
+[![Captura de Barómetro a barómetro: intención directa de voto de enero de 2021 a octubre de 2026, con y sin reponderación por recuerdo](docs/captura.png)](https://gastiaso.github.io/barometros/)
 
-El Centro de Investigaciones Sociológicas (CIS) publica cada barómetro por separado. Entre un mes y otro cambian los enunciados, los códigos de respuesta, la lista de partidos y la ponderación, así que comparar series a mano es lento y fácil de hacer mal. *Barómetros en el tiempo* armoniza **64 barómetros (enero de 2021 a octubre de 2026, 264.081 entrevistas)** en un solo fichero y deja construir las series en el navegador: intención de voto, valoración de líderes, problemas, situación económica, ideología… cruzadas por perfil y con cada cambio de método señalado en el gráfico.
+El Centro de Investigaciones Sociológicas (CIS) publica cada barómetro por separado. Entre un mes y otro cambian los enunciados, los códigos de respuesta, la lista de partidos y la ponderación, así que comparar series a mano es lento y fácil de hacer mal. *Barómetro a barómetro* armoniza **64 barómetros (enero de 2021 a octubre de 2026, 264.081 entrevistas)** en un solo fichero y deja construir las series en el navegador: intención de voto, valoración de líderes, problemas, situación económica, ideología… cruzadas por perfil y con cada cambio de método señalado en el gráfico.
 
 ## Qué puedes hacer
 
@@ -96,7 +96,7 @@ Las conclusiones metodológicas son provisionales y se revisan a medida que se a
 
 ## Cómo citar
 
-> Astiaso Llamazares, G. (2026). *Barómetros en el tiempo: series armonizadas de los barómetros del CIS, 2021-2026* [software y datos]. https://gastiaso.github.io/barometros/. Fuente de los datos: Centro de Investigaciones Sociológicas.
+> Astiaso Llamazares, G. (2026). *Barómetro a barómetro: series armonizadas de los barómetros del CIS, 2021-2026* [software y datos]. https://gastiaso.github.io/barometros/. Fuente de los datos: Centro de Investigaciones Sociológicas.
 
 GitHub ofrece la cita en otros formatos (APA, BibTeX) desde el botón *Cite this repository*.
 
@@ -105,6 +105,14 @@ GitHub ofrece la cita en otros formatos (APA, BibTeX) desde el botón *Cite this
 **Fuente de los datos: Centro de Investigaciones Sociológicas (CIS)**, barómetros mensuales. Elaboración propia.
 
 Los microdatos se reutilizan según las condiciones generales del CIS: hay que citar la fuente y no desvirtuar el sentido de la información. Este proyecto no está patrocinado por el CIS ni cuenta con su respaldo.
+
+## Licencia
+
+- **Código:** [MIT](LICENSE). Se puede reutilizar con cualquier fin conservando el aviso de autoría.
+- **Datos armonizados, metadatos, inventario y documentación:** [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/deed.es). Se pueden reutilizar con cualquier fin citando la autoría.
+- **Microdatos originales del CIS:** condiciones de reutilización del CIS.
+
+Detalle y fórmula de cita en [`LICENCIA-DATOS.md`](LICENCIA-DATOS.md).
 
 ## Proyectos relacionados
 

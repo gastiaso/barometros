@@ -1,6 +1,6 @@
 # Documentación técnica
 
-Detalle del inventario, la revisión y la armonización de los barómetros del CIS que alimentan [Barómetros en el tiempo](https://gastiaso.github.io/barometros/). Para una visión general, ver el [README](../README.md).
+Detalle del inventario, la revisión y la armonización de los barómetros del CIS que alimentan [Barómetro a barómetro](https://gastiaso.github.io/barometros/). Para una visión general, ver el [README](../README.md).
 
 ## Estructura
 

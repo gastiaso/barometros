@@ -1,4 +1,4 @@
-/* Barómetros en el tiempo: vistas que agregan varios barómetros o cruzan dos preguntas.
+/* Barómetro a barómetro: vistas que agregan varios barómetros o cruzan dos preguntas.
    Transferencias de voto, dispersión de electorados, mapa por comunidades, mapa de calor y comparación de dos barómetros.
    Cada vista devuelve { titulo, meta, notas, tabla, csv } y la pinta en host; usa las funciones comunes de app.js. */
 'use strict';

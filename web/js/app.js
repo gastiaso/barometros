@@ -1,4 +1,4 @@
-/* Barómetros en el tiempo: explorador de series de los barómetros del CIS.
+/* Barómetro a barómetro: explorador de series de los barómetros del CIS.
    Los datos se sirven por columnas (web/datos/col/*.bin, comprimidas con deflate) y se agregan en el navegador. */
 'use strict';
 
@@ -719,7 +719,7 @@ function panelEl(cfg) {
       <button class="ib" type="button" data-a="del" aria-label="Quitar panel">Quitar</button>
     </div></header>
     <div class="chart"></div><div class="tabla" hidden></div><div class="notas"></div>
-    <p class="src">Fuente: CIS, barómetros mensuales (microdatos). Elaboración: Barómetros en el tiempo.</p>`;
+    <p class="src">Fuente: CIS, barómetros mensuales (microdatos). Elaboración: Barómetro a barómetro.</p>`;
   el.querySelector('.acts').addEventListener('click', ev => {
     const a = ev.target.closest('button')?.dataset.a; if (!a) return;
     const i = PANELES.findIndex(p => p.id === cfg.id);
@@ -828,7 +828,7 @@ function exportarCSV(el) {
   if (el._res.generico) {
     const G = el._res.generico.csv;
     const cel = v => v == null || (typeof v === 'number' && !isFinite(v)) ? '' : typeof v === 'number' ? v.toFixed(3) : typeof v === 'boolean' ? (v ? 'sí' : 'no') : q(v);
-    const lines = [G.cab.join(','), ...G.filas.map(f => f.map(cel).join(',')), '', q(`${titulo}. ${metaT}`), q('Fuente: CIS, barómetros mensuales (microdatos). Elaboración: Barómetros en el tiempo.')];
+    const lines = [G.cab.join(','), ...G.filas.map(f => f.map(cel).join(',')), '', q(`${titulo}. ${metaT}`), q('Fuente: CIS, barómetros mensuales (microdatos). Elaboración: Barómetro a barómetro.')];
     return descargar(slug(titulo) + '.csv', new Blob(['\ufeff' + lines.join('\n')], { type: 'text/csv;charset=utf-8' }));
   }
   const { out, res, cfg } = el._res;
@@ -846,7 +846,7 @@ function exportarCSV(el) {
     lines = [['mes', 'estudio', 'serie', 'valor', 'margen_inferior', 'margen_superior', 'n_base'].join(',')];
     out.ser.forEach(s => s.pts.forEach((p, i) => lines.push([res.filas[i].e.mes, res.filas[i].e.estudio, q(s.label), num(p.v), num(p.lo), num(p.hi), p.n ?? ''].join(','))));
   }
-  lines.push('', q(`${tituloPanel(cfg, res)}. ${metaPanel(cfg, res)}`), q('Fuente: CIS, barómetros mensuales (microdatos). Elaboración: Barómetros en el tiempo.'));
+  lines.push('', q(`${tituloPanel(cfg, res)}. ${metaPanel(cfg, res)}`), q('Fuente: CIS, barómetros mensuales (microdatos). Elaboración: Barómetro a barómetro.'));
   descargar(slug(tituloPanel(cfg, res)) + '.csv', new Blob(['﻿' + lines.join('\n')], { type: 'text/csv;charset=utf-8' }));
 }
 function exportarPNG(el) {
@@ -859,7 +859,7 @@ function exportarPNG(el) {
   ctx.fillStyle = PAL.surface; ctx.fillRect(0, 0, W, H + top + bot);
   ctx.fillStyle = PAL.ink; ctx.font = `600 16px ${PAL.fontD}`; ctx.fillText(titulo, 8, 22);
   ctx.fillStyle = PAL.ink3; ctx.font = `12px ${PAL.font}`; ctx.fillText(metaT, 8, 42);
-  ctx.fillText('Fuente: CIS, barómetros mensuales (microdatos). Elaboración: Barómetros en el tiempo.', 8, H + top + 22);
+  ctx.fillText('Fuente: CIS, barómetros mensuales (microdatos). Elaboración: Barómetro a barómetro.', 8, H + top + 22);
   const img = new Image();
   img.onload = () => { ctx.drawImage(img, 0, top, W, H); cv.toBlob(b => descargar(slug(titulo) + '.png', b)); };
   img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(new XMLSerializer().serializeToString(svg));

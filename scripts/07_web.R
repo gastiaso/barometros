@@ -67,5 +67,16 @@ if (!VEDA) {
   file.copy(file.path(PUB, "microdatos.parquet"), file.path(WEB, "descargas", "barometros_armonizados.parquet"))
   file.copy(file.path(PUB, "metadatos.json"), file.path(WEB, "descargas", "metadatos.json"))
 }
+# datos estructurados para buscadores: cobertura temporal y fecha de actualización
+actualizar <- function(ruta, patron, valor) {
+  x <- readLines(ruta, encoding = "UTF-8", warn = FALSE)
+  writeLines(sub(patron, valor, x), ruta, useBytes = TRUE)
+}
+meses <- range(as.character(est$mes))
+hoy <- format(Sys.Date())
+actualizar("web/index.html", '"temporalCoverage": "[0-9-]+/[0-9-]+"', sprintf('"temporalCoverage": "%s/%s"', meses[1], meses[2]))
+actualizar("web/index.html", '"dateModified": "[0-9-]+"', sprintf('"dateModified": "%s"', hoy))
+actualizar("web/sitemap.xml", "<lastmod>[0-9-]+</lastmod>", sprintf("<lastmod>%s</lastmod>", hoy))
+
 tam <- sum(file.size(list.files(WEB, recursive = TRUE, full.names = TRUE)))
 cat(sprintf("web/datos: %d columnas, %.1f MB%s\n", length(columnas), tam / 1e6, if (VEDA) " (veda)" else ""))

@@ -3,8 +3,63 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Barómetros en el tiempo</title>
-<meta name="description" content="Series mensuales de los barómetros del CIS desde enero de 2021, calculadas a partir de los microdatos, con cruces por perfil y rupturas de serie señaladas.">
+<title>Barómetros en el tiempo · Series de los barómetros del CIS desde 2021</title>
+<meta name="description" content="Series mensuales de los barómetros del CIS desde 2021, calculadas con los microdatos: intención de voto, valoración de líderes, problemas, situación económica e ideología, con cruces por perfil, mapas y rupturas de serie señaladas.">
+<meta name="author" content="Guillermo Astiaso Llamazares">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<link rel="canonical" href="https://gastiaso.github.io/barometros/">
+<link rel="icon" href="img/icono.svg" type="image/svg+xml">
+<meta name="theme-color" content="#b2422e">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="es_ES">
+<meta property="og:site_name" content="Barómetros en el tiempo">
+<meta property="og:title" content="Barómetros en el tiempo · Series de los barómetros del CIS desde 2021">
+<meta property="og:description" content="Intención de voto, líderes, problemas y economía en los barómetros del CIS, mes a mes desde 2021. Calculado con los microdatos, con cruces por perfil y rupturas de serie señaladas.">
+<meta property="og:url" content="https://gastiaso.github.io/barometros/">
+<meta property="og:image" content="https://gastiaso.github.io/barometros/img/vista-previa.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Series de intención directa de voto de los barómetros del CIS, de enero de 2021 a octubre de 2026">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Barómetros en el tiempo · Series de los barómetros del CIS desde 2021">
+<meta name="twitter:description" content="Intención de voto, líderes, problemas y economía en los barómetros del CIS, mes a mes desde 2021, calculados con los microdatos.">
+<meta name="twitter:image" content="https://gastiaso.github.io/barometros/img/vista-previa.png">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://gastiaso.github.io/barometros/#web",
+      "url": "https://gastiaso.github.io/barometros/",
+      "name": "Barómetros en el tiempo",
+      "inLanguage": "es",
+      "author": { "@id": "https://github.com/gastiaso#autor" }
+    },
+    {
+      "@type": "Dataset",
+      "@id": "https://gastiaso.github.io/barometros/#datos",
+      "name": "Barómetros del CIS armonizados, 2021-2026",
+      "alternateName": "Barómetros en el tiempo",
+      "description": "Microdatos armonizados de los barómetros mensuales del Centro de Investigaciones Sociológicas (CIS) desde enero de 2021: una fila por entrevista y una columna por pregunta armonizada (intención directa de voto, voto + simpatía, recuerdo de voto, preferencia como presidente, valoración de líderes y ministros, problemas de España y personales, situación económica, ideología y variables sociodemográficas), con la ponderación de cada estudio, un peso reponderado por recuerdo de voto y las rupturas de serie documentadas. Elaboración propia a partir de los microdatos del CIS; validado contra cifras publicadas por el CIS.",
+      "url": "https://gastiaso.github.io/barometros/",
+      "sameAs": "https://github.com/gastiaso/barometros",
+      "keywords": ["CIS", "Centro de Investigaciones Sociológicas", "barómetro", "encuestas", "opinión pública", "intención de voto", "valoración de líderes", "problemas de España", "microdatos", "series temporales", "España"],
+      "inLanguage": "es",
+      "creator": { "@type": "Person", "@id": "https://github.com/gastiaso#autor", "name": "Guillermo Astiaso Llamazares", "url": "https://github.com/gastiaso" },
+      "isBasedOn": { "@type": "Dataset", "name": "Barómetros mensuales del CIS (microdatos)", "creator": { "@type": "Organization", "name": "Centro de Investigaciones Sociológicas", "url": "https://www.cis.es/" } },
+      "temporalCoverage": "2021-01/2026-10",
+      "spatialCoverage": { "@type": "Place", "name": "España" },
+      "dateModified": "2026-10-22",
+      "variableMeasured": ["Intención directa de voto", "Voto + simpatía", "Recuerdo de voto", "Preferencia como presidente del Gobierno", "Valoración de líderes políticos", "Valoración de ministros", "Principales problemas de España", "Problemas que afectan personalmente", "Situación económica general y personal", "Autoubicación ideológica"],
+      "distribution": [
+        { "@type": "DataDownload", "encodingFormat": "application/vnd.apache.parquet", "contentUrl": "https://gastiaso.github.io/barometros/datos/descargas/barometros_armonizados.parquet" },
+        { "@type": "DataDownload", "encodingFormat": "application/json", "contentUrl": "https://gastiaso.github.io/barometros/datos/descargas/metadatos.json" }
+      ]
+    }
+  ]
+}
+</script>
 <link rel="stylesheet" href="css/estilos.css">
 <script>try{const t=localStorage.getItem('bet-tema');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t;}catch(e){}</script>
 </head>
@@ -28,6 +83,8 @@
     <button type="button" role="tab" data-tab="meth" aria-selected="false">Nota metodológica</button>
     <button type="button" role="tab" data-tab="datos" aria-selected="false">Datos y descargas</button>
   </nav>
+
+  <noscript><p class="aviso">Esta web calcula las series en el navegador y necesita JavaScript. Los microdatos armonizados de los barómetros del CIS (2021-2026) se pueden descargar en formato Parquet en <a href="datos/descargas/barometros_armonizados.parquet">datos/descargas</a>; la documentación está en <a href="https://github.com/gastiaso/barometros">GitHub</a>.</p></noscript>
 
   <div class="aviso" id="aviso-veda" hidden><b>Periodo de prohibición de sondeos.</b> Del 24 al 29 de noviembre de 2026 no se publican series de intención de voto, simpatía, cercanía, preferencia como presidente ni valoración de líderes (art. 69.7 de la LOREG). El resto de series sigue disponible.</div>
 

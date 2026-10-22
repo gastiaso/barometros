@@ -37,7 +37,8 @@ cargar_insumos <- function(f_crosswalk, f_estudios, f_partidos, f_problemas, f_c
 
 # Lectura de un estudio: códigos por concepto y diccionario de etiquetas (sin armonizar todavía)
 leer_estudio <- function(estudio, ruta, insumos) {
-  cw <- dplyr::filter(insumos$crosswalk, .data$estudio == !!estudio, !is.na(variable))
+  # las filas marcadas AUSENTE en la revisión no se leen aunque tengan variable emparejada
+  cw <- dplyr::filter(insumos$crosswalk, .data$estudio == !!estudio, !is.na(variable), nivel_final != "AUSENTE")
   cw <- dplyr::filter(cw, concepto != "tipo_telefono")
   lid <- dplyr::filter(insumos$lideres, .data$estudio == !!estudio)
   mins <- dplyr::filter(insumos$ministros, .data$estudio == !!estudio)

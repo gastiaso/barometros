@@ -30,3 +30,8 @@ ocupacion_r,3307,AUSENTE,"CNO11R no existe en 3307; se puede derivar de CNO11 + 
 ocupacion_r,3309,AUSENTE,"CNO11R figura en el libro de códigos pero no en el .sav; se puede derivar de CNO11 + SITLAB."
 ocupacion_r,3313,AUSENTE,"CNO11R figura en el libro de códigos pero no en el .sav; se puede derivar de CNO11 + SITLAB."
 recuerdo_votantes_r,3309,AUSENTE,"RECUVOTOGR figura en el libro de códigos pero no en el .sav; se puede derivar de RECUVOTOG."
+ingresos_hogar,3496,AUSENTE,"INGRESHOG pregunta en este estudio por los ingresos netos de la persona entrevistada, no del hogar: no es comparable y se excluye."
+nacionalidad,3562,A,"La categoría «Otra nacionalidad» (termina la entrevista: el universo es la población de nacionalidad española) entra y sale del libro de códigos sin casos; las categorías con respuestas no cambian."
+nacionalidad,3567,A,"La categoría «Otra nacionalidad» (termina la entrevista: el universo es la población de nacionalidad española) entra y sale del libro de códigos sin casos; las categorías con respuestas no cambian."
+nacionalidad,3571,A,"La categoría «Otra nacionalidad» (termina la entrevista: el universo es la población de nacionalidad española) entra y sale del libro de códigos sin casos; las categorías con respuestas no cambian."
+nacionalidad,3577,A,"La categoría «Otra nacionalidad» (termina la entrevista: el universo es la población de nacionalidad española) entra y sale del libro de códigos sin casos; las categorías con respuestas no cambian."

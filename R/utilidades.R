@@ -7,7 +7,8 @@ CONCEPTOS_PROBLEMA <- c("prob_esp_1", "prob_esp_2", "prob_esp_3", "prob_per_1", 
 CONCEPTOS_CANDIDATO <- "pref_presidente"
 CONCEPTOS_CERRADOS <- c("eco_esp", "eco_per", "participacion_g", "sexo", "ccaa", "provincia", "tamuni",
                         "estudios", "nivel_estudios", "sitlab", "ocupacion_r", "clase_subjetiva", "clase_social",
-                        "religiosidad", "practica_religiosa", "estado_civil")
+                        "religiosidad", "practica_religiosa", "estado_civil", "ingresos_hogar",
+                        "situacion_profesional", "nacionalidad", "lugar_nacimiento")
 CONCEPTOS_PESO <- c("peso", "peso_ccaa")
 
 # Tipos de no respuesta. NP (no procede: filtro) queda fuera de la base; NS, NC y NR cuentan en ella.
@@ -51,6 +52,8 @@ valores_sav <- function(x) {
   v <- as.numeric(unclass(x))
   labs <- attr(x, "labels", exact = TRUE)
   et <- if (is.null(labs)) rep(NA_character_, length(v)) else names(labs)[match(v, unname(labs))]
+  # el símbolo del euro llega mal codificado en algunos estudios («â?¬», «&euro;»)
+  et <- gsub("\u00e2.?\u00ac|&euro;", "\u20ac", et)
   decl <- v %in% attr(x, "na_values", exact = TRUE)
   rng <- attr(x, "na_range", exact = TRUE)
   if (!is.null(rng)) decl <- decl | (!is.na(v) & v >= rng[1] & v <= rng[2])

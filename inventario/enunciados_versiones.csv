@@ -7,12 +7,19 @@ estado_civil,1,2021-01,2026-10,64,¿Cuál es su estado civil?
 ideologia,1,2021-01,2021-03,3,"Cuando se habla de política se utilizan normalmente las expresiones izquierda y derecha. Situándonos en una escala de 10 casillas, como un termómetro, que van del 1 al 10, en la que 1 significa “lo más a la izquierda” y 10 “lo más a la derecha”, ¿en qué casilla se colocaría Ud.?"
 ideologia,2,2021-04,2023-09,27,"Cuando se habla de política se utilizan normalmente las expresiones izquierda y derecha. Situándonos en una escala que va del 1 al 10, en la que 1 significa “lo más a la izquierda” y 10 “lo más a la derecha”, ¿en qué casilla se colocaría Ud.?"
 ideologia,3,2023-10,2026-10,34,"En general, cuando se habla de política se utilizan normalmente las expresiones izquierda y derecha. Situándonos en una escala que va del 1 al 10, en la que 1 significa “lo más a la izquierda” y 10 “lo más a la derecha”, ¿dónde se colocaría Ud.?"
+ingresos_hogar,1,2022-06,2022-06,1,"Actualmente, entre todos/as los/as miembros del hogar (incluida la persona entrevistada) y por todos los conceptos, ¿de cuántos ingresos disponen por término medio en su hogar al mes, después de la deducción de impuestos (o sea, ingresos netos)? No le pido que me indique la cantidad exacta, sino que me diga en cuál de los tramos de la escala que voy a leerle están comprendidos los ingresos de su hogar."
+ingresos_hogar,2,2022-07,2026-10,47,"Actualmente, entre todos/as los/as miembros del hogar (incluido Ud.) y por todos los conceptos, ¿de cuántos ingresos al mes disponen en su hogar, después de la deducción de impuestos (o sea, ingresos netos)? No le pido la cantidad exacta, sino que me diga en qué tramos de la escala que voy a leerle están los ingresos de su hogar,"
 intencion_alternativa,1,2021-01,2026-10,64,"En el caso de que por cualquier razón finalmente no votase por el partido que me ha dicho, ¿a qué otro partido votaría Ud.? ."
 intencion_voto,1,2021-01,2023-05,27,"Suponiendo que mañana se celebrasen nuevamente elecciones generales, es decir, al Parlamento español, ¿a qué partido votaría Ud.? ."
 intencion_voto,2,2023-06,2023-06,1,"Y en todo caso, en las próximas elecciones generales del día 23 de julio, ¿a qué partido votará Ud.? ."
 intencion_voto,3,2023-07,2023-07,1,"Como Ud. sabe, el próximo 23 de julio se celebrarán elecciones generales al Parlamento español, ¿a qué partido tiene pensado votar Ud.? ."
 intencion_voto,4,2023-09,2023-09,1,"Y en caso de que se convocasen elecciones generales al Parlamento español en este momento, ¿a qué partido votaría Ud.? ."
 intencion_voto,5,2023-10,2026-10,34,"Y en unas próximas elecciones al Parlamento español, ¿a qué partido votaría Ud.? ."
+lugar_nacimiento,1,2024-05,2026-10,27,¿En qué país ha nacido Ud.?
+nacionalidad,1,2021-01,2026-10,51,En primer lugar quisiera preguntarle si tiene Ud....
+nacionalidad,2,2024-06,2024-09,2,¿Cuál? .
+nacionalidad,3,2024-10,2026-03,6,En primer lugar quisiera preguntarle si tiene Ud. Controles: Si NACIONALIDAD=3. Advertir. Lo sentimos pero no está Ud. incluido/a en la población para entrevistar. Muchas gracias.
+nacionalidad,4,2025-07,2025-12,5,En primer lugar quisiera preguntarle si tiene Ud.... Si P0a=3 ir a fin de cuestionario.
 nivel_estudios,1,2021-01,2023-12,33,"¿Cuáles son los estudios de más alto nivel oficial que Ud. ha cursado (con independencia de que los haya terminado o no)? Por favor, especifique lo más posible, diciéndome el curso en que estaba cuando los terminó (o los interrumpió) y también el nombre que tenían entonces esos estudios (ej.: 3 años de estudios primarios, primaria, 5º de bachillerato, Maestría Industrial, preuniversitario, 4º de EGB, licenciatura, doctorado, FP1, etc.). . CURSO __________ N.S. - N.R. = 98 N.C. = 99 NOMBRE DE ESTUDIOS __________ N.S. - N.R. = 98 N.C. = 99"
 nivel_estudios,2,2024-01,2026-10,31,¿Cuáles son los estudios de más alto nivel oficial que usted ha terminado obteniendo la titulación correspondiente? . NOMBRE DE ESTUDIOS FINALIZADOS __________ N.S. - N.R. = 98 N.C. = 99 __________ N.S. = 98 N.C. = 99 INFORMACIÓ N ADICIONAL 01. Menos de 5 años de escolarización o primaria
 participacion_g,1,2021-01,2023-09,30,¿Me podría decir si en las elecciones generales del 10 de noviembre de 2019...? (LEER RESPUESTAS).
@@ -29,3 +36,4 @@ recuerdo_voto,1,2021-01,2026-10,64,¿Y podría decirme a qué partido o coalici�
 religiosidad,1,2021-01,2026-10,64,"¿Cómo se define Ud. en materia religiosa: católico/a practicante, católico/a no practicante, creyente de otra religión, agnóstico/a, indiferente o no creyente, o ateo/a?"
 simpatia,1,2021-01,2026-10,64,"Sin ningún compromiso por su parte, ¿me podría decir por qué partido siente Ud. más simpatía? ."
 sitlab,1,2021-01,2026-10,64,¿En qué situación laboral se encuentra Ud. actualmente?
+situacion_profesional,1,2022-06,2026-10,48,¿Ud. trabaja como...? .

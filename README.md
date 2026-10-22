@@ -11,7 +11,9 @@ El Centro de Investigaciones Sociológicas (CIS) publica cada barómetro por sep
 ## Qué puedes hacer
 
 - **Seguir 27 preguntas mes a mes**: intención directa de voto, voto + simpatía, cercanía, recuerdo de voto, preferencia como presidente del Gobierno, valoración de 9 líderes y 46 ministros, principales problemas de España y problemas que afectan personalmente, situación económica general y personal, autoubicación ideológica, clase social subjetiva, religiosidad…
-- **Cruzar y filtrar** por sexo, edad, comunidad autónoma, provincia, tamaño de municipio, estudios, situación laboral, clase, religiosidad, ideología, recuerdo de voto o intención de voto.
+- **Cruzar y filtrar** por sexo, edad, comunidad autónoma, provincia, tamaño de municipio, estudios, situación laboral, grupo ocupacional, situación profesional, ingresos del hogar, nacionalidad, lugar de nacimiento, clase, religiosidad, ideología, recuerdo de voto o intención de voto.
+- **Ver qué cambia en el último barómetro**: un resumen de las diferencias significativas con el anterior.
+- **Agrupar respuestas en bloques** (por ejemplo, partidos) y seguir el bloque como una respuesta más.
 - **Elegir entre siete gráficos**:
   - evolución mensual, con media móvil opcional;
   - barras apiladas al 100 % para un barómetro;
@@ -28,7 +30,7 @@ El Centro de Investigaciones Sociológicas (CIS) publica cada barómetro por sep
 
 - **Parte de los microdatos**, no de los informes. Cualquier cruce se calcula con la ponderación de cada estudio.
 - **Las rupturas de serie están documentadas y se ven.** Se han revisado cuestionarios, libros de códigos y fichas técnicas de los 64 estudios. Los cambios que rompen la comparabilidad (un enunciado nuevo, la ponderación por nivel educativo de noviembre de 2023, el nuevo bloque de intención de voto…) se marcan en el gráfico, y no se calculan variaciones a través de ellos.
-- **Está validada contra el CIS.** El pipeline reproduce 58 cifras publicadas por el CIS. Si alguna deja de cuadrar, la web no se publica.
+- **Está validada contra el CIS.** El pipeline reproduce 183 cifras publicadas por el CIS en siete barómetros (de octubre de 2021 a octubre de 2026), y la web recalcula esas mismas cifras en el navegador antes de publicarse. Si alguna deja de cuadrar, la web no se publica.
 - **El margen de error es honesto.** Usa el efecto de diseño de cada estudio y nunca muestra un dato con menos de 50 entrevistas.
 - **No usa servidor.** El navegador descarga solo las columnas que necesita y hace las cuentas. Nadie registra qué consultas.
 
@@ -61,7 +63,9 @@ flowchart LR
   D -- cuadra --> E["Parquet<br/>+ metadatos"]
   D -- falla --> X["No se publica"]
   E --> F["Columnas binarias<br/>para la web"]
-  F --> G["GitHub Pages<br/>cálculo en el navegador"]
+  F --> T{"Prueba: la web<br/>calcula igual"}
+  T -- cuadra --> G["GitHub Pages<br/>cálculo en el navegador"]
+  T -- falla --> X
 ```
 
 Todo se ejecuta en GitHub Actions con cada cambio en `main` ([`publicar.yml`](.github/workflows/publicar.yml)).
@@ -70,6 +74,7 @@ Todo se ejecuta en GitHub Actions con cada cambio en `main` ([`publicar.yml`](.g
 2. R armoniza las respuestas con [targets](https://docs.ropensci.org/targets/): partidos y problemas por etiqueta, no por código; no respuesta por tipo (NS, NC, NR, NP); líderes por nombre.
 3. R valida el resultado y escribe el fichero de publicación.
 4. La web es HTML y JavaScript sin dependencias de servidor, con [d3](https://d3js.org/).
+5. Una prueba abre la web en un navegador sin pantalla ([Playwright](https://playwright.dev/python/)) y comprueba que calcula lo mismo que R y que el CIS ([`08_prueba_web.py`](scripts/08_prueba_web.py)).
 
 Para reproducirlo en local, desde la raíz del repositorio:
 
@@ -77,6 +82,7 @@ Para reproducirlo en local, desde la raíz del repositorio:
 python scripts/00_extraer.py .
 Rscript -e 'targets::tar_make()'
 Rscript scripts/07_web.R
+python scripts/08_prueba_web.py .
 cd web && python -m http.server
 ```
 

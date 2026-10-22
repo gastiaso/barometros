@@ -149,6 +149,33 @@ grupo_edad <- function(e) {
     as.character() |> tidyr::replace_na("NC")
 }
 
+# Grupo ocupacional a partir de la ocupación recodificada por el CIS (grandes grupos de la CNO-11 y situaciones
+# de inactividad). No es un esquema de clase social: agrupa ocupaciones con un nivel de cualificación parecido.
+GRUPOS_OCUPACION <- c(
+  "Directivos y profesionales", "Técnicos y administrativos", "Servicios y comercio",
+  "Trabajadores manuales cualificados", "Ocupaciones elementales", "Otras ocupaciones", "En paro",
+  "Jubilados y pensionistas", "Estudiantes", "Trabajo doméstico no remunerado", "Otra situación inactiva")
+grupo_ocupacion <- function(x) {
+  e <- norm_etiqueta(x)
+  g <- dplyr::case_when(
+    grepl("^(directores|profesionales cientificos)", e) ~ GRUPOS_OCUPACION[1],
+    grepl("^(tecnicos|personal de apoyo administrativo)", e) ~ GRUPOS_OCUPACION[2],
+    grepl("^trabajadores as de los servicios", e) ~ GRUPOS_OCUPACION[3],
+    grepl("^(agricultores|oficiales|operadores)", e) ~ GRUPOS_OCUPACION[4],
+    grepl("^ocupaciones elementales", e) ~ GRUPOS_OCUPACION[5],
+    grepl("^(ocupaciones militares|otra o ocupacion|otra ocupacion)", e) ~ GRUPOS_OCUPACION[6],
+    grepl("^parados", e) ~ GRUPOS_OCUPACION[7],
+    grepl("^jubilad", e) ~ GRUPOS_OCUPACION[8],
+    grepl("^estudiante", e) ~ GRUPOS_OCUPACION[9],
+    grepl("^trabajo domestico", e) ~ GRUPOS_OCUPACION[10],
+    grepl("^otra situacion inactiva", e) ~ GRUPOS_OCUPACION[11],
+    x %in% names(NO_RESPUESTA) ~ x
+  )
+  sin <- !is.na(x) & is.na(g)
+  if (any(sin)) stop("Ocupación sin grupo: ", paste(unique(x[sin]), collapse = "; "))
+  g
+}
+
 grupo_ideologia <- function(v) {
   dplyr::case_when(v %in% 1:2 ~ "Izquierda (1-2)", v %in% 3:4 ~ "Centro izquierda (3-4)",
                    v %in% 5:6 ~ "Centro (5-6)", v %in% 7:8 ~ "Centro derecha (7-8)", v %in% 9:10 ~ "Derecha (9-10)")
@@ -189,6 +216,7 @@ armonizar_estudio <- function(lectura, canon, insumos) {
   out$ideologia <- ifelse(!id$nr & id$codigo %in% 1:10, id$codigo, NA_real_)
   out$ideologia_cat <- ifelse(id$nr, tipo_no_respuesta(id$etiqueta, id$codigo), cod_chr(id$codigo))
   out$ideologia_g <- dplyr::coalesce(grupo_ideologia(out$ideologia), ifelse(id$nr, tipo_no_respuesta(id$etiqueta, id$codigo), NA))
+  out$ocupacion_g <- grupo_ocupacion(out$ocupacion_r)
   ed <- v$edad
   out$edad <- ifelse(ed$nr, NA_real_, ed$codigo)
   out$edad_g <- grupo_edad(out$edad)

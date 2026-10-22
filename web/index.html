@@ -81,7 +81,8 @@
   </header>
 
   <nav class="tabs" role="tablist" aria-label="Secciones">
-    <button type="button" role="tab" data-tab="series" aria-selected="true">Series</button>
+    <button type="button" role="tab" data-tab="que" aria-selected="true">¿Qué es esto?</button>
+    <button type="button" role="tab" data-tab="series" aria-selected="false">Series</button>
     <button type="button" role="tab" data-tab="meth" aria-selected="false">Nota metodológica</button>
     <button type="button" role="tab" data-tab="datos" aria-selected="false">Datos y descargas</button>
   </nav>
@@ -90,7 +91,112 @@
 
   <div class="aviso" id="aviso-veda" hidden><b>Periodo de prohibición de sondeos.</b> Del 24 al 29 de noviembre de 2026 no se publican series de intención de voto, simpatía, cercanía, preferencia como presidente ni valoración de líderes (art. 69.7 de la LOREG). El resto de series sigue disponible.</div>
 
-  <div id="view-series">
+  <div id="view-que">
+    <section class="qe-hero">
+      <div class="qe-intro">
+        <p class="qe-kicker">Cómo funciona, en tres minutos</p>
+        <h2>¿Qué es esto?</h2>
+        <p><b>Barómetro a barómetro</b> reúne los barómetros mensuales del Centro de Investigaciones Sociológicas (CIS) desde enero de 2021 (<span data-qe="nbar">64</span> estudios y <span data-qe="nent">264.081</span> entrevistas) y calcula sus series a partir de los microdatos. Entre un barómetro y otro cambian enunciados, códigos y ponderación: aquí están armonizados, y cada cambio que impide comparar está marcado en el gráfico.</p>
+        <p>Es una herramienta independiente: el CIS no la publica ni la respalda. Las series de voto son respuestas directas de los entrevistados, no la estimación de voto del CIS.</p>
+        <p>Debajo, paso a paso, cómo leerla. Los gráficos son los del explorador, con datos reales, y cada uno se puede abrir allí para cambiarlo.</p>
+        <p class="qe-cta"><button class="btn pri grande" type="button" data-goto="series">Accede directamente a los barómetros →</button></p>
+      </div>
+      <nav class="qe-indice" aria-label="Pasos de la guía">
+        <p class="qe-kicker">Paso a paso</p>
+        <ol>
+          <li><a href="#qe-leer">¿Qué estoy mirando?</a></li>
+          <li><a href="#qe-cambio">¿Ha cambiado de verdad?</a></li>
+          <li><a href="#qe-rupturas">¿Qué es esa línea roja?</a></li>
+          <li><a href="#qe-cruces">¿Y entre los jóvenes?</a></li>
+          <li><a href="#qe-dispersion">¿Cómo se relacionan dos preguntas?</a></li>
+          <li><a href="#qe-voto">¿Es esto una estimación de voto?</a></li>
+          <li><a href="#qe-usar">¿Cómo me lo llevo?</a></li>
+        </ol>
+      </nav>
+    </section>
+
+    <section class="qe-paso" id="qe-leer">
+      <div class="qe-txt">
+        <h2>¿Qué estoy mirando?</h2>
+        <p>Cada panel responde a una pregunta del barómetro. Bajo el título, la línea gris dice qué se mide (porcentaje de entrevistados o media de una escala de 1 a 10) y el periodo.</p>
+        <p>Cada línea es una respuesta, y la cifra del final, su último dato. La banda sombreada es el margen de error al 95 %, calculado con el efecto de diseño de la ponderación de cada estudio.</p>
+        <p>Pasa el cursor sobre un mes (en el móvil, toca y arrastra) para ver los valores, la variación respecto al barómetro anterior y el número de entrevistas. <span class="ui">Tabla</span> muestra las mismas cifras sin gráfico.</p>
+      </div>
+      <div class="qe-graf" data-paso="qe-leer"></div>
+    </section>
+
+    <section class="qe-paso" id="qe-cambio">
+      <div class="qe-txt">
+        <h2>¿Ha cambiado de verdad?</h2>
+        <p>Un punto arriba o abajo de un mes a otro cabe a menudo dentro del margen de error. El gráfico <span class="ui">Comparar dos barómetros</span> sitúa cada respuesta en dos meses y comprueba si la diferencia es significativa.</p>
+        <p>En negrita, las diferencias significativas al 95 %; «n. s.», las que no lo son. Aquí, los principales problemas de España en los dos últimos barómetros.</p>
+        <p>Los problemas suman más del 100 %: es una pregunta abierta, cada persona puede citar hasta tres y el CIS los agrupa después en categorías.</p>
+      </div>
+      <div class="qe-graf" data-paso="qe-cambio"></div>
+    </section>
+
+    <section class="qe-paso" id="qe-rupturas">
+      <div class="qe-txt">
+        <h2>¿Qué es esa línea roja?</h2>
+        <p>Cuando el CIS cambia el enunciado, las categorías o la ponderación de una pregunta, la serie se rompe. Las líneas verticales lo marcan:</p>
+        <ul>
+          <li><b>En color, tipo C:</b> no se puede comparar un lado con el otro. La herramienta no calcula variaciones a través de ellas; en el detalle de cada mes aparecen como «s. c.» (sin comparación).</li>
+          <li><b>Discontinuas, tipo B:</b> un cambio menor, resuelto con una regla de armonización documentada.</li>
+        </ul>
+        <p>La R10 (noviembre de 2023) aparece en todas las series: ese mes el CIS empezó a ponderar también por nivel de estudios. Pasa el cursor sobre cada línea para leer qué cambió; la lista completa está en la <a href="#" data-goto="meth">nota metodológica</a>.</p>
+      </div>
+      <div class="qe-graf" data-paso="qe-rupturas"></div>
+    </section>
+
+    <section class="qe-paso" id="qe-cruces">
+      <div class="qe-txt">
+        <h2>¿Y entre los jóvenes?</h2>
+        <p><span class="ui">Configurar</span> abre las opciones de cada panel. <b>Cruzar por</b> divide la serie en grupos (edad, comunidad, ideología, recuerdo de voto…): cada línea es un grupo y se sigue una sola respuesta, aquí «La vivienda» como problema. <b>Filtrar por</b> se queda con un solo grupo y conserva todas las respuestas.</p>
+        <p>Cuanto más pequeño es el grupo, mayor es el margen. Los puntos con menos de 50 entrevistas no se dibujan, y la nota del panel dice cuántos faltan. La <b>media móvil</b> de tres barómetros suaviza los grupos con poca muestra.</p>
+      </div>
+      <div class="qe-graf" data-paso="qe-cruces"></div>
+    </section>
+
+    <section class="qe-paso" id="qe-dispersion">
+      <div class="qe-txt">
+        <h2>¿Cómo se relacionan dos preguntas?</h2>
+        <p>La <span class="ui">Dispersión de grupos</span> sitúa cada grupo según dos indicadores a la vez. Aquí cada punto es el electorado de un partido según voto más simpatía (y quienes no votarían): en horizontal, su ideología media; en vertical, el porcentaje que cita la vivienda como problema. El tamaño indica cuántas entrevistas hay detrás, y el círculo vacío es el total.</p>
+        <p>Para reunir muestra suficiente, acumula varios barómetros (aquí, los tres últimos) sin cruzar nunca una ruptura de tipo C.</p>
+        <p>Compara grupos, no personas: una relación entre los dos ejes no dice que una cosa cause la otra ni que valga para cada miembro del grupo.</p>
+      </div>
+      <div class="qe-graf" data-paso="qe-dispersion"></div>
+    </section>
+
+    <section class="qe-paso" id="qe-voto">
+      <div class="qe-txt">
+        <h2>¿Es esto una estimación de voto?</h2>
+        <p>No. Las series de voto recogen lo que responden los entrevistados: la <b>intención directa</b> («¿a qué partido votaría?») o el <b>voto más simpatía</b>, que añade a quien no declara voto pero sí simpatía por un partido. La estimación que publica el CIS sale de un modelo propio que esta herramienta no reproduce.</p>
+        <p><b>Reponderar por recuerdo de voto</b>, una opción de <span class="ui">Configurar</span>, ajusta los pesos para que el recuerdo de la muestra cuadre con el resultado de las últimas generales. Es una estimación propia, no la del CIS, y ensancha el margen de error. Arriba, la intención directa; debajo, la misma serie reponderada.</p>
+        <p>Las <span class="ui">Transferencias de voto</span> cruzan ese recuerdo con la respuesta actual: qué dicen hoy quienes votaron a cada partido.</p>
+      </div>
+      <div class="qe-graf" data-paso="qe-voto"></div>
+    </section>
+
+    <section class="qe-paso solo" id="qe-usar">
+      <div class="qe-txt">
+        <h2>¿Cómo me lo llevo?</h2>
+        <ul>
+          <li><span class="ui">Nuevo panel</span> añade un gráfico desde cero y <span class="ui">Restablecer paneles</span> vuelve a la selección inicial.</li>
+          <li><span class="ui">Tabla</span>, <span class="ui">CSV</span> y <span class="ui">PNG</span> en cada panel. El PNG lleva título, periodo y fuente.</li>
+          <li><span class="ui">Copiar enlace a estos paneles</span> guarda la configuración en la dirección: quien abra el enlace verá exactamente lo mismo.</li>
+          <li>En <a href="#" data-goto="datos">Datos y descargas</a>, los microdatos armonizados (Parquet, una fila por entrevista) para R, Python o DuckDB, y los metadatos con categorías y rupturas.</li>
+          <li>Para citar: «Barómetro a barómetro, a partir de los microdatos de los barómetros del CIS».</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="qe-fin">
+      <button class="btn pri grande" type="button" data-goto="series">Accede a los barómetros →</button>
+      <p>Para entrar directamente la próxima vez: <a href="#series" data-goto="series">gastiaso.github.io/barometros/#series</a></p>
+    </section>
+  </div>
+
+  <div id="view-series" hidden>
     <div class="addbar">
       <span class="lab">Añadir:</span>
       <button class="btn pri" type="button" id="b-add">Nuevo panel</button>
@@ -206,6 +312,7 @@
 <script src="js/vendor/topojson-client.min.js"></script>
 <script src="js/vendor/d3-composite-projections.min.js"></script>
 <script src="js/vistas.js"></script>
+<script src="js/guia.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

@@ -692,6 +692,13 @@ function tituloBase(cfg, res) {
   const de = P.tipo === 'medias' ? `Valoración de ${nom}` : `${P.t}: ${nom}`;
   return `${de}, por ${CRUCE_DE[cfg.cruce].toLowerCase()}`;
 }
+/* Aviso en los paneles cuya medida es una pregunta de voto: va en la línea de metadatos, y con ella en el PNG y el CSV */
+const AVISO_VOTO = 'No es la estimación de voto del CIS';
+function esSerieVoto(cfg) {
+  const medidas = cfg.tipo === 'dispersion' ? [cfg.x?.preg, cfg.y?.preg] : cfg.tipo === 'mapa' ? [cfg.ind?.preg] : [cfg.preg];
+  return medidas.some(id => PARTIDISTAS.includes(id));
+}
+const avisoVoto = cfg => (esSerieVoto(cfg) ? `. ${AVISO_VOTO}` : '');
 function metaPanel(cfg, res) {
   const P = preg(cfg.preg);
   const f = res.filas;
@@ -701,7 +708,7 @@ function metaPanel(cfg, res) {
   const exn = cfg.exNR && res.unidad !== 'media' ? '. Sin NS/NC en la base' : '';
   const mov = cfg.movil && cfg.tipo !== 'barras' ? '. Media móvil de 3 barómetros' : '';
   const rec = cfg.recuerdo ? '. Pesos ajustados al recuerdo de voto (estimación propia)' : '';
-  return `${ud}. ${per}${fil}${exn}${mov}${rec}`;
+  return `${ud}. ${per}${fil}${exn}${mov}${rec}${avisoVoto(cfg)}`;
 }
 
 function panelEl(cfg) {
@@ -751,7 +758,7 @@ async function renderPanel(el, cfg) {
       if (out.vacio) { host.innerHTML = `<p class="empty">${esc(out.vacio)}</p>`; notas.innerHTML = ''; tabla.innerHTML = ''; el._res = null; if (!h2.textContent) h2.textContent = TIPOS.find(t => t[0] === cfg.tipo)[1]; return; }
       const rec = cfg.recuerdo && cfg.tipo !== 'transferencias';
       h2.textContent = out.titulo + (rec ? ' (con reponderación por recuerdo)' : '');
-      meta.textContent = out.meta + (rec ? '. Pesos ajustados al recuerdo de voto (estimación propia)' : '');
+      meta.textContent = out.meta + (rec ? '. Pesos ajustados al recuerdo de voto (estimación propia)' : '') + avisoVoto(cfg);
       notas.innerHTML = [...(rec ? [NOTA_RECUERDO] : []), ...out.notas].map(t => `<p class="note">${esc(t)}</p>`).join('');
       tabla.innerHTML = `<table><thead><tr>${out.tabla.cab.map(c => `<th>${esc(c)}</th>`).join('')}</tr></thead><tbody>${out.tabla.filas.map(f => `<tr>${f.map(v => `<td>${esc(v)}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
       el._res = { generico: out, cfg };
@@ -853,13 +860,26 @@ function exportarPNG(el) {
   const svg = el.querySelector('.chart svg'); if (!svg || !el._res) return;
   const titulo = el.querySelector('h2').textContent, metaT = el.querySelector('.meta').textContent;
   const W = +svg.getAttribute('width'), H = +svg.getAttribute('height');
-  const s = 2, top = 52, bot = 34;
+  const fuente = 'Fuente: CIS, barómetros mensuales (microdatos). Elaboración: Barómetro a barómetro.';
+  const fT = `600 16px ${PAL.fontD}`, fM = `12px ${PAL.font}`;
+  // título, metadatos y fuente parten línea si no caben en el ancho del gráfico
+  const medir = document.createElement('canvas').getContext('2d');
+  const partir = (txt, font) => {
+    medir.font = font;
+    return txt.split(' ').reduce((ls, w) => {
+      const prueba = ls.length ? ls[ls.length - 1] + ' ' + w : w;
+      if (ls.length && medir.measureText(prueba).width <= W - 16) ls[ls.length - 1] = prueba; else ls.push(w);
+      return ls;
+    }, []);
+  };
+  const lT = partir(titulo, fT), lM = partir(metaT, fM), lF = partir(fuente, fM);
+  const s = 2, top = 14 + lT.length * 20 + lM.length * 16 + 8, bot = lF.length * 16 + 18;
   const cv = document.createElement('canvas'); cv.width = W * s; cv.height = (H + top + bot) * s;
   const ctx = cv.getContext('2d'); ctx.scale(s, s);
   ctx.fillStyle = PAL.surface; ctx.fillRect(0, 0, W, H + top + bot);
-  ctx.fillStyle = PAL.ink; ctx.font = `600 16px ${PAL.fontD}`; ctx.fillText(titulo, 8, 22);
-  ctx.fillStyle = PAL.ink3; ctx.font = `12px ${PAL.font}`; ctx.fillText(metaT, 8, 42);
-  ctx.fillText('Fuente: CIS, barómetros mensuales (microdatos). Elaboración: Barómetro a barómetro.', 8, H + top + 22);
+  ctx.fillStyle = PAL.ink; ctx.font = fT; lT.forEach((l, i) => ctx.fillText(l, 8, 22 + i * 20));
+  ctx.fillStyle = PAL.ink3; ctx.font = fM; lM.forEach((l, i) => ctx.fillText(l, 8, 22 + lT.length * 20 + i * 16));
+  lF.forEach((l, i) => ctx.fillText(l, 8, H + top + 20 + i * 16));
   const img = new Image();
   img.onload = () => { ctx.drawImage(img, 0, top, W, H); cv.toBlob(b => descargar(slug(titulo) + '.png', b)); };
   img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(new XMLSerializer().serializeToString(svg));
@@ -871,7 +891,11 @@ function renderTodo() {
   if (!PANELES.length) { grid.innerHTML = '<p class="empty">No hay paneles. Usa «Nuevo panel» para añadir uno.</p>'; return; }
   PANELES.forEach(cfg => { const el = panelEl(cfg); grid.appendChild(el); renderPanel(el, cfg); });
 }
-function rerender() { leerPaleta(); grid.querySelectorAll('.panel').forEach(el => { const cfg = PANELES.find(p => p.id === el.dataset.id); if (cfg) renderPanel(el, cfg); }); }
+function rerender() {
+  leerPaleta();
+  grid.querySelectorAll('.panel').forEach(el => { const cfg = PANELES.find(p => p.id === el.dataset.id); if (cfg) renderPanel(el, cfg); });
+  repintarGuia();
+}
 
 /* ================= estado ================= */
 const limpio = p => { const { id, ...r } = p; return r; };
@@ -1097,10 +1121,19 @@ function tema(v) {
   document.querySelectorAll('#tema button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === v)));
   rerender();
 }
-function pestana(t) {
+/* La web entra siempre por «¿Qué es esto?». Los paneles del explorador no se pintan (ni descargan sus columnas)
+   hasta que se abre la pestaña de series. */
+const VISTAS_WEB = ['que', 'series', 'meth', 'datos'];
+let GRID_LISTO = false;
+function mostrarVista(t) {
   document.querySelectorAll('.tabs button').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === t)));
-  ['series', 'meth', 'datos'].forEach(v => { $('#view-' + v).hidden = v !== t; });
-  if (t === 'series') rerender();
+  VISTAS_WEB.forEach(v => { $('#view-' + v).hidden = v !== t; });
+}
+function pestana(t) {
+  mostrarVista(t);
+  if (!META) return;
+  if (t === 'series') { if (GRID_LISTO) rerender(); else { GRID_LISTO = true; leerPaleta(); renderTodo(); } }
+  if (t === 'que') repintarGuia();
 }
 
 async function iniciar() {
@@ -1113,8 +1146,9 @@ async function iniciar() {
   document.querySelectorAll('#tema button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === t)));
   leerPaleta();
   cargarPaneles();
-  renderTodo();
+  iniciarGuia();
   pintarMetodologia();
+  pestana(VISTAS_WEB.find(v => !$('#view-' + v).hidden) || 'que');
 }
 
 document.querySelectorAll('#tema button').forEach(b => b.addEventListener('click', () => tema(b.dataset.v)));
@@ -1130,4 +1164,6 @@ $('#b-link').addEventListener('click', async ev => {
 });
 matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', rerender);
 let rto; addEventListener('resize', () => { clearTimeout(rto); rto = setTimeout(rerender, 200); });
+// los enlaces a paneles (#p=…) y #series entran directamente en el explorador
+if (/^#(p=|series$)/.test(location.hash)) mostrarVista('series');
 iniciar();

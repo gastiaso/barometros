@@ -393,24 +393,29 @@ async function vistaComparar(host, cfg) {
   if (!filas.some(f => f.pa.v != null || f.pb.v != null)) return { vacio: 'No hay datos suficientes para esta combinación.' };
   const col = colores(ids.map(id => ({ id })), cfg, 'cat');
   const W = Math.max(300, Math.round(host.clientWidth || 600));
-  const labW = Math.min(220, Math.max(80, d3.max(ids, id => nom(id).length) * 6.4 + 10));
-  const rowH = 30, difW = 78;
+  const angosto = W < 520;   // móvil: etiquetas más cortas, leyenda desde el borde y menos marcas en el eje
+  const labW = Math.min(angosto ? Math.round(W * .42) : 220, Math.max(80, d3.max(ids, id => nom(id).length) * 6.4 + 10));
+  const maxCh = Math.max(8, Math.floor((labW - 14) / 6.3));
+  const rowH = 30, difW = angosto ? 70 : 78;
   const H = 34 + filas.length * rowH + 28;
   const svg = svgBase(host, W, H, 'Comparación de dos barómetros');
   const vals = filas.flatMap(f => [f.pa, f.pb]).flatMap(p => p.v == null ? [] : [p.lo, p.hi]);
   const x = d3.scaleLinear().domain(media ? [Math.max(0, d3.min(vals) - .3), Math.min(10, d3.max(vals) + .3)] : [0, d3.max(vals) * 1.05]).nice().range([labW, W - difW]);
-  svg.append('g').attr('transform', `translate(0,${H - 26})`).call(d3.axisBottom(x).ticks(5).tickSize(-(H - 26 - 30)).tickFormat(v => media ? fmt1(v) : v + ' %'))
+  svg.append('g').attr('transform', `translate(0,${H - 26})`).call(d3.axisBottom(x).ticks(Math.max(2, Math.min(5, Math.floor((W - difW - labW) / 55)))).tickSize(-(H - 26 - 30)).tickFormat(v => media ? fmt1(v) : v + ' %'))
     .call(g => { g.selectAll('text').attr('fill', PAL.ink3).attr('font-size', 11); g.selectAll('.tick line').attr('stroke', PAL.line); g.select('.domain').remove(); });
-  // leyenda
-  svg.append('circle').attr('cx', labW + 6).attr('cy', 12).attr('r', 5).attr('fill', PAL.surface).attr('stroke', PAL.ink2).attr('stroke-width', 1.5);
-  svg.append('text').attr('x', labW + 16).attr('y', 16).attr('font-size', 11.5).attr('fill', PAL.ink2).text(mesLargo(fA.e.mes));
-  const lx = labW + 32 + mesLargo(fA.e.mes).length * 6.5;
+  // leyenda: si no cabe con los meses en largo, en corto
+  const leyX = angosto ? 8 : labW;
+  const cabe = (a, b) => 16 + a.length * 6.5 + 26 + b.length * 6.5 <= W - difW - leyX;
+  const [mA, mB] = cabe(mesLargo(fA.e.mes), mesLargo(fB.e.mes)) ? [mesLargo(fA.e.mes), mesLargo(fB.e.mes)] : [mesCorto(fA.e.mes), mesCorto(fB.e.mes)];
+  svg.append('circle').attr('cx', leyX + 6).attr('cy', 12).attr('r', 5).attr('fill', PAL.surface).attr('stroke', PAL.ink2).attr('stroke-width', 1.5);
+  svg.append('text').attr('x', leyX + 16).attr('y', 16).attr('font-size', 11.5).attr('fill', PAL.ink2).text(mA);
+  const lx = leyX + 32 + mA.length * 6.5;
   svg.append('circle').attr('cx', lx).attr('cy', 12).attr('r', 5).attr('fill', PAL.ink2);
-  svg.append('text').attr('x', lx + 10).attr('y', 16).attr('font-size', 11.5).attr('fill', PAL.ink2).text(mesLargo(fB.e.mes));
+  svg.append('text').attr('x', lx + 10).attr('y', 16).attr('font-size', 11.5).attr('fill', PAL.ink2).text(mB);
   svg.append('text').attr('x', W - 6).attr('y', 16).attr('text-anchor', 'end').attr('font-size', 11).attr('fill', PAL.ink3).text(media ? 'Diferencia' : 'Puntos');
   filas.forEach((f, i) => {
     const y = 34 + i * rowH + rowH / 2;
-    svg.append('text').attr('x', labW - 10).attr('y', y + 4).attr('text-anchor', 'end').attr('font-size', 12).attr('fill', PAL.ink2).text(recortar(nom(f.id), 30)).append('title').text(nom(f.id));
+    svg.append('text').attr('x', labW - 10).attr('y', y + 4).attr('text-anchor', 'end').attr('font-size', 12).attr('fill', PAL.ink2).text(recortar(nom(f.id), Math.min(30, maxCh))).append('title').text(nom(f.id));
     if (f.pa.v != null && f.pb.v != null) svg.append('line').attr('x1', x(f.pa.v)).attr('x2', x(f.pb.v)).attr('y1', y).attr('y2', y).attr('stroke', PAL.line2).attr('stroke-width', 3);
     if (cfg.banda) [f.pa, f.pb].forEach((p, j) => { if (p.v != null) svg.append('line').attr('x1', x(p.lo)).attr('x2', x(p.hi)).attr('y1', y + (j ? 6 : -6)).attr('y2', y + (j ? 6 : -6)).attr('stroke', j ? col[f.id] : PAL.ink3); });
     if (f.pa.v != null) svg.append('circle').attr('cx', x(f.pa.v)).attr('cy', y).attr('r', 5).attr('fill', PAL.surface).attr('stroke', PAL.ink2).attr('stroke-width', 1.5);

@@ -8,6 +8,15 @@ etiquetas_lista <- function(mapa, col_id, col_etq) {
     dplyr::transmute(id, etiqueta = sub("^\\(NO LEER\\)\\s*", "", .data[[col_etq]]))
 }
 
+# Etiquetas más cortas para leyendas y tablas (el identificador sigue siendo la categoría del CIS)
+ETIQUETAS_CORTAS <- list(
+  situacion_profesional = c(
+    "Profesional o trabajador/a autónomo/a (sin asalariados/as)" = "Autónomo/a sin asalariados",
+    "Empresario/a o profesional con asalariados/as" = "Empresario/a con asalariados",
+    "Ayuda familiar (sin remuneración reglamentada en la empresa o negocio de un/a familiar)" = "Ayuda familiar sin remuneración"),
+  nacionalidad = c("La nacionalidad española" = "Solo española", "La nacionalidad española y otra" = "Española y otra")
+)
+
 construir_metadatos <- function(d, canon, insumos, lecturas) {
   cw <- insumos$crosswalk
   conc <- insumos$conceptos
@@ -34,6 +43,14 @@ construir_metadatos <- function(d, canon, insumos, lecturas) {
     if (k == "ideologia_g") tab <- tibble::tibble(id = c("Izquierda (1-2)", "Centro izquierda (3-4)", "Centro (5-6)",
                                                          "Centro derecha (7-8)", "Derecha (9-10)"), etiqueta = id)
     if (k == "edad_g") tab <- tibble::tibble(id = c("18-24", "25-34", "35-44", "45-54", "55-64", "65 y más"), etiqueta = id)
+    if (k == "ocupacion_g") tab <- tibble::tibble(id = GRUPOS_OCUPACION, etiqueta = id)
+    if (k == "ingresos_hogar") tab <- tibble::tibble(
+      id = c("Menos de 1.100 €", "De 1.100 a 1.800 €", "De 1.801 a 2.700 €", "De 2.701 a 3.900 €",
+             "De 3.901 a 5.000 €", "Más de 5.000 €", "Más de 3.900 €"), etiqueta = id)
+    if (k %in% names(ETIQUETAS_CORTAS)) {
+      cortas <- ETIQUETAS_CORTAS[[k]]
+      tab$etiqueta <- dplyr::coalesce(unname(cortas[tab$id]), tab$etiqueta)
+    }
     tab <- dplyr::bind_rows(dplyr::filter(tab, !id %in% et_nr$id), et_nr)
     tab <- dplyr::filter(tab, id %in% presentes) |> dplyr::distinct(id, .keep_all = TRUE)
     faltan <- setdiff(presentes, tab$id)
@@ -49,7 +66,8 @@ construir_metadatos <- function(d, canon, insumos, lecturas) {
   derivados <- list(
     ideologia_cat = list(etiqueta = "Autoubicación ideológica (1-10)", base = "ideologia"),
     ideologia_g = list(etiqueta = "Ideología (5 grupos)", base = "ideologia"),
-    edad_g = list(etiqueta = "Edad (6 grupos)", base = "edad")
+    edad_g = list(etiqueta = "Edad (6 grupos)", base = "edad"),
+    ocupacion_g = list(etiqueta = "Grupo ocupacional (CNO-11 agrupada)", base = "ocupacion_r")
   )
   cols <- setdiff(names(d), c("estudio", "mes", "peso", "peso_ccaa"))
   lideres <- grep("^(lider|ministro)_", cols, value = TRUE)
@@ -63,7 +81,7 @@ construir_metadatos <- function(d, canon, insumos, lecturas) {
       etiqueta = if (k %in% names(derivados)) derivados[[k]]$etiqueta
                  else if (k %in% lideres) paste("Valoración de", nom_lider$lider[match(k, nom_lider$id)], "(1-10)")
                  else fila$descripcion[1],
-      bloque = if (k %in% lideres) "serie" else if (k %in% c("edad_g", "ideologia_g")) "cruce" else fila$bloque[1],
+      bloque = if (k %in% lideres) "serie" else if (k %in% c("edad_g", "ideologia_g", "ocupacion_g")) "cruce" else fila$bloque[1],
       tipo = if (is.numeric(d[[k]])) "numerica" else "categorica",
       categorias = categorias(k),
       estudios = estado_estudios(base),

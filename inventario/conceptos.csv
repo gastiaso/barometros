@@ -32,6 +32,10 @@ clase_social,cruce,cerrada,Clase social subjetiva (detallada),CLASESOCIAL,,0
 religiosidad,cruce,cerrada,Religiosidad,RELIGION,,0
 practica_religiosa,cruce,cerrada,Frecuencia de asistencia a oficios religiosos,PRACTICARELIG6;PRACTICARELIG,,0
 estado_civil,cruce,cerrada,Estado civil,ECIVIL,,0
+ingresos_hogar,cruce,cerrada,Ingresos netos del hogar,INGRESHOG,ingresos netos del hogar,0
+situacion_profesional,cruce,cerrada,Situación profesional,RELALAB,^situacion profesional de la persona entrevistada,0
+nacionalidad,cruce,cerrada,Nacionalidad (española o española y otra),NACIONALIDAD;P0,^nacionalidad de la persona entrevistada,0
+lugar_nacimiento,cruce,cerrada,Lugar de nacimiento (España u otro país),PAISNAC,^lugar de nacimiento pais,0
 tipo_telefono,tecnica,cerrada,Tipo de teléfono (fijo/móvil),TIPO_TEL,,0
 peso,tecnica,continua,Ponderación de la muestra general,PESO;PESO_V2,^ponderacion|coeficientes de ponderacion,0
 peso_ccaa,tecnica,continua,Ponderación por CCAA,PESOCCAA,,0

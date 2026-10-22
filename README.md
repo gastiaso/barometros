@@ -1,6 +1,6 @@
 # Barómetros en el tiempo
 
-**Las series de los barómetros mensuales del CIS desde 2021, calculadas desde los microdatos y con las rupturas a la vista.**
+**Las series de los barómetros mensuales del CIS desde 2021, calculadas desde los microdatos.**
 
 ### → [gastiaso.github.io/barometros](https://gastiaso.github.io/barometros/)
 
@@ -84,7 +84,7 @@ El detalle técnico está en [`docs/documentacion_tecnica.md`](docs/documentacio
 
 ## Actualización
 
-Cuando el CIS publica un barómetro nuevo, se añade su ZIP a `datos/raw/`, se revisa el inventario y se relanza el flujo. La validación impide publicar si la armonización no reproduce las cifras del CIS. Durante los cinco días anteriores a unas elecciones, el flujo puede publicarse en modo veda (art. 69.7 LOREG), sin las series electorales.
+Cuando el CIS publica un barómetro nuevo, se añade su ZIP a `datos/raw/`, se revisa el inventario y se relanza el flujo. La validación impide publicar si la armonización no reproduce las cifras del CIS. 
 
 ## Limitaciones
 

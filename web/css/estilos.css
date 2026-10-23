@@ -204,6 +204,9 @@ dialog::backdrop{background:rgba(10,12,14,.45)}
 .ficha p{font-size:13.5px!important;margin:0 0 8px!important}
 .ficha .per{font-family:var(--font-d);font-size:11.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink3);margin:0!important}
 .tablaw{overflow-x:auto}
+#m-rupt-tabla td:nth-child(2){min-width:8ch}
+#m-rupt-tabla td:nth-child(4){overflow-wrap:anywhere;min-width:12ch}
+#m-rupt-tabla td:nth-child(5){min-width:30ch}
 @media (max-width:900px){.meth{grid-template-columns:minmax(0,1fr)}.meth nav{position:static;background:var(--surface);border:1px solid var(--line);padding:12px 14px}}
 @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
 @media print{body{background:#fff}.addbar,.acts,.tabs,.toolbar{display:none!important}}

@@ -104,6 +104,11 @@ hoy <- format(Sys.Date())
 actualizar("web/index.html", '"temporalCoverage": "[0-9-]+/[0-9-]+"', sprintf('"temporalCoverage": "%s/%s"', meses[1], meses[2]))
 actualizar("web/index.html", '"dateModified": "[0-9-]+"', sprintf('"dateModified": "%s"', hoy))
 actualizar("web/sitemap.xml", "<lastmod>[0-9-]+</lastmod>", sprintf("<lastmod>%s</lastmod>", hoy))
+# en veda no hay descargas: se quitan de los datos estructurados
+if (VEDA) {
+  x <- paste(readLines("web/index.html", encoding = "UTF-8", warn = FALSE), collapse = "\n")
+  writeLines(sub(',\\s*"distribution": \\[[^]]*\\]', "", x, perl = TRUE), "web/index.html", useBytes = TRUE)
+}
 
 tam <- sum(file.size(list.files(WEB, recursive = TRUE, full.names = TRUE)))
 cat(sprintf("web/datos: %d columnas, %.1f MB%s\n", length(columnas), tam / 1e6, if (VEDA) " (veda)" else ""))

@@ -20,6 +20,7 @@ _targets.R, R/                  armonización en R: .sav -> microdatos armonizad
 datos/publicacion/              microdatos.parquet y metadatos.json (generados)
 scripts/07_web.R                datos de la web: una columna comprimida por pregunta (web/datos/, generado)
 scripts/08_prueba_web.py        prueba en Chromium: la web recalcula las referencias del CIS y debe dar lo mismo que R
+scripts/09_vista_previa.py      imagen para redes (web/img/vista-previa.png): captura de los paneles por defecto
 web/                            la web: index.html, css/, js/app.js (d3 autoalojado, sin dependencias externas)
 .github/workflows/publicar.yml  construcción y publicación en GitHub Pages
 ```
@@ -39,6 +40,7 @@ python scripts/06_revision_xlsx.py .
 Rscript -e 'targets::tar_make()'
 Rscript scripts/07_web.R              # VEDA=1 para la versión sin series electorales
 python scripts/08_prueba_web.py .     # la web calcula igual que R y que el CIS (Playwright + Chromium)
+python scripts/09_vista_previa.py .   # imagen de vista previa para redes
 python3 -m http.server -d web 8000    # vista previa en http://localhost:8000
 ```
 
@@ -150,7 +152,7 @@ R19 y R22 coinciden con una reordenación del cuestionario en octubre de 2023, s
 - **Acumulación de barómetros.** Transferencias, dispersión y mapa suman varios barómetros consecutivos para ganar muestra, sin cruzar rupturas C.
 - **Líderes y ministros.** La valoración de líderes (batería VALORALIDERES) y la de ministros (VALMINIS, trimestral) se emparejan por nombre. Gabriel Rufián no figura en ninguna de las dos baterías: solo aparece en la preferencia como presidente (desde feb-2025). Irene Montero se valora como ministra entre jul-2021 y oct-2023 y aparece en la preferencia como presidente desde dic-2022.
 - **Reglas fijas:** no se muestra ningún punto con menos de 50 entrevistas sin ponderar; margen de error al 95 % con el efecto de diseño de cada estudio; rupturas C marcadas en color y B en punteado; no se calcula la variación mensual a través de una ruptura C (decisión sobre R19).
-- **Veda (art. 69.7 LOREG).** Sin retirada automática. El flujo de publicación conserva un interruptor manual (Actions > Publicar > Run workflow > «Forzar el modo veda») que publica la web sin las series electorales ni la descarga del fichero completo.
+- **Veda (art. 69.7 LOREG).** Automática: si la fecha de Madrid cae entre `VEDA_DESDE` y `VEDA_HASTA` (variables de [`publicar.yml`](../.github/workflows/publicar.yml)), la web se publica sin las series electorales, sin la descarga del fichero completo y con una imagen de vista previa sin series de voto. Dos ejecuciones programadas vuelven a publicar al empezar y al acabar el periodo, y cualquier publicación dentro de él respeta la veda. Se puede forzar a mano (Actions > Publicar > Run workflow > «Forzar el modo veda»).
 
 ## Pendiente
 

@@ -52,6 +52,7 @@ CALCULAR = """async (refs) => {
 
 BLOQUES = """async () => {
   const errores = [];
+  if (!META.columnas.intencion_voto) return errores;    // modo veda: sin series electorales
   const r = await calcular({ preg: 'intencion_voto', bloques: [{ nombre: 'B', ids: ['PSOE', 'SUMAR', 'PODEMOS'] }] });
   for (const f of r.filas) {
     const g = f.grupos[0];
@@ -70,6 +71,7 @@ BLOQUES = """async () => {
 # pregunta, la lista de líderes alterada por un cruce y el error típico que no devolvía puntoDe
 REGRESION = """async () => {
   const errores = [];
+  if (!META.columnas.intencion_voto_r) return errores;  // modo veda: sin series electorales
   const cfgS = { preg: 'intencion_voto_r', movil: true, cats: ['SUMAR'] };
   const s = series(await calcular(cfgS), cfgS)[0].pts;
   if (s.some(p => p.mes < '2023-04' && p.v != null)) errores.push('media móvil de Sumar (agrupación del CIS) con dato antes de abr-2023');

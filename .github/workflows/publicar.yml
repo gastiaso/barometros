@@ -1,7 +1,8 @@
 # Construye los datos armonizados y publica la web en GitHub Pages.
-# Se ejecuta con cada cambio en main y a mano (Actions > Publicar > Run workflow). El modo veda (sin series
-# electorales) solo se activa a mano, marcando la casilla al lanzar el flujo. En las pull requests construye y
-# comprueba la web, pero no la publica: el resultado de la prueba aparece en la propia pull request.
+# Se ejecuta con cada cambio en main, a mano (Actions > Publicar > Run workflow) y al empezar y acabar la veda.
+# Modo veda (sin series electorales): automático si la fecha de Madrid cae entre VEDA_DESDE y VEDA_HASTA, o a mano,
+# marcando la casilla al lanzar el flujo. En las pull requests construye y comprueba la web, pero no la publica: el
+# resultado de la prueba aparece en la propia pull request.
 name: Publicar
 
 on:
@@ -9,12 +10,20 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  schedule:
+    # 00:05 (hora de Madrid, CET) del primer día de veda y del día siguiente al último
+    - cron: "5 23 23 11 *"
+    - cron: "5 23 29 11 *"
   workflow_dispatch:
     inputs:
       veda:
         description: "Forzar el modo veda (sin series electorales)"
         type: boolean
         default: false
+
+env:
+  VEDA_DESDE: "2026-11-24"
+  VEDA_HASTA: "2026-11-29"
 
 permissions:
   contents: read
@@ -58,7 +67,10 @@ jobs:
 
       - name: Modo de publicación
         run: |
-          if [ "${{ inputs.veda }}" = "true" ]; then echo "VEDA=1" >> "$GITHUB_ENV"; echo "Modo veda (manual)"; else echo "VEDA=0" >> "$GITHUB_ENV"; fi
+          hoy=$(TZ=Europe/Madrid date +%F)
+          if [ "${{ inputs.veda }}" = "true" ]; then echo "VEDA=1" >> "$GITHUB_ENV"; echo "Modo veda (manual)"
+          elif [[ ! "$hoy" < "$VEDA_DESDE" && ! "$hoy" > "$VEDA_HASTA" ]]; then echo "VEDA=1" >> "$GITHUB_ENV"; echo "Modo veda ($hoy)"
+          else echo "VEDA=0" >> "$GITHUB_ENV"; fi
 
       - name: Datos de la web
         run: Rscript scripts/07_web.R
@@ -68,6 +80,9 @@ jobs:
           pip install playwright==1.56.0
           python -m playwright install --with-deps chromium
           python scripts/08_prueba_web.py .
+
+      - name: Imagen de vista previa
+        run: python scripts/09_vista_previa.py .
 
       # Versión en las direcciones de los scripts y la hoja de estilos: tras cada publicación el navegador
       # descarga los nuevos en lugar de mezclarlos con los que tenga en caché.

@@ -68,7 +68,7 @@ function vivienda() {
 
 /* ---------- transferencias de voto ---------- */
 async function vistaTransferencias(host, cfg) {
-  const pregId = PARTIDISTAS.includes(cfg.preg) ? cfg.preg : 'intencion_voto';
+  const pregId = PARTIDISTAS.includes(cfg.preg) ? cfg.preg : 'intencion_voto_r';
   const P = preg(pregId);
   if (!disponible(P) || !META.columnas.recuerdo_voto) throw new Error('Serie no disponible.');
   const k = cfg.acum || 3;

@@ -4,3 +4,4 @@ estudio,concepto,codigo,etiqueta,partido_armonizado,fuente
 3457,cercania,915,Aliança Catalana,ALIANCA_CATALANA,"Ídem."
 3457,intencion_alternativa,916,Alhora,ALHORA,"Código sin etiqueta en 3457. El código 916 es «Alhora» en todos los barómetros desde jun-2024."
 3502,intencion_alternativa,1602,EH Bildu,EH_BILDU,"El .sav no etiqueta el código 1602 en INTENCIONGALTER; el libro de códigos de 3502 lo lista como «EH Bildu»."
+3577,intencion_voto_r,29,Coalición de izquierdas,COALICION_DE_IZQUIERDAS,"El .sav de 3577 no etiqueta el código 29 en INTENCIONGR; es «Coalición de izquierdas» en 3557 y 3562, y los mismos 21 entrevistados lo son en INTENCIONG."

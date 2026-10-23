@@ -4,13 +4,15 @@ cargar_insumos <- function(f_crosswalk, f_estudios, f_partidos, f_problemas, f_c
                            f_rupturas, f_conceptos, f_decisiones, f_sin_etiqueta, f_variables) {
   leer <- function(f) readr::read_csv(f, col_types = readr::cols(.default = "c"), progress = FALSE)
   cw <- leer(f_crosswalk)
-  # códigos de partido presentes en los datos pero sin etiqueta en el .sav, resueltos a mano con su fuente
+  # códigos de partido sin etiqueta (o con el código como etiqueta) en el .sav, resueltos a mano con su fuente;
+  # prevalecen sobre el mapa automático
   sin_etq <- leer(f_sin_etiqueta)
   est <- leer(f_estudios)
   partidos <- dplyr::bind_rows(
-    leer(f_partidos),
     dplyr::transmute(sin_etq, estudio, mes = est$mes[match(estudio, est$estudio)], concepto,
-                     variable = NA_character_, codigo, etiqueta, partido_armonizado, es_no_respuesta = "False"))
+                     variable = NA_character_, codigo, etiqueta, partido_armonizado, es_no_respuesta = "False"),
+    leer(f_partidos)) |>
+    dplyr::distinct(estudio, concepto, codigo, .keep_all = TRUE)
   # Tramos de cada concepto: una ruptura C abre un tramo nuevo (las categorías de un tramo a otro no son comparables)
   cw <- cw |>
     dplyr::arrange(concepto, mes) |>

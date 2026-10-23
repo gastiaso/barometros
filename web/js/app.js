@@ -19,12 +19,12 @@ const fecha = m => new Date(Date.UTC(+m.slice(0, 4), +m.slice(5, 7) - 1, 1));
 
 /* ================= catálogo ================= */
 const PREG = [
-  { g: 'Voto', id: 'intencion_voto', t: 'Intención directa de voto' },
+  { g: 'Voto', id: 'intencion_voto_r', t: 'Intención directa de voto' },
   { g: 'Voto', id: 'voto_simpatia', t: 'Voto + simpatía' },
   { g: 'Voto', id: 'simpatia', t: 'Partido por el que siente más simpatía' },
   { g: 'Voto', id: 'cercania', t: 'Partido más cercano a sus ideas' },
   { g: 'Voto', id: 'intencion_alternativa', t: 'Intención de voto alternativa' },
-  { g: 'Voto', id: 'intencion_voto_r', t: 'Intención directa (recodificación del CIS)' },
+  { g: 'Voto', id: 'intencion_voto', t: 'Intención directa: respuesta literal, sin agrupar' },
   { g: 'Voto', id: 'recuerdo_voto', t: 'Recuerdo de voto en las últimas generales' },
   { g: 'Voto', id: 'pref_presidente', t: 'Preferencia como presidente del Gobierno' },
   { g: 'Líderes', id: 'lideres', t: 'Valoración de líderes', tipo: 'medias' },
@@ -57,13 +57,14 @@ const CRUCES = [
   ['sexo', 'Sexo'], ['edad_g', 'Edad'], ['ccaa', 'Comunidad autónoma'], ['tamuni', 'Tamaño de municipio'],
   ['estudios', 'Nivel de estudios'], ['sitlab', 'Situación laboral'], ['clase_subjetiva', 'Clase social subjetiva'],
   ['religiosidad', 'Religiosidad'], ['ideologia_g', 'Ideología'], ['recuerdo_voto', 'Recuerdo de voto'],
-  ['intencion_voto', 'Intención directa de voto'], ['voto_simpatia', 'Voto + simpatía'], ['estado_civil', 'Estado civil'],
+  ['intencion_voto_r', 'Intención directa de voto'], ['voto_simpatia', 'Voto + simpatía'], ['estado_civil', 'Estado civil'],
   ['practica_religiosa', 'Asistencia a oficios religiosos'], ['ocupacion_g', 'Grupo ocupacional'],
   ['situacion_profesional', 'Situación profesional'], ['ingresos_hogar', 'Ingresos del hogar'],
   ['nacionalidad', 'Nacionalidad'], ['lugar_nacimiento', 'Lugar de nacimiento'],
 ];
 const FILTROS = [...CRUCES, ['provincia', 'Provincia']];
-const CRUCE_DE = Object.fromEntries(FILTROS);
+// la respuesta literal ya no se ofrece como cruce, pero los enlaces guardados que la usan siguen funcionando
+const CRUCE_DE = Object.fromEntries([...FILTROS, ['intencion_voto', 'Intención directa: respuesta literal']]);
 
 const COLOR_PARTIDO = {
   PSOE: '#d8312b', PP: '#2a6fbe', VOX: '#5a9e2c', SUMAR: '#d43f7a', PODEMOS: '#6c3483', UNIDAS_PODEMOS: '#8a4fa6',
@@ -83,25 +84,25 @@ const PARTIDO_CANDIDATO = {
   'Alvise Pérez': 'SALF',
 };
 const DEFECTO = [
-  { preg: 'intencion_voto' },
-  { preg: 'intencion_voto', recuerdo: true },
+  { preg: 'intencion_voto_r' },
+  { preg: 'intencion_voto_r', recuerdo: true },
   { preg: 'voto_simpatia' },
-  { tipo: 'barras', preg: 'intencion_voto', cruce: 'edad_g', ancho: true, cats: ['PSOE', 'PP', 'VOX', 'SUMAR', 'PODEMOS', 'SALF', 'NO_VOTARIA', 'NS'] },
-  { tipo: 'transferencias', preg: 'intencion_voto', acum: 3, ancho: true },
+  { tipo: 'barras', preg: 'intencion_voto_r', cruce: 'edad_g', ancho: true, cats: ['PSOE', 'PP', 'VOX', 'SUMAR', 'PODEMOS', 'SALF', 'NO_VOTARIA', 'NS'] },
+  { tipo: 'transferencias', preg: 'intencion_voto_r', acum: 3, ancho: true },
   { preg: 'lideres' },
   { preg: 'pref_presidente', catsEtq: ['Pedro Sánchez', 'Alberto Núñez Feijóo', 'Santiago Abascal', 'Yolanda Díaz', 'Gabriel Rufián', 'Irene Montero'] },
   { tipo: 'dispersion', grupo: 'voto_simpatia', x: { preg: 'ideologia' }, yEtq: ['prob_esp', 'La vivienda'], acum: 3 },
   { tipo: 'mapa', indEtq: ['prob_esp', 'La vivienda'], acum: 6 },
   { tipo: 'calor', preg: 'prob_esp', ancho: true },
   { preg: 'prob_per' },
-  { tipo: 'comparar', preg: 'intencion_voto' },
+  { tipo: 'comparar', preg: 'intencion_voto_r' },
   { preg: 'eco_esp' },
 ];
 // En el móvil, menos paneles y sin los que necesitan todo el ancho (transferencias, dispersión, mapa, calor)
 const DEFECTO_MOVIL = [
-  { preg: 'intencion_voto' },
+  { preg: 'intencion_voto_r' },
   { preg: 'voto_simpatia' },
-  { tipo: 'barras', preg: 'intencion_voto', cruce: 'edad_g', cats: ['PSOE', 'PP', 'VOX', 'SUMAR', 'PODEMOS', 'SALF', 'NO_VOTARIA', 'NS'] },
+  { tipo: 'barras', preg: 'intencion_voto_r', cruce: 'edad_g', cats: ['PSOE', 'PP', 'VOX', 'SUMAR', 'PODEMOS', 'SALF', 'NO_VOTARIA', 'NS'] },
   { preg: 'lideres' },
   { preg: 'pref_presidente', catsEtq: ['Pedro Sánchez', 'Alberto Núñez Feijóo', 'Santiago Abascal', 'Yolanda Díaz', 'Gabriel Rufián', 'Irene Montero'] },
   { preg: 'prob_esp' },
@@ -422,7 +423,7 @@ function leerPaleta() {
 function colores(lista, cfg, dim = 'cat') {
   const P = preg(cfg.preg);
   const partidoDe = id => {
-    if (dim === 'grupo') return ['recuerdo_voto', 'intencion_voto', 'voto_simpatia'].includes(cfg.cruce) ? id : null;
+    if (dim === 'grupo') return ['recuerdo_voto', 'intencion_voto', 'intencion_voto_r', 'voto_simpatia'].includes(cfg.cruce) ? id : null;
     if (P.tipo === 'medias') return PARTIDO_LIDER[id];
     if (P.id === 'pref_presidente') return PARTIDO_CANDIDATO[etiqueta('pref_presidente', id)];
     return ['intencion_voto', 'voto_simpatia', 'simpatia', 'cercania', 'intencion_alternativa', 'intencion_voto_r', 'recuerdo_voto'].includes(P.id) ? id : null;
@@ -1007,7 +1008,7 @@ const opcionesMes = sel => EST.map(e => `<option value="${e.mes}"${e.mes === sel
 
 function abrirEditor(cfg) {
   EDITANDO = cfg ? cfg.id : null;
-  BORRADOR = structuredClone(cfg ? limpio(cfg) : { preg: 'intencion_voto' });
+  BORRADOR = structuredClone(cfg ? limpio(cfg) : { preg: 'intencion_voto_r' });
   $('#ed-t').textContent = cfg ? 'Configurar panel' : 'Nuevo panel';
   $('#ed-err').textContent = '';
   pintarEditor();
@@ -1018,14 +1019,14 @@ const TIPOS = [
   ['calor', 'Mapa de calor: meses × respuestas'], ['transferencias', 'Transferencias de voto'],
   ['dispersion', 'Dispersión de grupos'], ['mapa', 'Mapa por comunidades'],
 ];
-const GRUPOS_DISP = [['voto_simpatia', 'Voto + simpatía (electorados)'], ['intencion_voto', 'Intención directa de voto'], ['recuerdo_voto', 'Recuerdo de voto'],
-  ...CRUCES.filter(([k]) => !['voto_simpatia', 'intencion_voto', 'recuerdo_voto'].includes(k)), ['provincia', 'Provincia']];
+const GRUPOS_DISP = [['voto_simpatia', 'Voto + simpatía (electorados)'], ['intencion_voto_r', 'Intención directa de voto'], ['recuerdo_voto', 'Recuerdo de voto'],
+  ...CRUCES.filter(([k]) => !['voto_simpatia', 'intencion_voto_r', 'recuerdo_voto'].includes(k)), ['provincia', 'Provincia']];
 const ACUM = [1, 3, 6, 12];
 // valores por defecto al cambiar de tipo
 function ajustarTipo(b) {
   const t = b.tipo || 'lineas';
   if (['transferencias', 'dispersion', 'mapa'].includes(t)) b.bloques = null;
-  if (t === 'transferencias') { if (!PARTIDISTAS.includes(b.preg)) b.preg = 'intencion_voto'; b.acum = b.acum || 3; b.cruce = null; }
+  if (t === 'transferencias') { if (!PARTIDISTAS.includes(b.preg)) b.preg = 'intencion_voto_r'; b.acum = b.acum || 3; b.cruce = null; }
   if (t === 'calor') { const P = preg(b.preg); if (!P || !['cat', 'multi'].includes(P.tipo)) b.preg = 'prob_esp'; b.cruce = null; }
   if (t === 'comparar') b.cruce = null;
   if (t === 'dispersion') { b.grupo = b.grupo || 'voto_simpatia'; b.x = b.x || { preg: 'ideologia' }; b.y = b.y || { preg: 'prob_esp', cat: vivienda() }; b.acum = b.acum || 3; }
@@ -1246,7 +1247,7 @@ function pintarMetodologia() {
    es más exigente que el del panel «Comparar»: significativa al 99 % y de al menos un punto (una décima en las medias).
    No compara a través de una ruptura C. */
 const RESUMEN = [
-  { preg: 'intencion_voto', t: 'Intención directa de voto' },
+  { preg: 'intencion_voto_r', t: 'Intención directa de voto' },
   { preg: 'voto_simpatia', t: 'Voto + simpatía' },
   { preg: 'pref_presidente', t: 'Preferencia como presidente' },
   { preg: 'lideres', t: 'Valoración de líderes' },

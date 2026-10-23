@@ -164,7 +164,7 @@ const preg = id => {
   const p = PREG.find(x => x.id === id);
   if (!p) return null;
   const tipo = p.tipo || 'cat';
-  const cols = p.cols || (tipo === 'medias' ? (p.id === 'ministros' ? MINISTROS : LIDERES) : [p.id]);
+  const cols = [...(p.cols || (tipo === 'medias' ? (p.id === 'ministros' ? MINISTROS : LIDERES) : [p.id]))];
   return { ...p, tipo, cols };
 };
 const disponible = p => p && p.cols.length && p.cols.every(c => META.columnas[c]);
@@ -237,8 +237,14 @@ async function calcular(cfg) {
     const K = ids.length;
     for (const e of meses) {
       const base = new Float64Array(G), n = new Uint32Array(G), num = new Float64Array(G * K);
-      const marca = new Int32Array(K).fill(-1);
+      const marca = new Int32Array(K).fill(-1), pres = new Uint8Array(K);
       for (let r = e.desde; r < e.hasta; r++) {
+        // respuestas que existen en el barómetro: las que alguien da en toda la muestra (sin filtro ni cruce)
+        for (let j = 0; j < cs.length; j++) {
+          const c = cs[j][r]; if (c === 0) continue;
+          const k = mapas[j][c - 1]; if (isNP[k] || (isNR[k] && (cfg.exNR || j > 0))) continue;
+          pres[k] = 1; for (const kb of enBloque[k]) pres[kb] = 1;
+        }
         if (fcol && fcol[r] !== fcod) continue;
         let g = 0;
         if (gcol) { g = gcol[r] - 1; if (g < 0 || g === gNP) continue; }
@@ -260,10 +266,11 @@ async function calcular(cfg) {
       const grupos = [];
       for (let g = 0; g < G; g++) {
         const vals = {}, wnum = {};
-        if (n[g] > 0) for (let k = 0; k < K; k++) if (num[g * K + k] > 0) { vals[ids[k]] = 100 * num[g * K + k] / base[g]; wnum[ids[k]] = num[g * K + k]; }
+        // 0 % solo si la respuesta existe ese mes; si no existía, no hay dato
+        if (n[g] > 0) for (let k = 0; k < K; k++) if (pres[k]) { vals[ids[k]] = 100 * num[g * K + k] / base[g]; wnum[ids[k]] = num[g * K + k]; }
         grupos.push({ n: n[g], base: base[g], vals, wnum });
       }
-      filas.push({ e, grupos });
+      filas.push({ e, grupos, pres: ids.filter((id, k) => pres[k]) });
     }
     return { P, cfg, filas, ids: ids.filter(id => id !== 'NP'), glev, unidad: '%' };
   }
@@ -306,7 +313,7 @@ function puntoDe(res, f, g, id) {
   let se;
   if (media) se = Math.sqrt(f.e.deff * gr.sd[id] ** 2 / n);
   else { const p = v / 100; se = 100 * Math.sqrt(f.e.deff * p * (1 - p) / n); }
-  return { v, n, lo: Math.max(0, v - 1.96 * se), hi: v + 1.96 * se };
+  return { v, n, se, lo: Math.max(0, v - 1.96 * se), hi: v + 1.96 * se };
 }
 /* Acumula varios barómetros (índices de res.filas) para un grupo y una respuesta: suma de pesos y de casos */
 function acumular(res, idxs, g, id) {
@@ -318,32 +325,35 @@ function acumular(res, idxs, g, id) {
       const n = gr.ns[id] || 0; if (!n) continue;
       N += n; B += gr.sw[id]; S += gr.swx[id]; S2 += gr.swx2[id]; D += res.filas[i].e.deff * n;
     } else {
-      if (!gr.n) continue;
-      N += gr.n; B += gr.base; S += gr.wnum[id] || 0; D += res.filas[i].e.deff * gr.n;
+      if (!gr.n || !(id in gr.wnum)) continue;          // la respuesta no existía ese mes: el barómetro no cuenta
+      N += gr.n; B += gr.base; S += gr.wnum[id]; D += res.filas[i].e.deff * gr.n;
     }
   }
   if (!N) return { v: null, n: 0 };
   if (N < MIN_N) return { v: null, n: N, omit: true };
   const deff = D / N;
-  if (media) { const m = S / B, sd = Math.sqrt(Math.max(0, S2 / B - m * m)), se = Math.sqrt(deff * sd * sd / N); return { v: m, n: N, lo: m - 1.96 * se, hi: m + 1.96 * se }; }
+  if (media) { const m = S / B, sd = Math.sqrt(Math.max(0, S2 / B - m * m)), se = Math.sqrt(deff * sd * sd / N); return { v: m, n: N, se, lo: m - 1.96 * se, hi: m + 1.96 * se }; }
   const p = S / B, se = Math.sqrt(deff * p * (1 - p) / N);
-  return { v: 100 * p, n: N, lo: Math.max(0, 100 * (p - 1.96 * se)), hi: 100 * (p + 1.96 * se) };
+  return { v: 100 * p, n: N, se: 100 * se, lo: Math.max(0, 100 * (p - 1.96 * se)), hi: 100 * (p + 1.96 * se) };
 }
-/* Hasta k barómetros que terminan en el índice i sin cruzar una ruptura C de los conceptos del panel */
-function ventana(res, cfg, i, k) {
+/* Los k barómetros consecutivos que terminan en el índice i (los que tienen la pregunta), sin cruzar una ruptura C de
+   los conceptos del panel. Con exigirMes, si el barómetro i no tiene la pregunta no hay ventana (media móvil). */
+const conDatos = f => f.grupos.some(gr => (gr.n || 0) > 0 || Object.keys(gr.ns || {}).length);
+function ventana(res, cfg, i, k, exigirMes = false) {
+  if (exigirMes && !conDatos(res.filas[i])) return [];
   const cortes = rupturas(cfg).filter(r => r.tipo === 'C').map(r => r.m);
   const tramo = mes => cortes.filter(c => c <= mes).length;
   const t = tramo(res.filas[i].e.mes), out = [];
-  for (let j = i; j >= 0 && out.length < k; j--) {
+  for (let j = i; j >= 0 && j > i - k; j--) {
     if (tramo(res.filas[j].e.mes) !== t) break;
-    if (res.filas[j].grupos.some(gr => (gr.n || 0) > 0 || Object.keys(gr.ns || {}).length)) out.push(j);
+    if (conDatos(res.filas[j])) out.push(j);
   }
   return out;
 }
 function series(res, cfg) {
   const { P, filas, glev } = res;
   const punto = cfg.movil
-    ? (f, g, id) => { const i = filas.indexOf(f); return acumular(res, ventana(res, cfg, i, 3), g, id); }
+    ? (f, g, id) => { const i = filas.indexOf(f); return acumular(res, ventana(res, cfg, i, 3, true), g, id); }
     : (f, g, id) => puntoDe(res, f, g, id);
   const conc = P.tipo === 'multi' ? P.cols[0] : P.cols[0];
   let out;
@@ -393,7 +403,7 @@ function gruposDefecto(res, cat1) {
 /* ================= rupturas ================= */
 function conceptosDe(cfg) {
   const P = preg(cfg.preg);
-  const cs = P.tipo === 'medias' ? P.cols : [P.cols[0]];
+  const cs = P.tipo === 'medias' ? [...P.cols] : [P.cols[0]];
   if (cfg.cruce) cs.push(cfg.cruce);
   if (cfg.filtro) cs.push(cfg.filtro.col);
   if (cfg.recuerdo) cs.push('recuerdo_voto');

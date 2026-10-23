@@ -120,6 +120,34 @@ NOTAS_PARTIDOS = {
 }
 MANUAL_PARTIDOS["voto blanco"] = "BLANCO"           # «Voto blanco» (3307, INTENCIONGR) = «En blanco»
 NOTAS_PARTIDOS["BLANCO"] = "«En blanco» y «Voto blanco» (solo 3307, INTENCIONGR) son la misma opción."
+# Partidos cuya etiqueta cambia con la renumeración de oct-2022 (R06) u otra variante del CIS: misma opción.
+# «PNC» es el Partido Nacionalista Catalán (códigos 72 y 911); en 3405 (INTENCIONG, código 504) es el Canario
+# (codigos_sin_etiqueta.csv). «EXISTE» (código 207, desde 2025) es otra opción y no se une a Teruel Existe.
+MANUAL_PARTIDOS.update({
+    "pr+": "PARTIDO_RIOJANO", "partido riojano": "PARTIDO_RIOJANO",
+    "pi": "PI_PROPOSTA_PER_LES_ILLES", "pi proposta per les illes": "PI_PROPOSTA_PER_LES_ILLES",
+    "convergencia": "CDC", "cdc": "CDC",
+    "pnc": "PNC_CATALAN", "pnc partido nacionalista catalan": "PNC_CATALAN",
+    "pnc partido nacionalista canario": "PNC_CANARIO",
+    "som valencians": "SOM_VALENCIANS", "soms valencians": "SOM_VALENCIANS",
+    "pcas tc rc": "PCAS_TC", "partido castellano tierra comunera": "PCAS_TC",
+    "partido castellano tierra comunera recortes cero": "PCAS_TC",
+    "drago canarias verdes": "DRAGO_CANARIAS_VERDES", "drago verdes canarias": "DRAGO_CANARIAS_VERDES",
+    "frente obreo": "FRENTE_OBRERO", "adelante": "ADELANTE_ANDALUCIA", "existe teruel existe": "TERUEL_EXISTE",
+})
+NOTAS_PARTIDOS.update({
+    "PARTIDO_RIOJANO": "«PR+» hasta sep-2022 y «Partido Riojano» desde oct-2022.",
+    "PI_PROPOSTA_PER_LES_ILLES": "«PI» hasta sep-2022 y «PI (Proposta per les Illes)» desde oct-2022.",
+    "CDC": "«Convergència» hasta sep-2022 y «CDC» desde oct-2022.",
+    "PNC_CATALAN": "Partido Nacionalista Catalán: «PNC (Partido Nacionalista Catalán)» o «PNC» (códigos 72 y 911).",
+    "PNC_CANARIO": "Partido Nacionalista Canario (código 504); en 3405, INTENCIONG lo etiqueta «PNC».",
+    "SOM_VALENCIANS": "«Som Valencians» hasta sep-2022; «Soms Valencians» desde oct-2022 (errata).",
+    "PCAS_TC": "Variantes de Partido Castellano-Tierra Comunera (PCAS-TC-RC, con o sin «Recortes Cero»).",
+    "DRAGO_CANARIAS_VERDES": "«Drago Verdes Canarias» y «Drago Canarias Verdes»: mismo código 506.",
+    "FRENTE_OBRERO": "«Frente Obreo» (ene-2025) es errata de «Frente Obrero».",
+    "ADELANTE_ANDALUCIA": "«Adelante» (código 101, may-2023 y jul-2023) es Adelante Andalucía.",
+    "TERUEL_EXISTE": "«Teruel Existe», «Existe (Teruel Existe)» y, en 3413 (INTENCIONGR y VOTOSIMG), «Existe»: código 202.",
+})
 
 
 def no_respuesta(etiqueta, codigo):

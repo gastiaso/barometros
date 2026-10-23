@@ -253,46 +253,38 @@ nivel_estudios,2,3571,2026-07,9,"Diplomatura (diplomaturas oficiales, no los tre
 nivel_estudios,2,3571,2026-07,11,Licenciatura (titulaciones con equivalencia oficial: 2º ciclo INEF; Danza y Arte Dramático; Grado Sup. de Música),Licenciatura (titulaciones con equivalencia oficial: 2º ciclo INEF; Danza y Arte Dramático (desde 1992); Grado Superior de Música),11,0.87,variante de etiqueta
 ocupacion_r,1,3318,2021-04,5,Trabajadores/as de los servicios y vendedores/as de comercio,Trabajadores/as de los servicios y vendedores/as de comercios y mercados,5,0.83,variante de etiqueta
 ocupacion_r,1,3318,2021-04,6,"Agricultores/as y trabajadores/as agropecuarios/as, forestal","Agricultores/as y trabajadores/as agropecuarios/as, forestales y pesqueros/as",6,0.78,variante de etiqueta
-ocupacion_r,1,3318,2021-04,11,Otra/o ocupación,Otra ocupación,11,0.88,variante de etiqueta
 ocupacion_r,1,3322,2021-05,5,Trabajadores/as de los servicios y vendedores/as de comercio,Trabajadores/as de los servicios y vendedores/as de comercios y mercados,5,0.83,variante de etiqueta
 ocupacion_r,1,3322,2021-05,6,"Agricultores/as y trabajadores/as agropecuarios/as, forestal","Agricultores/as y trabajadores/as agropecuarios/as, forestales y pesqueros/as",6,0.78,variante de etiqueta
-ocupacion_r,1,3322,2021-05,11,Otra/o ocupación,Otra ocupación,11,0.88,variante de etiqueta
-ocupacion_r,1,3326,2021-06,11,Otra/o ocupación,Otra ocupación,11,0.88,variante de etiqueta
-ocupacion_r,1,3330,2021-07,11,Otra/o ocupación,Otra ocupación,11,0.88,variante de etiqueta
-ocupacion_r,1,3334,2021-09,11,Otra/o ocupación,Otra ocupación,11,0.88,variante de etiqueta
 ocupacion_r,1,3337,2021-10,5,Trabajadores/as de los servicios y vendedores/as de comercio,Trabajadores/as de los servicios y vendedores/as de comercios y mercados,5,0.83,variante de etiqueta
 ocupacion_r,1,3337,2021-10,6,"Agricultores/as y trabajadores/as agropecuarios/as, forestal","Agricultores/as y trabajadores/as agropecuarios/as, forestales y pesqueros/as",6,0.78,variante de etiqueta
-ocupacion_r,1,3337,2021-10,11,Otra/o ocupación,Otra ocupación,11,0.88,variante de etiqueta
 ocupacion_r,1,3340,2021-11,5,Trabajadores/as de los servicios y vendedores/as de comercio,Trabajadores/as de los servicios y vendedores/as de comercios y mercados,5,0.83,variante de etiqueta
 ocupacion_r,1,3340,2021-11,6,"Agricultores/as y trabajadores/as agropecuarios/as, forestal","Agricultores/as y trabajadores/as agropecuarios/as, forestales y pesqueros/as",6,0.78,variante de etiqueta
+ocupacion_r,1,3340,2021-11,11,Otra ocupación,Otra/o ocupación,11,0.88,variante de etiqueta
 ocupacion_r,1,3340,2021-11,12,Jubilado/a o pensionista (anteriormente ha trabajado),Jubilado o pensionista (anteriormente ha trabajado),12,0.96,variante de etiqueta
-ocupacion_r,1,3344,2021-12,11,Otra/o ocupación,Otra ocupación,11,0.88,variante de etiqueta
 ocupacion_r,1,3347,2022-01,5,Trabajadores/as de los servicios y vendedores/as de comercio,Trabajadores/as de los servicios y vendedores/as de comercios y mercados,5,0.83,variante de etiqueta
 ocupacion_r,1,3347,2022-01,6,"Agricultores/as y trabajadores/as agropecuarios/as, forestal","Agricultores/as y trabajadores/as agropecuarios/as, forestales y pesqueros/as",6,0.78,variante de etiqueta
-ocupacion_r,1,3347,2022-01,11,Otra/o ocupación,Otra ocupación,11,0.88,variante de etiqueta
-ocupacion_r,1,3351,2022-02,11,Otra/o ocupación,Otra ocupación,11,0.88,variante de etiqueta
-ocupacion_r,1,3355,2022-03,11,Otra/o ocupación,Otra ocupación,11,0.88,variante de etiqueta
-ocupacion_r,1,3359,2022-04,11,Otra/o ocupación,Otra ocupación,11,0.88,variante de etiqueta
-ocupacion_r,1,3363,2022-05,11,Otra/o ocupación,Otra ocupación,11,0.88,variante de etiqueta
-ocupacion_r,1,3366,2022-06,11,Otra/o ocupación,Otra ocupación,11,0.88,variante de etiqueta
-ocupacion_r,1,3371,2022-07,11,Otra/o ocupación,Otra ocupación,11,0.88,variante de etiqueta
-ocupacion_r,1,3375,2022-09,11,Otra/o ocupación,Otra ocupación,11,0.88,variante de etiqueta
-ocupacion_r,1,3380,2022-10,11,Otra/o ocupación,Otra ocupación,11,0.88,variante de etiqueta
-ocupacion_r,1,3384,2022-11,11,Otra/o ocupación,Otra ocupación,11,0.88,variante de etiqueta
-ocupacion_r,1,3388,2022-12,11,Otra/o ocupación,Otra ocupación,11,0.88,variante de etiqueta
-ocupacion_r,1,3390,2023-01,11,Otra/o ocupación,Otra ocupación,11,0.88,variante de etiqueta
-ocupacion_r,1,3395,2023-02,11,Otra/o ocupación,Otra ocupación,11,0.88,variante de etiqueta
-ocupacion_r,1,3398,2023-03,11,Otra/o ocupación,Otra ocupación,11,0.88,variante de etiqueta
-ocupacion_r,1,3403,2023-04,11,Otra/o ocupación,Otra ocupación,11,0.88,variante de etiqueta
-ocupacion_r,1,3405,2023-05,11,Otra/o ocupación,Otra ocupación,11,0.88,variante de etiqueta
-ocupacion_r,1,3410,2023-06,11,Otra/o ocupación,Otra ocupación,11,0.88,variante de etiqueta
-ocupacion_r,1,3413,2023-07,11,Otra/o ocupación,Otra ocupación,11,0.88,variante de etiqueta
-ocupacion_r,1,3420,2023-09,11,Otra/o ocupación,Otra ocupación,11,0.88,variante de etiqueta
-ocupacion_r,1,3423,2023-10,11,Otra/o ocupación,Otra ocupación,11,0.88,variante de etiqueta
-ocupacion_r,1,3427,2023-11,11,Otra/o ocupación,Otra ocupación,11,0.88,variante de etiqueta
-ocupacion_r,1,3431,2023-12,11,Otra/o ocupación,Otra ocupación,11,0.88,variante de etiqueta
-ocupacion_r,1,3435,2024-01,11,Otra/o ocupación,Otra ocupación,11,0.88,variante de etiqueta
-ocupacion_r,1,3441,2024-02,11,Otra/o ocupación,Otra ocupación,11,0.88,variante de etiqueta
+ocupacion_r,2,3355,2022-03,11,Otra/o ocupación,Otra ocupación,11,0.88,variante de etiqueta
+ocupacion_r,2,3359,2022-04,11,Otra/o ocupación,Otra ocupación,11,0.88,variante de etiqueta
+ocupacion_r,2,3363,2022-05,11,Otra/o ocupación,Otra ocupación,11,0.88,variante de etiqueta
+ocupacion_r,2,3366,2022-06,11,Otra/o ocupación,Otra ocupación,11,0.88,variante de etiqueta
+ocupacion_r,2,3371,2022-07,11,Otra/o ocupación,Otra ocupación,11,0.88,variante de etiqueta
+ocupacion_r,2,3375,2022-09,11,Otra/o ocupación,Otra ocupación,11,0.88,variante de etiqueta
+ocupacion_r,2,3380,2022-10,11,Otra/o ocupación,Otra ocupación,11,0.88,variante de etiqueta
+ocupacion_r,2,3384,2022-11,11,Otra/o ocupación,Otra ocupación,11,0.88,variante de etiqueta
+ocupacion_r,2,3388,2022-12,11,Otra/o ocupación,Otra ocupación,11,0.88,variante de etiqueta
+ocupacion_r,2,3390,2023-01,11,Otra/o ocupación,Otra ocupación,11,0.88,variante de etiqueta
+ocupacion_r,2,3395,2023-02,11,Otra/o ocupación,Otra ocupación,11,0.88,variante de etiqueta
+ocupacion_r,2,3398,2023-03,11,Otra/o ocupación,Otra ocupación,11,0.88,variante de etiqueta
+ocupacion_r,2,3403,2023-04,11,Otra/o ocupación,Otra ocupación,11,0.88,variante de etiqueta
+ocupacion_r,2,3405,2023-05,11,Otra/o ocupación,Otra ocupación,11,0.88,variante de etiqueta
+ocupacion_r,2,3410,2023-06,11,Otra/o ocupación,Otra ocupación,11,0.88,variante de etiqueta
+ocupacion_r,2,3413,2023-07,11,Otra/o ocupación,Otra ocupación,11,0.88,variante de etiqueta
+ocupacion_r,2,3420,2023-09,11,Otra/o ocupación,Otra ocupación,11,0.88,variante de etiqueta
+ocupacion_r,2,3423,2023-10,11,Otra/o ocupación,Otra ocupación,11,0.88,variante de etiqueta
+ocupacion_r,2,3427,2023-11,11,Otra/o ocupación,Otra ocupación,11,0.88,variante de etiqueta
+ocupacion_r,2,3431,2023-12,11,Otra/o ocupación,Otra ocupación,11,0.88,variante de etiqueta
+ocupacion_r,2,3435,2024-01,11,Otra/o ocupación,Otra ocupación,11,0.88,variante de etiqueta
+ocupacion_r,2,3441,2024-02,11,Otra/o ocupación,Otra ocupación,11,0.88,variante de etiqueta
 participacion_g,1,3307,2021-01,5,Prefirió no votar,Prefirió no votar/Me abstuve,5,0.61,variante de etiqueta
 participacion_g,1,3309,2021-02,5,Prefirió no votar,Prefirió no votar/Me abstuve,5,0.61,variante de etiqueta
 participacion_g,1,3313,2021-03,5,Prefirió no votar,Prefirió no votar/Me abstuve,5,0.61,variante de etiqueta

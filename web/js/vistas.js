@@ -385,7 +385,7 @@ async function vistaComparar(host, cfg) {
     let dif = null, sig = false;
     if (comparable && pa.v != null && pb.v != null) {
       dif = pb.v - pa.v;
-      const se = Math.hypot((pa.hi - pa.lo) / 3.92, (pb.hi - pb.lo) / 3.92);
+      const se = Math.hypot(pa.se, pb.se);
       sig = se > 0 && Math.abs(dif) / se > 1.96;
     }
     return { id, pa, pb, dif, sig };

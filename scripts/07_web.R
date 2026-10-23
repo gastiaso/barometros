@@ -53,7 +53,34 @@ if (VEDA) {
   meta$conceptos <- meta$conceptos[setdiff(names(meta$conceptos), retirar)]
 }
 # enunciados de cada pregunta (versiones con su periodo), para la nota metodológica
-enun <- readr::read_csv("inventario/enunciados_versiones.csv", show_col_types = FALSE, progress = FALSE)
+# Se limpian restos de maquetación del cuestionario, las tres menciones de problemas van en una sola ficha, la
+# nacionalidad queda en su versión con texto completo y se añaden las preguntas sin enunciado extraído
+# (inventario/enunciados_adicionales.csv). Si tras limpiar dos versiones seguidas tienen el mismo texto, se unen.
+leer_enun <- function(f) readr::read_csv(f, col_types = readr::cols(.default = "c"), progress = FALSE)
+limpiar_enunciado <- function(x) {
+  x <- sub("\\s*</span.*$", "", x)
+  x <- sub("\\s*\\.?\\s*(CURSO|NOMBRE DE ESTUDIOS)\\b.*$", "", x)
+  x <- sub("\\s*Controles:.*$", "", x)
+  x <- sub("\\s*Si P0a=3 ir a fin de cuestionario\\.?$", "", x)
+  x <- sub("\\s*1er\\. Problema$", "", x)
+  x <- sub("\\?\\s+\\.$", "?", x)
+  x <- sub("\\s+\\.$", ".", x)
+  trimws(x)
+}
+enun <- leer_enun("inventario/enunciados_versiones.csv") |>
+  dplyr::mutate(enunciado = limpiar_enunciado(enunciado),
+                concepto = sub("^(prob_(esp|per))_[123]$", "\\1", concepto)) |>
+  dplyr::distinct(concepto, version, .keep_all = TRUE) |>
+  dplyr::filter(!(concepto == "nacionalidad" & version != "1")) |>
+  dplyr::mutate(enunciado = dplyr::if_else(concepto == "nacionalidad",
+    paste0(enunciado, " (la nacionalidad española / la nacionalidad española y otra / otra nacionalidad)"), enunciado)) |>
+  dplyr::bind_rows(leer_enun("inventario/enunciados_adicionales.csv")) |>
+  dplyr::arrange(concepto, desde) |>
+  dplyr::group_by(concepto) |>
+  dplyr::mutate(grupo = cumsum(enunciado != dplyr::lag(enunciado, default = ""))) |>
+  dplyr::group_by(concepto, grupo) |>
+  dplyr::summarise(version = dplyr::first(version), desde = min(desde), hasta = max(hasta),
+                   n_estudios = sum(as.integer(n_estudios)), enunciado = dplyr::first(enunciado), .groups = "drop")
 meta$enunciados <- split(dplyr::select(enun, version, desde, hasta, n_estudios, enunciado), enun$concepto)
 meta$veda <- VEDA
 meta$filas <- nrow(d)

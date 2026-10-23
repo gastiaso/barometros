@@ -110,7 +110,7 @@ const DEFECTO_MOVIL = [
 ];
 const esMovil = () => matchMedia('(max-width: 640px)').matches;
 const CLAVE = 'bet-paneles-v4';
-const NOTA_RECUERDO = 'Reponderado por recuerdo de voto: los pesos del CIS se ajustan para que el recuerdo de quienes podían votar reproduzca la participación y el resultado de las últimas generales (2019 hasta septiembre de 2023; 2023 desde octubre). Es una estimación propia y no coincide con las tablas del CIS. El margen de error usa el efecto de diseño de los nuevos pesos, mayor que el del CIS.';
+const NOTA_RECUERDO = 'Reponderado por recuerdo de voto: los pesos del CIS se ajustan para que el recuerdo de quienes podían votar y lo declaran reproduzca la participación y el resultado de las últimas generales (2019 hasta septiembre de 2023; 2023 desde octubre). Quien no recuerda o no contesta queda fuera del ajuste, así que la abstención sobre el total queda algo por debajo de la real. Es una estimación propia y no coincide con las tablas del CIS. El margen de error usa el efecto de diseño de los nuevos pesos, mayor que el del CIS.';
 const DEFECTO_VEDA = [{ preg: 'prob_esp' }, { preg: 'eco_esp' }, { preg: 'ideologia' }, { preg: 'prob_per' }];
 
 /* ================= datos ================= */
@@ -1292,6 +1292,7 @@ function pintarMetodologia() {
   const ultimo = EST[EST.length - 1], primero = EST[0];
   const nTot = META.filas;
   $('#m-cobertura').textContent = `Cobertura: ${EST.length} barómetros mensuales, de ${mesLargo(primero.mes)} a ${mesLargo(ultimo.mes)}, con ${fmtInt(nTot)} entrevistas en total.`;
+  document.querySelectorAll('.cita-ult').forEach(x => { x.textContent = `${mesLargo(ultimo.mes)} (estudio ${ultimo.estudio})`; });
   const tipos = { C: 'C', B: 'B', tecnica: 'Técnica', 'tecnica-critica': 'Técnica', hueco: 'Hueco', descartada: 'Descartada' };
   $('#m-rupt-tabla').innerHTML = `<table><thead><tr><th>Ruptura</th><th>Mes</th><th>Tipo</th><th>Afecta a</th><th>Qué cambia</th><th>Estado</th></tr></thead><tbody>${META.rupturas.map(r => `<tr id="r-${esc(r.ruptura_id)}"><td>${esc(r.ruptura_id)}</td><td>${esc(r.mes)}</td><td><span class="tipo ${esc(r.tipo)}">${esc(tipos[r.tipo] || r.tipo)}</span></td><td>${esc(r.conceptos_afectados.replace(/,\s*/g, ', '))}</td><td>${esc(r.descripcion)}</td><td>${esc(r.estado)}</td></tr>`).join('')}</tbody></table>`;
   const titulo = id => PREG.find(p => p.id === id)?.t || (META.conceptos[id]?.etiqueta) || id;

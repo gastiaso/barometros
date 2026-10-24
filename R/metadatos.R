@@ -60,7 +60,7 @@ construir_metadatos <- function(d, canon, insumos, lecturas) {
   estado_estudios <- function(k) {
     x <- dplyr::filter(cw, concepto == k) |> dplyr::arrange(mes)
     if (!nrow(x)) return(NULL)
-    dplyr::transmute(x, estudio, mes, nivel = nivel_final, tramo, nota = dplyr::if_else(nivel_final == "A", NA_character_, nota))
+    dplyr::transmute(x, estudio, mes, nivel = nivel_final, tramo, nota = dplyr::if_else(nivel_final == "A" | nota_publica %in% "", NA_character_, nota_publica))
   }
 
   derivados <- list(

@@ -26,9 +26,17 @@ cargar_insumos <- function(f_crosswalk, f_estudios, f_partidos, f_problemas, f_c
     codigos_sin_etiqueta = sin_etq,
     problemas = leer(f_problemas),
     candidatos = leer(f_candidatos),
-    lideres = leer(f_lideres) |> dplyr::filter(bloque == "VALORALIDERES"),
-    # valoración de ministros (trimestral): batería VALMINIS_k, con el nombre del ministro como etiqueta de la variable
-    ministros = leer(f_variables) |> dplyr::filter(grepl("^VALMINIS_[0-9]+$", variable)) |>
+    # valoración de líderes: batería VALORALIDERES_k; en 3307 (ene-2021) es P25_k, con el nombre como etiqueta
+    lideres = dplyr::bind_rows(
+      leer(f_lideres) |> dplyr::filter(bloque == "VALORALIDERES"),
+      leer(f_variables) |> dplyr::filter(estudio == "3307", grepl("^P25_[0-9]+$", variable)) |>
+        dplyr::transmute(mes, estudio, lider = etiqueta, lider_norm = norm_etiqueta(etiqueta), bloque = "VALORALIDERES",
+                         variable)),
+    # valoración de ministros (trimestral): batería VALMINIS_k, con el nombre del ministro como etiqueta de la variable;
+    # en 3307 (ene-2021) es P20_k y en 3318 (abr-2021), P28_k
+    ministros = leer(f_variables) |>
+      dplyr::filter(grepl("^VALMINIS_[0-9]+$", variable) | (estudio == "3307" & grepl("^P20_[0-9]+$", variable)) |
+                      (estudio == "3318" & grepl("^P28_[0-9]+$", variable))) |>
       dplyr::transmute(estudio, mes, variable, ministro = etiqueta,
                        id = paste0("ministro_", gsub(" ", "_", norm_etiqueta(etiqueta)))),
     rupturas = leer(f_rupturas),
@@ -39,7 +47,8 @@ cargar_insumos <- function(f_crosswalk, f_estudios, f_partidos, f_problemas, f_c
 
 # Lectura de un estudio: códigos por concepto y diccionario de etiquetas (sin armonizar todavía)
 leer_estudio <- function(estudio, ruta, insumos) {
-  cw <- dplyr::filter(insumos$crosswalk, .data$estudio == !!estudio, !is.na(variable))
+  # las filas marcadas AUSENTE en la revisión no se leen aunque tengan variable emparejada
+  cw <- dplyr::filter(insumos$crosswalk, .data$estudio == !!estudio, !is.na(variable), !nivel_final %in% "AUSENTE")
   cw <- dplyr::filter(cw, concepto != "tipo_telefono")
   lid <- dplyr::filter(insumos$lideres, .data$estudio == !!estudio)
   mins <- dplyr::filter(insumos$ministros, .data$estudio == !!estudio)

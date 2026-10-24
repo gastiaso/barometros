@@ -110,16 +110,28 @@ const DEFECTO_MOVIL = [
 ];
 const esMovil = () => matchMedia('(max-width: 640px)').matches;
 const CLAVE = 'bet-paneles-v4';
-const NOTA_RECUERDO = 'Reponderado por recuerdo de voto: los pesos del CIS se ajustan para que el recuerdo de quienes podían votar reproduzca la participación y el resultado de las últimas generales (2019 hasta septiembre de 2023; 2023 desde octubre). Es una estimación propia y no coincide con las tablas del CIS. El margen de error usa el efecto de diseño de los nuevos pesos, mayor que el del CIS.';
+const NOTA_RECUERDO = 'Reponderado por recuerdo de voto: los pesos del CIS se ajustan para que quienes podían votar reproduzcan la participación de las últimas generales, y quienes recuerdan su voto, el resultado (2019 hasta septiembre de 2023; 2023 desde octubre). Es una estimación propia y no coincide con las tablas del CIS. El margen de error usa el efecto de diseño de los nuevos pesos, mayor que el del CIS.';
 const DEFECTO_VEDA = [{ preg: 'prob_esp' }, { preg: 'eco_esp' }, { preg: 'ideologia' }, { preg: 'prob_per' }];
 
 /* ================= datos ================= */
 let META, EST = [], ESTI = {}, LAB = {}, LIDERES = [], MINISTROS = [];
 const COLS = {}, PEND = {};
 
+/* Descarga con un reintento si falla la red o el servidor; los errores, en español */
+async function traer(url, opts, que) {
+  let error;
+  for (let i = 0; i < 2; i++) {
+    if (i) await new Promise(ok => setTimeout(ok, 1000));
+    let r;
+    try { r = await fetch(url, opts); } catch (e) { error = new Error(`No se ha podido descargar ${que}: sin conexión o el servidor no responde. Vuelve a cargar la página.`); continue; }
+    if (r.ok) return r;
+    error = new Error(`No se ha podido descargar ${que} (error ${r.status}).`);
+    if (r.status < 500) break;
+  }
+  throw error;
+}
 async function cargarMeta() {
-  const r = await fetch(BASE + 'metadatos.json', { cache: 'no-cache' });
-  if (!r.ok) throw new Error('No se han podido cargar los metadatos (' + r.status + ').');
+  const r = await traer(BASE + 'metadatos.json', { cache: 'no-cache' }, 'los metadatos');
   META = await r.json();
   const deff = Object.fromEntries(META.estudios.map(e => [String(e.estudio), e]));
   EST = META.tramos_estudio.map(t => ({ ...t, estudio: String(t.estudio), deff: +deff[String(t.estudio)]?.deff || 1,
@@ -137,12 +149,12 @@ async function col(name) {
     const info = META.columnas[name];
     if (!info) throw new Error('Columna no disponible: ' + name);
     // la versión de los metadatos evita mezclar columnas de una publicación anterior guardadas en caché
-    const r = await fetch(BASE + info.archivo + '?v=' + encodeURIComponent(META.generado || ''));
-    if (!r.ok) throw new Error('No se ha podido descargar ' + name + ' (' + r.status + ').');
-    const buf = await inflar(r);
+    const r = await traer(BASE + info.archivo + '?v=' + encodeURIComponent(META.generado || ''), undefined, 'la columna ' + name);
+    let buf;
+    try { buf = await inflar(r); } catch (e) { throw new Error(`No se ha podido leer la columna ${name}: la descarga se ha interrumpido. Vuelve a intentarlo.`); }
     COLS[name] = info.bytes === 1 ? new Uint8Array(buf) : info.bytes === 2 ? new Uint16Array(buf) : new Float32Array(buf);
     return COLS[name];
-  })();
+  })().catch(e => { delete PEND[name]; throw e; });   // un fallo no se queda guardado: el siguiente intento vuelve a descargar
   return PEND[name];
 }
 /* Los navegadores sin DecompressionStream (Safari anterior a 16.4) cargan fflate solo cuando lo necesitan */
@@ -164,7 +176,7 @@ const preg = id => {
   const p = PREG.find(x => x.id === id);
   if (!p) return null;
   const tipo = p.tipo || 'cat';
-  const cols = p.cols || (tipo === 'medias' ? (p.id === 'ministros' ? MINISTROS : LIDERES) : [p.id]);
+  const cols = [...(p.cols || (tipo === 'medias' ? (p.id === 'ministros' ? MINISTROS : LIDERES) : [p.id]))];
   return { ...p, tipo, cols };
 };
 const disponible = p => p && p.cols.length && p.cols.every(c => META.columnas[c]);
@@ -199,6 +211,8 @@ const etiqueta = (concepto, id) => {
   }
   return String(LAB[concepto]?.[id] ?? id).replace(/^\(NO LEER\)\s*/i, '');
 };
+/* Nombre de una respuesta de P; en una media de una sola escala (ideología), el de la pregunta */
+const nombreResp = (P, id) => P.tipo === 'media' ? P.t.replace(/ \(media\)$/, '') : P.tipo === 'medias' ? etiqueta(id, id) : etiqueta(P.cols[0], id);
 const nivelesDe = c => META.columnas[c].niveles;
 const ordenMeta = (concepto, ids) => {
   const pos = Object.fromEntries((META.conceptos[concepto]?.categorias || []).map((c, i) => [c.id, i]));
@@ -237,8 +251,14 @@ async function calcular(cfg) {
     const K = ids.length;
     for (const e of meses) {
       const base = new Float64Array(G), n = new Uint32Array(G), num = new Float64Array(G * K);
-      const marca = new Int32Array(K).fill(-1);
+      const marca = new Int32Array(K).fill(-1), pres = new Uint8Array(K);
       for (let r = e.desde; r < e.hasta; r++) {
+        // respuestas que existen en el barómetro: las que alguien da en toda la muestra (sin filtro ni cruce)
+        for (let j = 0; j < cs.length; j++) {
+          const c = cs[j][r]; if (c === 0) continue;
+          const k = mapas[j][c - 1]; if (isNP[k] || (isNR[k] && (cfg.exNR || j > 0))) continue;
+          pres[k] = 1; for (const kb of enBloque[k]) pres[kb] = 1;
+        }
         if (fcol && fcol[r] !== fcod) continue;
         let g = 0;
         if (gcol) { g = gcol[r] - 1; if (g < 0 || g === gNP) continue; }
@@ -260,10 +280,11 @@ async function calcular(cfg) {
       const grupos = [];
       for (let g = 0; g < G; g++) {
         const vals = {}, wnum = {};
-        if (n[g] > 0) for (let k = 0; k < K; k++) if (num[g * K + k] > 0) { vals[ids[k]] = 100 * num[g * K + k] / base[g]; wnum[ids[k]] = num[g * K + k]; }
+        // 0 % solo si la respuesta existe ese mes; si no existía, no hay dato
+        if (n[g] > 0) for (let k = 0; k < K; k++) if (pres[k]) { vals[ids[k]] = 100 * num[g * K + k] / base[g]; wnum[ids[k]] = num[g * K + k]; }
         grupos.push({ n: n[g], base: base[g], vals, wnum });
       }
-      filas.push({ e, grupos });
+      filas.push({ e, grupos, pres: ids.filter((id, k) => pres[k]) });
     }
     return { P, cfg, filas, ids: ids.filter(id => id !== 'NP'), glev, unidad: '%' };
   }
@@ -306,7 +327,7 @@ function puntoDe(res, f, g, id) {
   let se;
   if (media) se = Math.sqrt(f.e.deff * gr.sd[id] ** 2 / n);
   else { const p = v / 100; se = 100 * Math.sqrt(f.e.deff * p * (1 - p) / n); }
-  return { v, n, lo: Math.max(0, v - 1.96 * se), hi: v + 1.96 * se };
+  return { v, n, se, lo: Math.max(0, v - 1.96 * se), hi: v + 1.96 * se };
 }
 /* Acumula varios barómetros (índices de res.filas) para un grupo y una respuesta: suma de pesos y de casos */
 function acumular(res, idxs, g, id) {
@@ -318,32 +339,35 @@ function acumular(res, idxs, g, id) {
       const n = gr.ns[id] || 0; if (!n) continue;
       N += n; B += gr.sw[id]; S += gr.swx[id]; S2 += gr.swx2[id]; D += res.filas[i].e.deff * n;
     } else {
-      if (!gr.n) continue;
-      N += gr.n; B += gr.base; S += gr.wnum[id] || 0; D += res.filas[i].e.deff * gr.n;
+      if (!gr.n || !(id in gr.wnum)) continue;          // la respuesta no existía ese mes: el barómetro no cuenta
+      N += gr.n; B += gr.base; S += gr.wnum[id]; D += res.filas[i].e.deff * gr.n;
     }
   }
   if (!N) return { v: null, n: 0 };
   if (N < MIN_N) return { v: null, n: N, omit: true };
   const deff = D / N;
-  if (media) { const m = S / B, sd = Math.sqrt(Math.max(0, S2 / B - m * m)), se = Math.sqrt(deff * sd * sd / N); return { v: m, n: N, lo: m - 1.96 * se, hi: m + 1.96 * se }; }
+  if (media) { const m = S / B, sd = Math.sqrt(Math.max(0, S2 / B - m * m)), se = Math.sqrt(deff * sd * sd / N); return { v: m, n: N, se, lo: m - 1.96 * se, hi: m + 1.96 * se }; }
   const p = S / B, se = Math.sqrt(deff * p * (1 - p) / N);
-  return { v: 100 * p, n: N, lo: Math.max(0, 100 * (p - 1.96 * se)), hi: 100 * (p + 1.96 * se) };
+  return { v: 100 * p, n: N, se: 100 * se, lo: Math.max(0, 100 * (p - 1.96 * se)), hi: 100 * (p + 1.96 * se) };
 }
-/* Hasta k barómetros que terminan en el índice i sin cruzar una ruptura C de los conceptos del panel */
-function ventana(res, cfg, i, k) {
+/* Los k barómetros consecutivos que terminan en el índice i (los que tienen la pregunta), sin cruzar una ruptura C de
+   los conceptos del panel. Con exigirMes, si el barómetro i no tiene la pregunta no hay ventana (media móvil). */
+const conDatos = f => f.grupos.some(gr => (gr.n || 0) > 0 || Object.keys(gr.ns || {}).length);
+function ventana(res, cfg, i, k, exigirMes = false) {
+  if (exigirMes && !conDatos(res.filas[i])) return [];
   const cortes = rupturas(cfg).filter(r => r.tipo === 'C').map(r => r.m);
   const tramo = mes => cortes.filter(c => c <= mes).length;
   const t = tramo(res.filas[i].e.mes), out = [];
-  for (let j = i; j >= 0 && out.length < k; j--) {
+  for (let j = i; j >= 0 && j > i - k; j--) {
     if (tramo(res.filas[j].e.mes) !== t) break;
-    if (res.filas[j].grupos.some(gr => (gr.n || 0) > 0 || Object.keys(gr.ns || {}).length)) out.push(j);
+    if (conDatos(res.filas[j])) out.push(j);
   }
   return out;
 }
 function series(res, cfg) {
   const { P, filas, glev } = res;
   const punto = cfg.movil
-    ? (f, g, id) => { const i = filas.indexOf(f); return acumular(res, ventana(res, cfg, i, 3), g, id); }
+    ? (f, g, id) => { const i = filas.indexOf(f); return acumular(res, ventana(res, cfg, i, 3, true), g, id); }
     : (f, g, id) => puntoDe(res, f, g, id);
   const conc = P.tipo === 'multi' ? P.cols[0] : P.cols[0];
   let out;
@@ -351,7 +375,7 @@ function series(res, cfg) {
     let cats = cfg.cats && cfg.cats.length ? cfg.cats : catsDefecto(res);
     if (P.tipo === 'cat' && res.ids.filter(id => !NR.has(id)).length <= 7) cats = ordenMeta(conc, cats);
     out = cats.slice(0, MAX_SERIES).map(id => ({
-      id, label: P.tipo === 'medias' ? etiqueta(id, id) : etiqueta(conc, id),
+      id, label: nombreResp(P, id),
       pts: filas.map(f => ({ mes: f.e.mes, f, ...punto(f, 0, id) })),
     }));
   } else {
@@ -393,7 +417,7 @@ function gruposDefecto(res, cat1) {
 /* ================= rupturas ================= */
 function conceptosDe(cfg) {
   const P = preg(cfg.preg);
-  const cs = P.tipo === 'medias' ? P.cols : [P.cols[0]];
+  const cs = P.tipo === 'medias' ? [...P.cols] : [P.cols[0]];
   if (cfg.cruce) cs.push(cfg.cruce);
   if (cfg.filtro) cs.push(cfg.filtro.col);
   if (cfg.recuerdo) cs.push('recuerdo_voto');
@@ -409,7 +433,12 @@ function rupturas(cfg) {
 function notasEstudio(cfg, mes) {
   return conceptosDe(cfg).flatMap(c => (META.conceptos[c]?.estudios || []).filter(x => x.mes === mes && x.nivel === 'B' && x.nota).map(x => x.nota));
 }
-const breveRuptura = d => { const s = d.split(/(?<=\.)\s|:\s/)[0]; return s.length > 170 ? s.slice(0, 168) + '…' : s; };
+/* Primera frase de la descripción; si es muy larga, se corta en un espacio */
+const breveRuptura = d => {
+  const s = d.split(/(?<=[.!?»])\s+(?=[A-ZÁÉÍÓÚÑ¿«(])/)[0];
+  if (s.length <= 230) return s;
+  const c = s.slice(0, 228); return c.slice(0, c.lastIndexOf(' ')) + '…';
+};
 
 /* ================= paleta ================= */
 let PAL = {};
@@ -434,10 +463,17 @@ function colores(lista, cfg, dim = 'cat') {
     else if (NR.has(s.id)) out[s.id] = PAL.line2;
     else { const p = partidoDe(s.id); if (p && COLOR_PARTIDO[p] && !usados.has(COLOR_PARTIDO[p])) { out[s.id] = COLOR_PARTIDO[p]; usados.add(out[s.id]); } }
   });
+  // un color de la paleta no se usa si se confunde con uno ya asignado (p. ej., el rojo del PSOE)
+  const rgb = h => /^#[0-9a-f]{6}$/i.test(h) ? [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16)) : null;
+  const cerca = (a, b) => {
+    const p = rgb(a), q = rgb(b); if (!p || !q) return false;
+    const rm = (p[0] + q[0]) / 2;
+    return Math.sqrt((2 + rm / 256) * (p[0] - q[0]) ** 2 + 4 * (p[1] - q[1]) ** 2 + (2 + (255 - rm) / 256) * (p[2] - q[2]) ** 2) < 80;
+  };
   let slot = 0;
   lista.forEach(s => {
     if (out[s.id]) return;
-    while (slot < PAL.cat.length && usados.has(PAL.cat[slot])) slot++;
+    while (slot < PAL.cat.length && [...usados].some(u => u === PAL.cat[slot] || cerca(u, PAL.cat[slot]))) slot++;
     out[s.id] = PAL.cat[slot % PAL.cat.length]; usados.add(out[s.id]); slot++;
   });
   return out;
@@ -494,7 +530,8 @@ function dibujar(host, res, cfg) {
     const g = svg.append('g');
     g.append('line').attr('x1', mk.x).attr('x2', mk.x).attr('y1', mk.esC ? m.t - 6 : m.t).attr('y2', H - m.b)
       .attr('stroke', mk.esC ? PAL.acc : PAL.ink3).attr('stroke-width', mk.esC ? 1.5 : 1).attr('stroke-dasharray', mk.esC ? null : '2 3');
-    g.append('rect').attr('x', mk.x - 7).attr('y', m.t - 20).attr('width', 14).attr('height', H - m.b - m.t + 20).attr('fill', 'transparent')
+    // zona sensible solo en la franja superior: en el área del gráfico la ruptura sale en el tooltip del mes
+    g.append('rect').attr('x', mk.x - 7).attr('y', m.t - 20).attr('width', 14).attr('height', 22).attr('fill', 'transparent')
       .style('cursor', 'help')
       .on('pointermove', ev => { ev.stopPropagation(); showTip(`<b>${esc(mesLargo(mk.mes))}</b>` + mk.rs.map(r => `<div class="tnote"><b>${esc(r.ruptura_id)}, tipo ${esc(r.tipo)}</b><br>${esc(breveRuptura(r.descripcion))}</div>`).join(''), ev); })
       .on('pointerleave', hideTip);
@@ -574,7 +611,8 @@ function dibujar(host, res, cfg) {
         return `<div class="r"><span><i class="sw" style="background:${col[s.id]}"></i>${esc(s.label)}</span><span>${v}${d}</span></div>`;
       }).join('');
       const n = !cfg.cruce && !media ? ser[0].pts[i].n : null;
-      const notas = notasEstudio(cfg, mes).map(t => `<div class="tnote">${esc(t)}</div>`).join('');
+      const notas = rup.filter(r => r.m === mes).map(r => `<div class="tnote"><b>${esc(r.ruptura_id)}, tipo ${esc(r.tipo)}</b><br>${esc(breveRuptura(r.descripcion))}</div>`).join('') +
+        notasEstudio(cfg, mes).map(t => `<div class="tnote">${esc(t)}</div>`).join('');
       showTip(`<b>${esc(mesLargo(mes))}</b>${rows}<div class="tnote">Estudio ${esc(res.filas[i].e.estudio)}${n ? `, base ${fmtInt(n)} entrevistas` : ''}. Variación en puntos respecto al barómetro anterior${cRupt.length ? '; «s. c.»: sin comparación por ruptura C' : ''}.</div>${notas}`, ev);
     })
     .on('pointerleave', () => { cross.attr('visibility', 'hidden'); hideTip(); });
@@ -591,7 +629,7 @@ function datosBarras(res, cfg) {
   const conc = res.P.cols[0];
   const cats1 = res.P.tipo === 'cat' ? sinSolapes(cats0, cfg) : cats0;
   const cats = (res.P.tipo === 'cat' && res.ids.filter(id => !NR.has(id)).length <= 7 ? ordenMeta(conc, cats1) : cats1).slice(0, MAX_SERIES);
-  const nomCat = id => res.unidad === 'media' ? etiqueta(id, id) : etiqueta(conc, id);
+  const nomCat = id => nombreResp(res.P, id);
   const grupos = cfg.cruce ? ordenMeta(cfg.cruce, cfg.gcats && cfg.gcats.length ? cfg.gcats : gruposDefecto(res)).slice(0, MAX_SERIES) : ['TOTAL'];
   const nomGrupo = id => cfg.cruce ? etiqueta(cfg.cruce, id) : 'Total';
   const celdas = grupos.flatMap(gid => cats.map(cid => ({ gid, cid, ...puntoDe(res, f, res.glev.indexOf(gid), cid) })));
@@ -752,8 +790,8 @@ function tituloBase(cfg, res) {
   if (cfg.tipo === 'barras') return cfg.cruce ? `${P.t}, por ${CRUCE_DE[cfg.cruce].toLowerCase()}` : P.t;
   if (!cfg.cruce) return P.t;
   const cat1 = res && res.cat1 ? res.cat1 : cfg.cat1;
-  const nom = cat1 ? (P.tipo === 'medias' ? etiqueta(cat1, cat1) : etiqueta(P.cols[0], cat1)) : '';
-  const de = P.tipo === 'medias' ? `Valoración de ${nom}` : `${P.t}: ${nom}`;
+  const nom = cat1 ? nombreResp(P, cat1) : '';
+  const de = P.tipo === 'medias' ? `Valoración de ${nom}` : P.tipo === 'media' ? P.t : `${P.t}: ${nom}`;
   return `${de}, por ${CRUCE_DE[cfg.cruce].toLowerCase()}`;
 }
 /* Aviso en los paneles cuya medida es una pregunta de voto: va en la línea de metadatos, y con ella en el PNG y el CSV */
@@ -796,7 +834,7 @@ function panelEl(cfg) {
     const i = PANELES.findIndex(p => p.id === cfg.id);
     if (a === 'edit') abrirEditor(PANELES[i]);
     if (a === 'dup') { PANELES.splice(i + 1, 0, { ...structuredClone(PANELES[i]), id: nuevoId() }); guardar(); renderTodo(); }
-    if (a === 'del') { PANELES.splice(i, 1); guardar(); renderTodo(); }
+    if (a === 'del') { const [q] = PANELES.splice(i, 1); guardar(); renderTodo(); avisoDeshacer(q, i); }
     if (a === 'tabla') { const t = el.querySelector('.tabla'); t.hidden = !t.hidden; ev.target.setAttribute('aria-pressed', String(!t.hidden)); }
     if (a === 'rupt') {
       const p = PANELES[i]; p.sinRupturas = !p.sinRupturas; guardar();
@@ -892,14 +930,24 @@ function descargar(nombre, blob) {
   document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
 }
 const slug = s => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '').slice(0, 60);
+/* Rupturas que explican las marcas R del panel, para el CSV y el PNG */
+function rupturasPanel(el) {
+  const r = el._res; if (!r) return [];
+  if (r.out && r.out.rup) return [...new Map(r.out.rup.map(x => [x.ruptura_id, x])).values()]
+    .map(x => `${x.ruptura_id} (${mesCorto(x.m)}, tipo ${x.tipo}): ${breveRuptura(x.descripcion)}`);
+  if (r.generico && r.cfg.tipo === 'calor') return r.generico.notas;
+  return [];
+}
 function exportarCSV(el) {
   if (!el._res) return;
-  const q = s => `"${String(s).replace(/"/g, '""')}"`;
+  // entre comillas; si empieza por =, +, - o @, con un apóstrofo delante para que la hoja de cálculo no lo ejecute
+  const q = s => { let t = String(s); if (/^[=+\-@\t\r]/.test(t)) t = "'" + t; return `"${t.replace(/"/g, '""')}"`; };
+  const notasR = rupturasPanel(el).map(q);
   const titulo = el.querySelector('h2').textContent, metaT = el.querySelector('.meta').textContent;
   if (el._res.generico) {
     const G = el._res.generico.csv;
-    const cel = v => v == null || (typeof v === 'number' && !isFinite(v)) ? '' : typeof v === 'number' ? v.toFixed(3) : typeof v === 'boolean' ? (v ? 'sí' : 'no') : q(v);
-    const lines = [G.cab.join(','), ...G.filas.map(f => f.map(cel).join(',')), '', q(`${titulo}. ${metaT}`), q('Fuente: CIS, barómetros mensuales (microdatos). Elaboración: Barómetro a barómetro.')];
+    const cel = v => v == null || (typeof v === 'number' && !isFinite(v)) ? '' : typeof v === 'number' ? (Number.isInteger(v) ? String(v) : v.toFixed(3)) : typeof v === 'boolean' ? (v ? 'sí' : 'no') : q(v);
+    const lines = [G.cab.join(','), ...G.filas.map(f => f.map(cel).join(',')), '', q(`${titulo}. ${metaT}`), ...notasR, q('Fuente: CIS, barómetros mensuales (microdatos). Elaboración: Barómetro a barómetro.')];
     return descargar(slug(titulo) + '.csv', new Blob(['\ufeff' + lines.join('\n')], { type: 'text/csv;charset=utf-8' }));
   }
   const { out, res, cfg } = el._res;
@@ -917,7 +965,7 @@ function exportarCSV(el) {
     lines = [['mes', 'estudio', 'serie', 'valor', 'margen_inferior', 'margen_superior', 'n_base'].join(',')];
     out.ser.forEach(s => s.pts.forEach((p, i) => lines.push([res.filas[i].e.mes, res.filas[i].e.estudio, q(s.label), num(p.v), num(p.lo), num(p.hi), p.n ?? ''].join(','))));
   }
-  lines.push('', q(`${tituloPanel(cfg, res)}. ${metaPanel(cfg, res)}`), q('Fuente: CIS, barómetros mensuales (microdatos). Elaboración: Barómetro a barómetro.'));
+  lines.push('', q(`${tituloPanel(cfg, res)}. ${metaPanel(cfg, res)}`), ...notasR, q('Fuente: CIS, barómetros mensuales (microdatos). Elaboración: Barómetro a barómetro.'));
   descargar(slug(tituloPanel(cfg, res)) + '.csv', new Blob(['﻿' + lines.join('\n')], { type: 'text/csv;charset=utf-8' }));
 }
 function exportarPNG(el) {
@@ -936,7 +984,10 @@ function exportarPNG(el) {
       return ls;
     }, []);
   };
-  const lT = partir(titulo, fT), lM = partir(metaT, fM), lF = partir(fuente, fM);
+  const lT = partir(titulo, fT), lM = partir(metaT, fM);
+  // al pie, qué es cada marca R del gráfico (solo las que se dibujan)
+  const rupt = el._res.cfg.sinRupturas ? [] : rupturasPanel(el);
+  const lF = [...rupt.flatMap(t => partir(t, fM)), ...partir(fuente, fM)];
   const s = 2, top = 14 + lT.length * 20 + lM.length * 16 + 8, bot = lF.length * 16 + 18;
   const cv = document.createElement('canvas'); cv.width = W * s; cv.height = (H + top + bot) * s;
   const ctx = cv.getContext('2d'); ctx.scale(s, s);
@@ -956,7 +1007,26 @@ let IO_PANELES = null;
 function pintarPanel(el) {
   el.classList.remove('pendiente'); el._pintado = true;
   const cfg = PANELES.find(p => p.id === el.dataset.id);
-  if (cfg) renderPanel(el, cfg);
+  if (cfg) renderPanel(el, cfg).then(() => {
+    const t = el.querySelector('h2').textContent, q = el.querySelector('[data-a=del]');
+    if (q && t) q.setAttribute('aria-label', 'Quitar el panel «' + t + '»');
+  });
+}
+/* Quitar un panel se puede deshacer durante unos segundos */
+let DESHACER = null;
+function avisoDeshacer(cfg, i) {
+  let bar = $('#deshacer');
+  if (!bar) {
+    bar = document.createElement('div'); bar.id = 'deshacer'; bar.className = 'deshacer'; bar.setAttribute('role', 'status');
+    document.body.appendChild(bar);
+  }
+  bar.innerHTML = 'Panel quitado. <button class="btn" type="button">Deshacer</button>';
+  bar.hidden = false;
+  clearTimeout(DESHACER);
+  bar.querySelector('button').addEventListener('click', () => {
+    PANELES.splice(Math.min(i, PANELES.length), 0, cfg); guardar(); renderTodo(); bar.hidden = true; clearTimeout(DESHACER);
+  });
+  DESHACER = setTimeout(() => { bar.hidden = true; }, 8000);
 }
 function renderTodo() {
   if (IO_PANELES) IO_PANELES.disconnect();
@@ -979,7 +1049,11 @@ function rerender() {
 
 /* ================= estado ================= */
 const limpio = p => { const { id, ...r } = p; return r; };
-function guardar() { try { localStorage.setItem(CLAVE, JSON.stringify(PANELES.map(limpio))); } catch (e) { /* sin almacenamiento */ } }
+function guardar() {
+  try { localStorage.setItem(CLAVE, JSON.stringify(PANELES.map(limpio))); } catch (e) { /* sin almacenamiento */ }
+  // tras un cambio manda lo guardado: un enlace #p= en la dirección lo taparía al recargar
+  if (location.hash.startsWith('#p=')) history.replaceState(null, '', location.pathname + '#series');
+}
 const b64e = s => btoa(unescape(encodeURIComponent(s))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 const b64d = s => decodeURIComponent(escape(atob(s.replace(/-/g, '+').replace(/_/g, '/'))));
 function cargarPaneles() {
@@ -1004,6 +1078,8 @@ function defecto() {
 /* ================= editor ================= */
 const ed = $('#ed'), edb = $('#ed-body');
 let BORRADOR = null, EDITANDO = null;
+// orden de las respuestas y grupos por defecto del panel en edición: «Aplicar» lo conserva
+let ORDEN_DEF = { cats: [], gcats: [] };
 const opcionesMes = sel => EST.map(e => `<option value="${e.mes}"${e.mes === sel ? ' selected' : ''}>${esc(mesCorto(e.mes))}</option>`).join('');
 
 function abrirEditor(cfg) {
@@ -1043,6 +1119,7 @@ function selectorIndicador(pref, ind, titulo) {
 }
 async function pintarEditor() {
   const b = BORRADOR;
+  ORDEN_DEF = { cats: [], gcats: [] };
   const tipo = b.tipo || 'lineas';
   const ultMes = EST[EST.length - 1].mes;
   const grupos = [...new Set(PREG.map(p => p.g))];
@@ -1056,7 +1133,7 @@ async function pintarEditor() {
   const fFiltro = `<div class="fld"><label for="f-filtro">Filtrar por</label><div class="row"><select id="f-filtro">${optFiltro}</select><select id="f-fval" ${b.filtro ? '' : 'hidden'} aria-label="Valor del filtro">${valFiltro}</select></div></div>`;
   const fPeriodo = `<div class="fld"><label for="f-desde">Desde</label><select id="f-desde">${opcionesMes(b.desde || EST[0].mes)}</select></div><div class="fld"><label for="f-hasta">Hasta</label><select id="f-hasta">${opcionesMes(b.hasta || ultMes)}</select></div>`;
   const fMes = (id, lab, val) => `<div class="fld"><label for="${id}">${lab}</label><select id="${id}">${opcionesMes(val || ultMes)}</select></div>`;
-  const fAcum = `<div class="fld"><label for="f-acum">Barómetros acumulados</label><select id="f-acum">${ACUM.map(k => `<option value="${k}"${k === (b.acum || 1) ? ' selected' : ''}>${k === 1 ? 'Solo ese barómetro' : `Los ${k} últimos`}</option>`).join('')}</select><span class="hint">Más barómetros, más muestra; no se acumula a través de una ruptura C.</span></div>`;
+  const fAcum = `<div class="fld"><label for="f-acum">Barómetros acumulados</label><select id="f-acum">${ACUM.map(k => `<option value="${k}"${k === (b.acum || (tipo === 'mapa' ? 6 : 3)) ? ' selected' : ''}>${k === 1 ? 'Solo ese barómetro' : `Los ${k} últimos`}</option>`).join('')}</select><span class="hint">Más barómetros, más muestra; no se acumula a través de una ruptura C.</span></div>`;
   const chk = (id, lab, v) => `<label class="row"><input type="checkbox" id="${id}"${v ? ' checked' : ''}> ${lab}</label>`;
   const opExNR = chk('f-exnr', 'Excluir de la base «no sabe», «no contesta» y «no recuerda»', b.exNR);
   const opBanda = chk('f-banda', tipo === 'dispersion' ? 'Mostrar el margen de error en los dos ejes' : 'Mostrar el margen de error', b.banda ?? (tipo === 'lineas' && !b.cruce));
@@ -1067,7 +1144,7 @@ async function pintarEditor() {
   const secciones = {
     lineas: () => fPreg + fCruce + fFiltro + fPeriodo + lista + `<div class="fld full"><span class="lab">Opciones</span>${opExNR}${opBanda}${opMovil}${opRec}${opAncho}</div>`,
     barras: () => fPreg + fCruce + fFiltro + fMes('f-mes', 'Barómetro', b.mes) + '<div class="fld"></div>' + lista + `<div class="fld full"><span class="lab">Opciones</span>${opExNR}${opBanda}${opRec}${opAncho}</div>`,
-    comparar: () => fPreg + fFiltro + '<div class="fld"></div>' + fMes('f-mesA', 'Barómetro inicial', b.mesA || EST[Math.max(0, EST.length - 13)].mes) + fMes('f-mesB', 'Barómetro final', b.mesB) + lista + `<div class="fld full"><span class="lab">Opciones</span>${opExNR}${opBanda}${opRec}${opAncho}</div>`,
+    comparar: () => fPreg + fFiltro + '<div class="fld"></div>' + fMes('f-mesA', 'Barómetro inicial', mesInicialComparar(b)) + fMes('f-mesB', 'Barómetro final', b.mesB) + lista + `<div class="fld full"><span class="lab">Opciones</span>${opExNR}${opBanda}${opRec}${opAncho}</div>`,
     calor: () => fPreg + fFiltro + '<div class="fld"></div>' + fPeriodo + lista + `<div class="fld full"><span class="lab">Opciones</span>${opExNR}${opRec}${opAncho}</div>`,
     transferencias: () => fPreg + fFiltro + '<div class="fld"></div>' + fMes('f-mes', 'Último barómetro', b.mes) + fAcum + lista + `<div class="fld full"><span class="lab">Opciones</span>${opExNR}${opAncho}</div>`,
     dispersion: () => `<div class="fld full"><label for="f-grupo">Cada punto es un grupo de</label><select id="f-grupo">${GRUPOS_DISP.filter(([k]) => META.columnas[k]).map(([k, t]) => `<option value="${k}"${k === b.grupo ? ' selected' : ''}>${esc(t)}</option>`).join('')}</select></div>` +
@@ -1113,13 +1190,11 @@ async function pintarEditor() {
     const listaChk = (idc, items, sel, valor) => `<div class="chks" id="${idc}">${items.map(id => `<label><input type="checkbox" value="${esc(id.id)}"${sel.has(id.id) ? ' checked' : ''}> ${esc(id.nom)}<span class="v">${valor ? valor(id.id) : ''}</span></label>`).join('')}</div>`;
     const buscador = `<input type="search" id="f-buscar" placeholder="Buscar" aria-label="Buscar respuesta">`;
     if (tipo === 'dispersion') {
-      const { res, idxs } = await calcularPeriodo({ preg: b.x.preg, cruce: b.grupo, filtro: b.filtro }, b.mes, b.acum || 3);
+      const D = await datosDispersion(b);
       if (BORRADOR !== b) return;
-      const I = indicadorInfo(b.x);
-      const nG = gid => acumular(res, idxs, res.glev.indexOf(gid), I.id).n || 0;
-      const cand = res.glev.filter(id => id !== 'NP' && !NR.has(id)).sort((a, z) => nG(z) - nG(a));
-      const sel = new Set(b.gcats && b.gcats.length ? b.gcats : cand.slice(0, 10));
-      box.innerHTML = `<span class="lab">Grupos (hasta ${MAX_SERIES})</span>` + listaChk('chk-grupos', cand.map(id => ({ id, nom: etiqueta(b.grupo, id) })), sel, id => 'n = ' + fmtInt(nG(id)));
+      ORDEN_DEF.gcats = D.defecto;
+      const sel = new Set(b.gcats && b.gcats.length ? b.gcats : D.defecto);
+      box.innerHTML = `<span class="lab">Grupos (hasta ${MAX_SERIES})</span>` + listaChk('chk-grupos', D.cand.map(id => ({ id, nom: etiqueta(D.grupo, id) })), sel, id => 'n = ' + fmtInt(D.nOf(id)));
       return;
     }
     const mesRef = tipo === 'barras' || tipo === 'transferencias' ? (b.mes || ultMes) : tipo === 'comparar' ? (b.mesB || ultMes) : null;
@@ -1133,28 +1208,39 @@ async function pintarEditor() {
     if (BORRADOR !== b) return;
     const ref = tipo === 'calor' ? id => d3.mean(resTot.filas, f => f.grupos[0].vals[id] ?? null) : id => ultimoCon(resTot, 0, id);
     const orden = res.ids.filter(id => ref(id) != null || media).sort((a, z) => (NR.has(a) - NR.has(z)) || ((ref(z) ?? -1) - (ref(a) ?? -1)));
-    const nom = id => media ? etiqueta(id, id) : etiqueta(conc, id);
+    const nom = id => nombreResp(P, id);
     const maxC = tipo === 'calor' ? 20 : MAX_SERIES;
-    const defCats = tipo === 'calor' ? orden.filter(id => !NR.has(id)).slice(0, 15) : catsDefecto(resTot);
+    // mismas respuestas por defecto que la vista: «Aplicar» sin tocar nada no cambia el panel
+    const tt = tipo === 'transferencias' ? await calcularPeriodo({ preg: b.preg, filtro: b.filtro, exNR: b.exNR }, b.mes, b.acum || 3) : null;
+    if (BORRADOR !== b) return;
+    const defCats = tipo === 'calor' ? orden.filter(id => !NR.has(id)).slice(0, 15)
+      : tipo === 'comparar' ? defectoComparar(resTot, resTot.filas[resTot.filas.length - 1])
+      : tipo === 'transferencias' ? colsDefectoTransf(res.ids.filter(id => id !== 'NP'), id => acumular(tt.res, tt.idxs, 0, id).v ?? 0)
+      : catsDefecto(resTot);
+    ORDEN_DEF.cats = defCats;
     const hintRef = tipo === 'calor' ? 'la media del periodo' : mesRef ? `el valor en ${mesLargo(mesRef)}` : 'el último valor disponible';
     if (tipo === 'lineas' && b.cruce) {
-      const c1 = b.cat1 && res.ids.includes(b.cat1) ? b.cat1 : catsDefecto(resTot)[0];
-      box.innerHTML = `<span class="lab">Respuesta</span><select id="f-cat1">${orden.map(id => `<option value="${esc(id)}"${id === c1 ? ' selected' : ''}>${esc(nom(id))}${ref(id) != null ? ' (' + fmtv(ref(id)) + ')' : ''}</option>`).join('')}</select>` +
+      const c1 = b.cat1 && res.ids.includes(b.cat1) ? b.cat1 : catsDefecto(res)[0];
+      ORDEN_DEF.gcats = gruposDefecto(res);
+      box.innerHTML = `<span class="lab">Respuesta</span><select id="f-cat1" aria-label="Respuesta">${orden.map(id => `<option value="${esc(id)}"${id === c1 ? ' selected' : ''}>${esc(nom(id))}${ref(id) != null ? ' (' + fmtv(ref(id)) + ')' : ''}</option>`).join('')}</select>` +
         `<span class="lab" style="margin-top:8px">Grupos de ${esc(CRUCE_DE[b.cruce].toLowerCase())} (hasta ${MAX_SERIES})</span>` +
         listaChk('chk-grupos', ordenMeta(b.cruce, res.glev.filter(id => id !== 'NP')).map(id => ({ id, nom: etiqueta(b.cruce, id) })), new Set(b.gcats && b.gcats.length ? b.gcats : gruposDefecto(res)));
     } else {
       const sel = new Set(b.cats && b.cats.length ? b.cats : defCats);
       let html = `<span class="lab">${tipo === 'transferencias' ? 'Columnas: respuestas' : 'Respuestas'} (hasta ${maxC})</span>${buscador}` +
         listaChk('chk-cats', orden.map(id => ({ id, nom: nom(id) })), sel, id => fmtv(ref(id))) + `<span class="hint">A la derecha, ${hintRef}.</span>`;
+      if (tipo === 'barras' && b.cruce) ORDEN_DEF.gcats = gruposDefecto(res);
       if (tipo === 'barras' && b.cruce) html += `<span class="lab" style="margin-top:8px">Grupos de ${esc(CRUCE_DE[b.cruce].toLowerCase())} (hasta ${MAX_SERIES})</span>` +
         listaChk('chk-grupos', ordenMeta(b.cruce, res.glev.filter(id => id !== 'NP')).map(id => ({ id, nom: etiqueta(b.cruce, id) })), new Set(b.gcats && b.gcats.length ? b.gcats : gruposDefecto(res)));
       if (tipo === 'transferencias') {
-        const rt = await calcularPeriodo({ preg: b.preg, cruce: 'recuerdo_voto', filtro: b.filtro }, b.mes, b.acum || 3);
+        const rt = await calcularPeriodo({ preg: b.preg, cruce: 'recuerdo_voto', filtro: b.filtro, exNR: b.exNR }, b.mes, b.acum || 3);
         if (BORRADOR !== b) return;
-        const nR = gid => acumular(rt.res, rt.idxs, rt.res.glev.indexOf(gid), rt.res.ids[0]).n || 0;
+        const c0 = (b.cats && b.cats.length ? b.cats : defCats)[0];
+        const nR = gid => acumular(rt.res, rt.idxs, rt.res.glev.indexOf(gid), c0).n || 0;
         const cand = rt.res.glev.filter(id => id !== 'NP' && !NR.has(id)).sort((a, z) => nR(z) - nR(a));
+        ORDEN_DEF.gcats = filasDefectoTransf(cand, nR);
         html += `<span class="lab" style="margin-top:8px">Filas: recuerdo de voto (hasta ${MAX_SERIES})</span>` +
-          listaChk('chk-grupos', cand.map(id => ({ id, nom: etiqueta('recuerdo_voto', id) })), new Set(b.gcats && b.gcats.length ? b.gcats : cand.slice(0, 8)), id => 'n = ' + fmtInt(nR(id)));
+          listaChk('chk-grupos', cand.map(id => ({ id, nom: etiqueta('recuerdo_voto', id) })), new Set(b.gcats && b.gcats.length ? b.gcats : filasDefectoTransf(cand, nR)), id => 'n = ' + fmtInt(nR(id)));
       }
       box.innerHTML = html;
     }
@@ -1213,7 +1299,10 @@ function pintarBloques(box, b, orden, nom, valor, listaChk) {
 $('#ed-ok').addEventListener('click', () => {
   const b = BORRADOR;
   const marc = sel => [...document.querySelectorAll(sel + ' input:checked')].map(i => i.value);
-  const cats = marc('#chk-cats'), gcats = marc('#chk-grupos');
+  // las ya elegidas (o las de por defecto) conservan su orden; las nuevas van detrás
+  const ordenar = (m, prev) => [...prev.filter(id => m.includes(id)), ...m.filter(id => !prev.includes(id))];
+  const cats = ordenar(marc('#chk-cats'), b.cats && b.cats.length ? b.cats : ORDEN_DEF.cats);
+  const gcats = ordenar(marc('#chk-grupos'), b.gcats && b.gcats.length ? b.gcats : ORDEN_DEF.gcats);
   const err = t => { $('#ed-err').textContent = t; };
   const maxC = b.tipo === 'calor' ? 20 : MAX_SERIES;
   if (cats.length > maxC || gcats.length > MAX_SERIES) return err(`Marca como máximo ${maxC} respuestas y ${MAX_SERIES} grupos.`);
@@ -1235,8 +1324,9 @@ function pintarMetodologia() {
   const ultimo = EST[EST.length - 1], primero = EST[0];
   const nTot = META.filas;
   $('#m-cobertura').textContent = `Cobertura: ${EST.length} barómetros mensuales, de ${mesLargo(primero.mes)} a ${mesLargo(ultimo.mes)}, con ${fmtInt(nTot)} entrevistas en total.`;
+  document.querySelectorAll('.cita-ult').forEach(x => { x.textContent = `${mesLargo(ultimo.mes)} (estudio ${ultimo.estudio})`; });
   const tipos = { C: 'C', B: 'B', tecnica: 'Técnica', 'tecnica-critica': 'Técnica', hueco: 'Hueco', descartada: 'Descartada' };
-  $('#m-rupt-tabla').innerHTML = `<table><thead><tr><th>Ruptura</th><th>Mes</th><th>Tipo</th><th>Afecta a</th><th>Qué cambia</th><th>Estado</th></tr></thead><tbody>${META.rupturas.map(r => `<tr id="r-${esc(r.ruptura_id)}"><td>${esc(r.ruptura_id)}</td><td>${esc(r.mes)}</td><td><span class="tipo ${esc(r.tipo)}">${esc(tipos[r.tipo] || r.tipo)}</span></td><td>${esc(r.conceptos_afectados)}</td><td>${esc(r.descripcion)}</td><td>${esc(r.estado)}</td></tr>`).join('')}</tbody></table>`;
+  $('#m-rupt-tabla').innerHTML = `<table><thead><tr><th>Ruptura</th><th>Mes</th><th>Tipo</th><th>Afecta a</th><th>Qué cambia</th><th>Estado</th></tr></thead><tbody>${META.rupturas.map(r => `<tr id="r-${esc(r.ruptura_id)}"><td>${esc(r.ruptura_id)}</td><td>${esc(r.mes)}</td><td><span class="tipo ${esc(r.tipo)}">${esc(tipos[r.tipo] || r.tipo)}</span></td><td>${esc(r.conceptos_afectados.replace(/,\s*/g, ', '))}</td><td>${esc(r.descripcion)}</td><td>${esc(r.estado)}</td></tr>`).join('')}</tbody></table>`;
   const titulo = id => PREG.find(p => p.id === id)?.t || (META.conceptos[id]?.etiqueta) || id;
   $('#m-preg-fichas').innerHTML = Object.entries(META.enunciados || {}).sort((a, z) => titulo(a[0]).localeCompare(titulo(z[0]), 'es')).map(([id, vs]) => `<div class="ficha"><h4>${esc(titulo(id))}</h4>${vs.map(v => `<p class="per">Versión ${esc(v.version)}: ${esc(mesCorto(v.desde))} a ${esc(mesCorto(v.hasta))}</p><p>${esc(v.enunciado.replace(/\s+\.$/, ''))}</p>`).join('')}</div>`).join('');
   $('#m-est-tabla').innerHTML = `<table><thead><tr><th>Mes</th><th>Estudio</th><th>Trabajo de campo</th><th>Entrevistas</th><th>Efecto de diseño</th></tr></thead><tbody>${META.estudios.map(e => `<tr><td>${esc(mesCorto(e.mes))}</td><td>${esc(e.estudio)}</td><td>${esc(e.fecha_campo_inicio)} a ${esc(e.fecha_campo_fin)}</td><td class="n">${fmtInt(+e.n)}</td><td class="n">${fmt2(+e.deff)}</td></tr>`).join('')}</tbody></table>`;
@@ -1305,13 +1395,18 @@ async function pintarResumen() {
   box.hidden = false;
   box.open = abierto;
   box.innerHTML = `<summary><span class="rs-t">Qué cambia en el último barómetro</span><span class="rs-m">${esc(mesLargo(ult.mes))} frente a ${esc(mesLargo(ant.mes))}</span></summary><p class="note">Calculando…</p>`;
+  // cerrado, no se calcula (ni descarga sus columnas) hasta que se abre
+  await new Promise(ok => {
+    if (box.open) return ok();
+    box.addEventListener('toggle', function abrir() { if (box.open) { box.removeEventListener('toggle', abrir); ok(); } });
+  });
   box.addEventListener('toggle', () => { try { localStorage.setItem('bet-resumen', box.open ? 'abierto' : 'cerrado'); } catch (e) { /* */ } });
   let rs;
   try { rs = (await Promise.all(RESUMEN.map(cambiosUltimo))).filter(Boolean); }
   catch (e) { box.querySelector('.note').textContent = e.message; return; }
   const fmtv = (v, media) => media ? fmt2(v) : fmt1(v) + ' %';
   const fmtd = (d, media) => `${d > 0 ? '+' : '−'}${media ? fmt2(Math.abs(d)) : fmt1(Math.abs(d))}`;
-  const nombre = (r, id) => r.media ? etiqueta(id, id) : etiqueta(r.conc, id);
+  const nombre = (r, id) => nombreResp(preg(r.preg), id);
   const conCambios = rs.filter(r => r.cambios && r.cambios.length);
   const sin = rs.filter(r => r.cambios && !r.cambios.length).map(r => r.t);
   const cortes = rs.filter(r => r.corte);
@@ -1346,10 +1441,13 @@ function tema(v) {
 const VISTAS_WEB = ['que', 'series', 'meth', 'datos'];
 let GRID_LISTO = false;
 function mostrarVista(t) {
-  document.querySelectorAll('.tabs button').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === t)));
+  document.querySelectorAll('.tabs button').forEach(b => { const on = b.dataset.tab === t; b.setAttribute('aria-selected', String(on)); b.tabIndex = on ? 0 : -1; });
   VISTAS_WEB.forEach(v => { const el = $('#view-' + v); if (el) el.hidden = v !== t; });
 }
-function pestana(t) {
+/* La pestaña va en la dirección (#que, #series, #meth, #datos): el botón atrás vuelve a la anterior */
+const vistaDeHash = () => { const h = location.hash.slice(1); return h.startsWith('p=') ? 'series' : VISTAS_WEB.includes(h) ? h : null; };
+function pestana(t, historial = true) {
+  if (historial && vistaDeHash() !== t) history.pushState(null, '', '#' + t);
   mostrarVista(t);
   if (!META) return;
   if (t === 'series') { if (GRID_LISTO) rerender(); else { GRID_LISTO = true; leerPaleta(); renderTodo(); } pintarResumen(); }
@@ -1367,14 +1465,27 @@ async function iniciar() {
   cargarPaneles();
   if (typeof iniciarGuia === 'function') iniciarGuia();
   pintarMetodologia();
-  pestana(VISTAS_WEB.find(v => $('#view-' + v) && !$('#view-' + v).hidden) || ($('#view-que') ? 'que' : 'series'));
+  pestana(VISTAS_WEB.find(v => $('#view-' + v) && !$('#view-' + v).hidden) || ($('#view-que') ? 'que' : 'series'), false);
 }
 
 document.querySelectorAll('#tema button').forEach(b => b.addEventListener('click', () => tema(b.dataset.v)));
 document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => pestana(b.dataset.tab)));
+// flechas, Inicio y Fin entre pestañas
+$('.tabs').addEventListener('keydown', ev => {
+  const bs = [...document.querySelectorAll('.tabs button')], i = bs.indexOf(document.activeElement);
+  if (i < 0) return;
+  const j = { ArrowRight: (i + 1) % bs.length, ArrowLeft: (i - 1 + bs.length) % bs.length, Home: 0, End: bs.length - 1 }[ev.key];
+  if (j == null) return;
+  ev.preventDefault(); bs[j].focus(); pestana(bs[j].dataset.tab);
+});
+addEventListener('popstate', () => { const t = vistaDeHash() || 'que'; if (META) pestana(t, false); else mostrarVista(t); });
 document.querySelectorAll('[data-goto]').forEach(a => a.addEventListener('click', ev => { ev.preventDefault(); pestana(a.dataset.goto); scrollTo(0, 0); }));
 $('#b-add').addEventListener('click', () => abrirEditor(null));
-$('#b-reset').addEventListener('click', () => { PANELES = defecto().map(p => ({ ...p, id: nuevoId() })); try { localStorage.removeItem(CLAVE); } catch (e) { /* */ } history.replaceState(null, '', location.pathname); renderTodo(); });
+$('#b-reset').addEventListener('click', () => {
+  if (!confirm('¿Volver a los paneles iniciales? Se pierden los paneles actuales.')) return;
+  PANELES = defecto().map(p => ({ ...p, id: nuevoId() })); try { localStorage.removeItem(CLAVE); } catch (e) { /* */ }
+  history.replaceState(null, '', location.pathname + '#series'); renderTodo();
+});
 $('#b-link').addEventListener('click', async ev => {
   const url = location.origin + location.pathname + '#p=' + b64e(JSON.stringify(PANELES.map(limpio)));
   history.replaceState(null, '', url);
@@ -1383,6 +1494,6 @@ $('#b-link').addEventListener('click', async ev => {
 });
 matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', rerender);
 let rto; addEventListener('resize', () => { clearTimeout(rto); rto = setTimeout(rerender, 200); });
-// los enlaces a paneles (#p=…) y #series entran directamente en el explorador
-if (/^#(p=|series$)/.test(location.hash)) mostrarVista('series');
+// los enlaces a paneles (#p=…) y a una pestaña (#series, #meth…) entran directamente en ella
+if (vistaDeHash()) mostrarVista(vistaDeHash());
 iniciar();

@@ -97,7 +97,6 @@ Cuando el CIS publica un barómetro nuevo, se añade su ZIP a `datos/raw/`, se r
 
 - Las series solo son comparables dentro de cada tramo sin rupturas de tipo C. La web lo respeta, pero la descarga completa no impide comparar lo que no se debe.
 - El recuerdo de voto deriva con el tiempo: la reponderación corrige el sesgo de la muestra, pero también arrastra ese desgaste.
-- La reponderación ajusta el recuerdo de quienes lo declaran; quien no recuerda o no contesta (alrededor del 10 %) queda fuera, y la abstención sobre el total queda por debajo de la real (26,7 % de media frente al 29,6 % del 23J).
 - Algunas rupturas documentadas por el CIS, como el cambio de la población de referencia de marzo de 2025, aún no están verificadas en los datos.
 
 Las conclusiones metodológicas son provisionales y se revisan a medida que se amplía la validación.

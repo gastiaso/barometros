@@ -110,7 +110,7 @@ const DEFECTO_MOVIL = [
 ];
 const esMovil = () => matchMedia('(max-width: 640px)').matches;
 const CLAVE = 'bet-paneles-v4';
-const NOTA_RECUERDO = 'Reponderado por recuerdo de voto: los pesos del CIS se ajustan para que el recuerdo de quienes podían votar y lo declaran reproduzca la participación y el resultado de las últimas generales (2019 hasta septiembre de 2023; 2023 desde octubre). Quien no recuerda o no contesta queda fuera del ajuste, así que la abstención sobre el total queda algo por debajo de la real. Es una estimación propia y no coincide con las tablas del CIS. El margen de error usa el efecto de diseño de los nuevos pesos, mayor que el del CIS.';
+const NOTA_RECUERDO = 'Reponderado por recuerdo de voto: los pesos del CIS se ajustan para que quienes podían votar reproduzcan la participación de las últimas generales, y quienes recuerdan su voto, el resultado (2019 hasta septiembre de 2023; 2023 desde octubre). Es una estimación propia y no coincide con las tablas del CIS. El margen de error usa el efecto de diseño de los nuevos pesos, mayor que el del CIS.';
 const DEFECTO_VEDA = [{ preg: 'prob_esp' }, { preg: 'eco_esp' }, { preg: 'ideologia' }, { preg: 'prob_per' }];
 
 /* ================= datos ================= */

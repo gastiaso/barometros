@@ -5,3 +5,6 @@ estudio,concepto,codigo,etiqueta,partido_armonizado,fuente
 3457,intencion_alternativa,916,Alhora,ALHORA,"Código sin etiqueta en 3457. El código 916 es «Alhora» en todos los barómetros desde jun-2024."
 3502,intencion_alternativa,1602,EH Bildu,EH_BILDU,"El .sav no etiqueta el código 1602 en INTENCIONGALTER; el libro de códigos de 3502 lo lista como «EH Bildu»."
 3577,intencion_voto_r,29,Coalición de izquierdas,COALICION_DE_IZQUIERDAS,"El .sav de 3577 no etiqueta el código 29 en INTENCIONGR; es «Coalición de izquierdas» en 3557 y 3562, y los mismos 21 entrevistados lo son en INTENCIONG."
+3413,intencion_voto_r,202,Existe,TERUEL_EXISTE,"INTENCIONGR de 3413 etiqueta «Existe» el código 202; es «Teruel Existe» en INTENCIONG de 3413 y en los meses vecinos. «EXISTE» (código 207, desde 2025) es otra opción."
+3413,voto_simpatia,202,Existe,TERUEL_EXISTE,"Ídem (VOTOSIMG)."
+3405,intencion_voto,504,PNC,PNC_CANARIO,"INTENCIONG de 3405 etiqueta «PNC» el código 504; en las demás variables de 3405 y en los demás meses es «PNC (Partido Nacionalista Canario)». «PNC» con los códigos 72 y 911 es el Partido Nacionalista Catalán."

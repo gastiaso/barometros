@@ -10,7 +10,7 @@ El Centro de Investigaciones Sociológicas (CIS) publica cada barómetro por sep
 
 ## Qué puedes hacer
 
-- **Seguir 27 preguntas mes a mes**: intención directa de voto, voto + simpatía, cercanía, recuerdo de voto, preferencia como presidente del Gobierno, valoración de 9 líderes y 46 ministros, principales problemas de España y problemas que afectan personalmente, situación económica general y personal, autoubicación ideológica, clase social subjetiva, religiosidad…
+- **Seguir 27 preguntas mes a mes**: intención directa de voto, voto + simpatía, cercanía, recuerdo de voto, preferencia como presidente del Gobierno, valoración de 9 líderes y 48 ministros, principales problemas de España y problemas que afectan personalmente, situación económica general y personal, autoubicación ideológica, clase social subjetiva, religiosidad…
 - **Cruzar y filtrar** por sexo, edad, comunidad autónoma, provincia, tamaño de municipio, estudios, situación laboral, grupo ocupacional, situación profesional, ingresos del hogar, nacionalidad, lugar de nacimiento, clase, religiosidad, ideología, recuerdo de voto o intención de voto.
 - **Ver qué cambia en el último barómetro**: un resumen de las diferencias significativas con el anterior.
 - **Agrupar respuestas en bloques** (por ejemplo, partidos) y seguir el bloque como una respuesta más.
@@ -83,6 +83,7 @@ python scripts/00_extraer.py .
 Rscript -e 'targets::tar_make()'
 Rscript scripts/07_web.R
 python scripts/08_prueba_web.py .
+python scripts/09_vista_previa.py .
 cd web && python -m http.server
 ```
 

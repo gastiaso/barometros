@@ -46,11 +46,27 @@ const fmtV = (v, media) => v == null ? '—' : media ? fmt2(v) : fmt1(v) + ' %';
 async function porGrupos(ind, grupo, cfg, mes, k) {
   const I = indicadorInfo(ind);
   const spec = { preg: ind.preg, cruce: grupo, filtro: cfg.filtro || null, exNR: cfg.exNR, recuerdo: cfg.recuerdo };
-  const { res, idxs } = await calcularPeriodo(spec, mes, k);
+  const [{ res, idxs }, tot] = await Promise.all([calcularPeriodo(spec, mes, k), calcularPeriodo({ ...spec, cruce: null }, mes, k)]);
+  return conVentana({ I, spec, res, tot: tot.res }, idxs);
+}
+// valores por grupo y total acumulando los barómetros idxs (los dos cálculos cubren los mismos meses)
+function conVentana(D, idxs) {
   const valores = {};
-  res.glev.forEach((gid, g) => { valores[gid] = acumular(res, idxs, g, I.id); });
-  const tot = await calcularPeriodo({ ...spec, cruce: null }, mes, k);
-  return { I, res, idxs, valores, total: acumular(tot.res, tot.idxs, 0, I.id) };
+  D.res.glev.forEach((gid, g) => { valores[gid] = acumular(D.res, idxs, g, D.I.id); });
+  return { ...D, idxs, valores, total: acumular(D.tot, idxs, 0, D.I.id) };
+}
+// ventana común a varios indicadores: los últimos k barómetros en que se hacen todas las preguntas, sin cruzar una
+// ruptura C de ninguna de ellas
+const conPregunta = f => f.grupos.some(gr => (gr.n || 0) > 0 || Object.keys(gr.ns || {}).length);
+function ventanaComun(Ds, k) {
+  const cortes = Ds.flatMap(D => rupturas(D.spec).filter(r => r.tipo === 'C').map(r => r.m));
+  const tramo = mes => cortes.filter(c => c <= mes).length;
+  const filas = Ds[0].res.filas, i = filas.length - 1, t = tramo(filas[i].e.mes), out = [];
+  for (let j = i; j >= 0 && j > i - k; j--) {
+    if (tramo(filas[j].e.mes) !== t) break;
+    if (Ds.every(D => conPregunta(D.res.filas[j]))) out.push(j);
+  }
+  return out;
 }
 const etiquetaGrupo = (grupo, gid) => etiqueta(grupo, gid);
 function svgBase(host, W, H, titulo) {
@@ -67,6 +83,9 @@ function vivienda() {
 }
 
 /* ---------- transferencias de voto ---------- */
+// por defecto (vista y editor): las 9 respuestas con más peso en el total y las 8 filas de recuerdo con más entrevistas
+const colsDefectoTransf = (ids, share) => ids.slice().sort((a, z) => share(z) - share(a)).slice(0, 9);
+const filasDefectoTransf = (filas, nFila) => filas.slice().sort((a, z) => nFila(z) - nFila(a)).slice(0, 8);
 async function vistaTransferencias(host, cfg) {
   const pregId = PARTIDISTAS.includes(cfg.preg) ? cfg.preg : 'intencion_voto_r';
   const P = preg(pregId);
@@ -80,10 +99,10 @@ async function vistaTransferencias(host, cfg) {
   // columnas: respuestas de la intención; filas: recuerdo de voto
   const ids = res.ids.filter(id => id !== 'NP');
   const shareTot = id => acumular(tot.res, tot.idxs, 0, id).v ?? 0;
-  const cols = (cfg.cats && cfg.cats.length ? cfg.cats.filter(id => ids.includes(id)) : ids.slice().sort((a, z) => shareTot(z) - shareTot(a)).slice(0, 9)).slice(0, MAX_SERIES);
+  const cols = (cfg.cats && cfg.cats.length ? cfg.cats.filter(id => ids.includes(id)) : colsDefectoTransf(ids, shareTot)).slice(0, MAX_SERIES);
   const nRow = gid => acumular(res, idxs, res.glev.indexOf(gid), cols[0]).n || 0;
   const rowsAll = res.glev.filter(id => id !== 'NP' && !NR.has(id));
-  const rows = (cfg.gcats && cfg.gcats.length ? cfg.gcats.filter(id => res.glev.includes(id)) : rowsAll.slice().sort((a, z) => nRow(z) - nRow(a)).slice(0, 8)).slice(0, MAX_SERIES);
+  const rows = (cfg.gcats && cfg.gcats.length ? cfg.gcats.filter(id => res.glev.includes(id)) : filasDefectoTransf(rowsAll, nRow)).slice(0, MAX_SERIES);
   const ref = res.filas[idxs[0]].e.mes >= '2023-10' ? 'generales de 2023' : 'generales de 2019';
   const celdas = rows.map(gid => {
     const g = res.glev.indexOf(gid);
@@ -156,16 +175,23 @@ async function vistaTransferencias(host, cfg) {
 }
 
 /* ---------- dispersión de electorados ---------- */
-async function vistaDispersion(host, cfg) {
+// Los dos ejes se calculan sobre los mismos barómetros. Lo usan la vista y el editor (grupos por defecto).
+const NO_ELECTORADO = new Set(['BLANCO', 'NULO', 'OTRO', 'NINGUNO']);
+async function datosDispersion(cfg) {
   const grupo = cfg.grupo || 'voto_simpatia';
   const ix = cfg.x || { preg: 'ideologia' }, iy = cfg.y || { preg: 'prob_esp', cat: vivienda() };
   const k = cfg.acum || 3;
   if (!META.columnas[grupo] || !indicadorInfo(ix) || !indicadorInfo(iy) || !disponible(indicadorInfo(ix).P) || !disponible(indicadorInfo(iy).P)) throw new Error('Serie no disponible.');
-  const [X, Y] = await Promise.all([porGrupos(ix, grupo, cfg, cfg.mes, k), porGrupos(iy, grupo, cfg, cfg.mes, k)]);
+  let [X, Y] = await Promise.all([porGrupos(ix, grupo, cfg, cfg.mes, k), porGrupos(iy, grupo, cfg, cfg.mes, k)]);
+  const idxs = ventanaComun([X, Y], k);
+  X = conVentana(X, idxs); Y = conVentana(Y, idxs);
   const nOf = gid => Math.min(X.valores[gid]?.n || 0, Y.valores[gid]?.n || 0);
-  const cand = X.res.glev.filter(id => id !== 'NP' && !NR.has(id));
-  const NO_ELECTORADO = new Set(['BLANCO', 'NULO', 'OTRO', 'NINGUNO']);
-  const puntos0 = cfg.gcats && cfg.gcats.length ? cfg.gcats.filter(id => cand.includes(id)) : cand.filter(id => !NO_ELECTORADO.has(id)).sort((a, z) => nOf(z) - nOf(a)).slice(0, 10);
+  const cand = X.res.glev.filter(id => id !== 'NP' && !NR.has(id)).sort((a, z) => nOf(z) - nOf(a));
+  return { grupo, k, X, Y, nOf, cand, defecto: cand.filter(id => !NO_ELECTORADO.has(id)).slice(0, 10) };
+}
+async function vistaDispersion(host, cfg) {
+  const { grupo, X, Y, nOf, cand, defecto } = await datosDispersion(cfg);
+  const puntos0 = cfg.gcats && cfg.gcats.length ? cfg.gcats.filter(id => cand.includes(id)) : defecto;
   const pts = puntos0.slice(0, MAX_SERIES).map(gid => ({ gid, label: etiquetaGrupo(grupo, gid), x: X.valores[gid], y: Y.valores[gid] }))
     .filter(p => p.x && p.y && p.x.v != null && p.y.v != null);
   const omit = puntos0.length - pts.length;
@@ -299,7 +325,7 @@ async function vistaMapa(host, cfg) {
   return {
     titulo: `${D.I.label.replace(/ \(%\)$/, '')}, por comunidad autónoma`,
     meta: `${D.I.media ? 'Media de 1 a 10' : '% de entrevistados'}. ${periodoTxt(D.res, D.idxs)}${cfg.filtro ? '. Solo ' + etiqueta(cfg.filtro.col, cfg.filtro.val) : ''}`,
-    notas: [`Total de España: ${fmtV(D.total.v, D.I.media)}. Los barómetros no están diseñados para dar resultados por comunidad: se acumulan ${k} meses para ganar muestra y las comunidades pequeñas tienen márgenes amplios (ver tabla).`,
+    notas: [`Total de España: ${fmtV(D.total.v, D.I.media)}. Los barómetros no están diseñados para dar resultados por comunidad${k > 1 ? `: se acumulan hasta ${k} barómetros para ganar muestra, y` : ':'} las comunidades pequeñas tienen márgenes amplios (ver tabla).`,
       'Geometrías: es-atlas, a partir del Instituto Geográfico Nacional.'],
     tabla: { cab: ['Comunidad', D.I.corto, 'Margen inferior', 'Margen superior', 'Base (n)'], filas: filas.map(p => [p.nom, fmtV(p.v, D.I.media), fmtV(p.lo, D.I.media), fmtV(p.hi, D.I.media), fmtInt(p.n || 0)]) },
     csv: { cab: ['comunidad', 'valor', 'margen_inferior', 'margen_superior', 'n_base'], filas: filas.map(p => [p.nom, p.v, p.lo, p.hi, p.n]) },
@@ -365,19 +391,20 @@ async function vistaCalor(host, cfg) {
 }
 
 /* ---------- comparar dos barómetros ---------- */
+// por defecto (vista y editor): las 8 respuestas con más peso en el barómetro final
+const defectoComparar = (res, fB) => res.ids.filter(id => !NR.has(id)).map(id => [id, puntoDe(res, fB, 0, id).v ?? -1]).sort((x, z) => z[1] - x[1]).slice(0, 8).map(x => x[0]);
+// barómetro inicial por defecto: el anterior al final
+const mesInicialComparar = cfg => { const iB = idxMes(cfg.mesB); return cfg.mesA && ESTI[cfg.mesA] != null ? cfg.mesA : EST[Math.max(0, iB - 1)].mes; };
 async function vistaComparar(host, cfg) {
   const P = preg(cfg.preg);
   if (!disponible(P)) throw new Error('Serie no disponible.');
-  const iB = idxMes(cfg.mesB), iA = cfg.mesA && ESTI[cfg.mesA] != null ? ESTI[cfg.mesA] : Math.max(0, iB - 1);
+  const iB = idxMes(cfg.mesB), iA = ESTI[mesInicialComparar(cfg)];
   const [a, b] = [Math.min(iA, iB), Math.max(iA, iB)];
   const res = await calcular({ ...cfg, cruce: null, desde: EST[a].mes, hasta: EST[b].mes });
   const fA = res.filas[0], fB = res.filas[res.filas.length - 1];
   const media = res.unidad === 'media';
-  const conc = P.cols[0];
-  const nom = id => media ? etiqueta(id, id) : etiqueta(conc, id);
-  const cands = res.ids.filter(id => !NR.has(id) || !media);
-  const ids = (cfg.cats && cfg.cats.length ? cfg.cats.filter(id => res.ids.includes(id))
-    : res.ids.filter(id => !NR.has(id)).map(id => [id, puntoDe(res, fB, 0, id).v ?? -1]).sort((x, z) => z[1] - x[1]).slice(0, 8).map(x => x[0])).slice(0, MAX_SERIES);
+  const nom = id => nombreResp(P, id);
+  const ids = (cfg.cats && cfg.cats.length ? cfg.cats.filter(id => res.ids.includes(id)) : defectoComparar(res, fB)).slice(0, MAX_SERIES);
   const cortes = rupturas(cfg).filter(r => r.tipo === 'C' && r.m > fA.e.mes && r.m <= fB.e.mes);
   const comparable = !cortes.length;
   const filas = ids.map(id => {
@@ -385,7 +412,7 @@ async function vistaComparar(host, cfg) {
     let dif = null, sig = false;
     if (comparable && pa.v != null && pb.v != null) {
       dif = pb.v - pa.v;
-      const se = Math.hypot((pa.hi - pa.lo) / 3.92, (pb.hi - pb.lo) / 3.92);
+      const se = Math.hypot(pa.se, pb.se);
       sig = se > 0 && Math.abs(dif) / se > 1.96;
     }
     return { id, pa, pb, dif, sig };
@@ -394,7 +421,7 @@ async function vistaComparar(host, cfg) {
   const col = colores(ids.map(id => ({ id })), cfg, 'cat');
   const W = Math.max(300, Math.round(host.clientWidth || 600));
   const angosto = W < 520;   // móvil: etiquetas más cortas, leyenda desde el borde y menos marcas en el eje
-  const labW = Math.min(angosto ? Math.round(W * .42) : 220, Math.max(80, d3.max(ids, id => nom(id).length) * 6.4 + 10));
+  const labW = Math.min(angosto ? Math.round(W * .42) : Math.round(Math.min(300, W * .36)), Math.max(80, d3.max(ids, id => nom(id).length) * 6.4 + 14));
   const maxCh = Math.max(8, Math.floor((labW - 14) / 6.3));
   const rowH = 30, difW = angosto ? 70 : 78;
   const H = 34 + filas.length * rowH + 28;
@@ -415,7 +442,7 @@ async function vistaComparar(host, cfg) {
   svg.append('text').attr('x', W - 6).attr('y', 16).attr('text-anchor', 'end').attr('font-size', 11).attr('fill', PAL.ink3).text(media ? 'Diferencia' : 'Puntos');
   filas.forEach((f, i) => {
     const y = 34 + i * rowH + rowH / 2;
-    svg.append('text').attr('x', labW - 10).attr('y', y + 4).attr('text-anchor', 'end').attr('font-size', 12).attr('fill', PAL.ink2).text(recortar(nom(f.id), Math.min(30, maxCh))).append('title').text(nom(f.id));
+    svg.append('text').attr('x', labW - 10).attr('y', y + 4).attr('text-anchor', 'end').attr('font-size', 12).attr('fill', PAL.ink2).text(recortar(nom(f.id), maxCh)).append('title').text(nom(f.id));
     if (f.pa.v != null && f.pb.v != null) svg.append('line').attr('x1', x(f.pa.v)).attr('x2', x(f.pb.v)).attr('y1', y).attr('y2', y).attr('stroke', PAL.line2).attr('stroke-width', 3);
     if (cfg.banda) [f.pa, f.pb].forEach((p, j) => { if (p.v != null) svg.append('line').attr('x1', x(p.lo)).attr('x2', x(p.hi)).attr('y1', y + (j ? 6 : -6)).attr('y2', y + (j ? 6 : -6)).attr('stroke', j ? col[f.id] : PAL.ink3); });
     if (f.pa.v != null) svg.append('circle').attr('cx', x(f.pa.v)).attr('cy', y).attr('r', 5).attr('fill', PAL.surface).attr('stroke', PAL.ink2).attr('stroke-width', 1.5);

@@ -5,8 +5,8 @@ columnas de web/datos) cada cifra de inventario/referencias_cis.csv y la compara
   - el valor calculado en R (inventario/validacion_cifras_cis.csv), con una tolerancia de 0,001 (la web guarda los
     pesos en coma flotante de 32 bits);
   - la cifra publicada por el CIS, con la tolerancia de la referencia.
-Comprueba además que los bloques suman lo que suman sus respuestas y que el descompresor alternativo (para navegadores
-sin DecompressionStream) da los mismos datos.
+Comprueba además que los bloques suman lo que suman sus respuestas, unos casos de regresión (REGRESION) y que el
+descompresor alternativo (para navegadores sin DecompressionStream) da los mismos datos.
 
 Uso: python scripts/08_prueba_web.py <raíz del proyecto>   (después de scripts/07_web.R)
 Sale con código 1 si algo no cuadra.
@@ -41,6 +41,7 @@ CALCULAR = """async (refs) => {
     if (!est || !META.columnas[col]) { out.push({ ...r, web: null, motivo: 'sin columna o estudio' }); continue; }
     let spec, id;
     if (tipo === 'media' && col.startsWith('lider_')) { spec = { preg: 'lideres' }; id = col; }
+    else if (tipo === 'media' && col.startsWith('ministro_')) { spec = { preg: 'ministros' }; id = col; }
     else if (tipo === 'media') { spec = { preg: col }; id = col; }
     else { spec = { preg: col }; id = cat; }
     const res = await calcular({ ...spec, desde: est.mes, hasta: est.mes });
@@ -51,6 +52,7 @@ CALCULAR = """async (refs) => {
 
 BLOQUES = """async () => {
   const errores = [];
+  if (!META.columnas.intencion_voto) return errores;    // modo veda: sin series electorales
   const r = await calcular({ preg: 'intencion_voto', bloques: [{ nombre: 'B', ids: ['PSOE', 'SUMAR', 'PODEMOS'] }] });
   for (const f of r.filas) {
     const g = f.grupos[0];
@@ -62,6 +64,29 @@ BLOQUES = """async () => {
     const g = f.grupos[0], a = g.vals.PROB_001 || 0, b = g.vals.PROB_002 || 0, x = g.vals['BLQ:B'] || 0;
     if (x > a + b + 1e-9 || x < Math.max(a, b) - 1e-9) errores.push('bloque de menciones múltiples ' + f.e.mes);
   }
+  return errores;
+}"""
+
+# Casos que fallaban antes: ceros en meses en que la respuesta no existía, medias móviles que cruzaban meses sin la
+# pregunta, la lista de líderes alterada por un cruce y el error típico que no devolvía puntoDe
+REGRESION = """async () => {
+  const errores = [];
+  if (!META.columnas.intencion_voto_r) return errores;  // modo veda: sin series electorales
+  const cfgS = { preg: 'intencion_voto_r', movil: true, cats: ['SUMAR'] };
+  const s = series(await calcular(cfgS), cfgS)[0].pts;
+  if (s.some(p => p.mes < '2023-04' && p.v != null)) errores.push('media móvil de Sumar (agrupación del CIS) con dato antes de abr-2023');
+  if (!s.some(p => p.mes === '2023-04' && p.v != null)) errores.push('media móvil de Sumar sin dato en abr-2023');
+  const rm = await calcular({ preg: 'ministros' });
+  const cfgM = { preg: 'ministros', movil: true, cats: [MINISTROS[0]] };
+  const m = series(rm, cfgM)[0].pts, conPregunta = f => f.grupos.some(gr => Object.keys(gr.ns || {}).length);
+  if (m.some(p => !conPregunta(p.f) && p.v != null)) errores.push('media móvil de ministros con dato en un mes sin la pregunta');
+  if (!rm.filas.some(f => f.e.mes === '2021-01' && conPregunta(f))) errores.push('ministros sin datos en ene-2021 (3307)');
+  const nl = LIDERES.length;
+  rupturas({ preg: 'lideres', cruce: 'sexo', recuerdo: true });
+  if (LIDERES.length !== nl) errores.push('un panel de líderes con cruce altera la lista de líderes');
+  const r = await calcular({ preg: 'intencion_voto_r' });
+  const pt = puntoDe(r, r.filas[r.filas.length - 1], 0, 'PSOE');
+  if (!(pt.se > 0)) errores.push('puntoDe no devuelve el error típico');
   return errores;
 }"""
 
@@ -92,6 +117,7 @@ async def main():
             if abs(web - cis) > tol:
                 fallos.append(f"web ≠ CIS en {clave}: web {web:.4f}, CIS {cis}")
         fallos += await pg.evaluate(BLOQUES)
+        fallos += await pg.evaluate(REGRESION)
         # descompresor alternativo: mismas columnas sin DecompressionStream
         ctx = await nav.new_context()
         await ctx.add_init_script("delete window.DecompressionStream;")

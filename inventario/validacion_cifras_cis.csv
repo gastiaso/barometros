@@ -182,3 +182,5 @@ estudio,indicador,valor,tolerancia,fuente,calculado,ok
 3582,pct:ingresos_hogar:Menos de 1.100 €,8.8,0.051,Avance de resultados 3582 (oct-2026) (P.35),8.824732279529549,TRUE
 3582,pct:ingresos_hogar:NS,1.5,0.051,Avance de resultados 3582 (oct-2026) (P.35),1.5373027985340593,TRUE
 3582,pct:ingresos_hogar:NC,2,0.051,Avance de resultados 3582 (oct-2026) (P.35),2.0267020261249957,TRUE
+3307,media:lider_pedro_sanchez,4.3,0.051,Marginales 3307 (P.25; un decimal),4.331250359965634,TRUE
+3307,media:ministro_margarita_robles,5.1,0.051,Marginales 3307 (P.20; un decimal),5.055794914890389,TRUE

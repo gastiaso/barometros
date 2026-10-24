@@ -69,6 +69,9 @@ jobs:
           python -m playwright install --with-deps chromium
           python scripts/08_prueba_web.py .
 
+      - name: Imagen de vista previa
+        run: python scripts/09_vista_previa.py .
+
       # Versión en las direcciones de los scripts y la hoja de estilos: tras cada publicación el navegador
       # descarga los nuevos en lugar de mezclarlos con los que tenga en caché.
       - name: Versión de los ficheros de la web

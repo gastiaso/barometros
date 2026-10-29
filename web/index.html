@@ -81,17 +81,17 @@
   </header>
 
   <nav class="tabs" role="tablist" aria-label="Secciones">
-    <button type="button" role="tab" data-tab="que" aria-selected="true"><span class="lg">¿Qué es esto?</span><span class="ct" aria-hidden="true">Qué es</span></button>
-    <button type="button" role="tab" data-tab="series" aria-selected="false">Series</button>
-    <button type="button" role="tab" data-tab="meth" aria-selected="false"><span class="lg">Nota metodológica</span><span class="ct" aria-hidden="true">Método</span></button>
-    <button type="button" role="tab" data-tab="datos" aria-selected="false"><span class="lg">Datos y descargas</span><span class="ct" aria-hidden="true">Datos</span></button>
+    <button type="button" role="tab" id="tab-que" aria-controls="view-que" data-tab="que" aria-selected="true"><span class="lg">¿Qué es esto?</span><span class="ct" aria-hidden="true">Qué es</span></button>
+    <button type="button" role="tab" id="tab-series" aria-controls="view-series" data-tab="series" aria-selected="false">Series</button>
+    <button type="button" role="tab" id="tab-meth" aria-controls="view-meth" data-tab="meth" aria-selected="false"><span class="lg">Nota metodológica</span><span class="ct" aria-hidden="true">Método</span></button>
+    <button type="button" role="tab" id="tab-datos" aria-controls="view-datos" data-tab="datos" aria-selected="false"><span class="lg">Datos y descargas</span><span class="ct" aria-hidden="true">Datos</span></button>
   </nav>
 
   <noscript><p class="aviso">Esta web calcula las series en el navegador y necesita JavaScript. Los microdatos armonizados de los barómetros del CIS (2021-2026) se pueden descargar en formato Parquet en <a href="datos/descargas/barometros_armonizados.parquet">datos/descargas</a>; la documentación está en <a href="https://github.com/gastiaso/barometros">GitHub</a>.</p></noscript>
 
   <div class="aviso" id="aviso-veda" hidden><b>Periodo de prohibición de sondeos.</b> Del 24 al 29 de noviembre de 2026 no se publican series de intención de voto, simpatía, cercanía, preferencia como presidente ni valoración de líderes y ministros. El art. 69.7 de la LOREG prohíbe difundir sondeos electorales en los cinco días anteriores a la votación (del 24 al 28); el día 29 siguen retiradas. El resto de series sigue disponible.</div>
 
-  <div id="view-que">
+  <div id="view-que" role="tabpanel" aria-labelledby="tab-que">
     <section class="qe-hero">
       <div class="qe-intro">
         <p class="qe-kicker">Cómo funciona, en tres minutos</p>
@@ -196,7 +196,7 @@
     </section>
   </div>
 
-  <div id="view-series" hidden>
+  <div id="view-series" role="tabpanel" aria-labelledby="tab-series" hidden>
     <details class="resumen" id="resumen" hidden></details>
     <div class="addbar">
       <span class="lab">Añadir:</span>
@@ -205,11 +205,11 @@
       <button class="btn" type="button" id="b-link">Copiar enlace a estos paneles</button>
       <button class="btn" type="button" id="b-reset">Restablecer paneles</button>
     </div>
-    <main class="grid" id="grid" aria-live="polite"></main>
+    <main class="grid" id="grid"></main>
     <p class="foot">Porcentajes ponderados sobre el total de entrevistados que reciben la pregunta. Los puntos con menos de 50 entrevistas sin ponderar no se muestran. La banda sombreada es el margen de error al 95 %. Las líneas verticales marcan rupturas de serie: las de tipo C (en color) impiden comparar a ambos lados y las de tipo B indican un cambio con regla de armonización. Detalle en la <a href="#" data-goto="meth">nota metodológica</a>.</p>
   </div>
 
-  <div id="view-meth" hidden>
+  <div id="view-meth" role="tabpanel" aria-labelledby="tab-meth" hidden>
     <div class="meth">
       <nav aria-label="Índice de la nota metodológica"><ol>
         <li><a href="#m-objeto">Objeto y cobertura</a></li>
@@ -234,8 +234,8 @@
           <h3>Base de los porcentajes</h3><p>Por defecto, el porcentaje se calcula sobre todas las personas que reciben la pregunta, incluidas las que no saben o no contestan, como en las tablas del CIS. Quien no recibe la pregunta por un filtro previo («no procede») queda siempre fuera. El editor permite excluir también «no sabe», «no contesta» y «no recuerda».</p>
           <h3>Problemas</h3><p>Los «principales problemas» suman hasta tres menciones por persona: el porcentaje es la proporción de entrevistados que citan el problema en cualquiera de las tres, por lo que los porcentajes suman más de 100.</p>
           <h3>Medias</h3><p>La valoración de líderes, la de ministros y la autoubicación ideológica se resumen con la media ponderada de la escala de 1 a 10, sobre quienes dan una puntuación. Quien no conoce a la persona, no sabe o no contesta queda fuera de la media. Los líderes se valoran en casi todos los barómetros; los ministros, en uno de cada tres (enero, abril, julio y octubre), y se emparejan por nombre.</p>
-          <h3>Reponderación por recuerdo de voto (opcional)</h3><p>El peso del CIS no corrige el recuerdo de voto. En sus muestras, el recuerdo del PSOE queda por encima de su resultado y el de VOX por debajo. Con la referencia de 2023, la distancia crece con el tiempo: entre quienes recuerdan haber votado, el PSOE pasa del 31,4 % en octubre de 2023 al 42,2 % en octubre de 2026 (31,3 % en las urnas) y el PP, del 29,6 % al 21,5 % (32,7 %); VOX se acerca a su resultado. Con la referencia de 2019, el recuerdo del PP llegó a quedar por encima del suyo algunos meses. La opción de reponderar ajusta, en cada barómetro, los pesos del CIS por raking (ajuste iterativo a varios márgenes a la vez): entre quienes podían votar y declaran su recuerdo, se reproduce la participación de los residentes en España y el reparto entre PSOE, PP, VOX, Sumar (2023) o Unidas Podemos y Ciudadanos (2019) y el resto; el sexo, la edad y el nivel de estudios conservan la distribución que da el peso del CIS. Quien no tenía edad o derecho a voto, o no recuerda o no contesta, no entra en el margen de recuerdo. Ese último grupo es alrededor del 10 % del peso y casi todo dice en otra pregunta que votó, así que, sobre el total de quienes podían votar, la abstención reponderada queda por debajo de la real (26,7 % de media, frente al 29,6 % de los residentes en el 23J). La referencia es noviembre de 2019 hasta septiembre de 2023 y julio de 2023 desde octubre de 2023, así que R09 pasa a ser una ruptura de estas series.</p>
-          <p>Es una estimación propia, no la cifra del CIS. En la muestra, quien dice no haber votado está por debajo de la abstención real (29,6 % entre los residentes en el 23J), así que su peso se multiplica, de media, por entre 1,6 y 3,3 según el barómetro, y con él sube «No votaría». Supone que quien declara no haber votado representa a todos los abstencionistas, aunque parte de ellos dice haber votado. El recuerdo también se desvía con el tiempo (olvido, deseabilidad social), y ajustar a un recuerdo desviado puede introducir otro sesgo. Los pesos se vuelven más desiguales: el efecto de diseño queda entre 1,3 y 2,9 según el barómetro (entre 1,0 y 2,5 con el peso del CIS solo), y los márgenes de error se amplían en consecuencia. Resultados electorales: Ministerio del Interior; voto exterior (CERA): España Exterior. Detalle en <code>inventario/resultados_electorales.csv</code> y <code>inventario/deff_recuerdo.csv</code>.</p>
+          <h3>Reponderación por recuerdo de voto (opcional)</h3><p>El peso del CIS no corrige el recuerdo de voto. En sus muestras, el recuerdo del PSOE queda por encima de su resultado y el de VOX por debajo. Con la referencia de 2023, la distancia crece con el tiempo: entre quienes recuerdan haber votado, el PSOE pasa del 31,4 % en octubre de 2023 al 42,2 % en octubre de 2026 (31,3 % en las urnas) y el PP, del 29,6 % al 21,5 % (32,7 %); VOX se acerca a su resultado. Con la referencia de 2019, el recuerdo del PP llegó a quedar por encima del suyo algunos meses. La opción de reponderar ajusta, en cada barómetro, los pesos del CIS por raking (ajuste iterativo a varios márgenes a la vez). Primero, la participación de todos los que podían votar reproduce la de los residentes en España; quien no recuerda o no contesta a quién votó (alrededor del 10 % del peso) cuenta como votante o abstencionista según la pregunta de participación. Segundo, entre quienes recuerdan su voto, el reparto entre PSOE, PP, VOX, Sumar (2023) o Unidas Podemos y Ciudadanos (2019) y el resto reproduce el de las urnas. El sexo, la edad y el nivel de estudios conservan la distribución que da el peso del CIS. Solo quedan fuera quienes no tenían edad o derecho a voto y quienes no responden a ninguna de las dos preguntas (menos del 1 % del peso). La referencia es noviembre de 2019 hasta septiembre de 2023 y julio de 2023 desde octubre de 2023, así que R09 pasa a ser una ruptura de estas series.</p>
+          <p>Es una estimación propia, no la cifra del CIS. En la muestra, quien dice no haber votado está por debajo de la abstención real (29,6 % entre los residentes en el 23J), así que su peso se multiplica, de media, por entre 1,7 y 3,8 según el barómetro, y con él sube «No votaría». Supone que quien declara no haber votado representa a todos los abstencionistas, aunque parte de ellos dice haber votado. El recuerdo también se desvía con el tiempo (olvido, deseabilidad social), y ajustar a un recuerdo desviado puede introducir otro sesgo. Los pesos se vuelven más desiguales: el efecto de diseño queda entre 1,4 y 3,0 según el barómetro (entre 1,0 y 2,5 con el peso del CIS solo), y los márgenes de error se amplían en consecuencia. Resultados electorales: Ministerio del Interior; voto exterior (CERA): España Exterior. Detalle en <code>inventario/resultados_electorales.csv</code> y <code>inventario/deff_recuerdo.csv</code>.</p>
           <h3>Barómetros acumulados</h3><p>Las transferencias de voto, la dispersión de grupos y el mapa por comunidades suman varios barómetros consecutivos (los que se elijan, hasta doce) para tener muestra suficiente: se suman las respuestas ponderadas y las entrevistas de todos ellos. La acumulación nunca cruza una ruptura de tipo C, así que puede quedarse en menos meses de los pedidos. La media móvil de las líneas aplica la misma regla con tres barómetros: no es la media de tres porcentajes, sino una estimación conjunta en la que cada barómetro pesa según sus entrevistas. Si un barómetro no hizo la pregunta, o la respuesta no existía ese mes, no cuenta, y en ese mes no hay punto.</p>
           <h3>Transferencias de voto</h3><p>Cada fila agrupa a quienes recuerdan haber votado a un partido (o no haber votado) en las últimas generales y reparte el 100 % entre lo que responden ahora. Hasta septiembre de 2023 el recuerdo se refiere a las generales de 2019 y desde octubre de 2023 a las de 2023 (R09). El recuadro marca la fidelidad: mismo partido en el recuerdo y en la respuesta actual.</p>
           <h3>Dispersión de grupos</h3><p>Cada punto es un grupo (por defecto, el electorado de cada partido según voto + simpatía) y cada eje un indicador: el porcentaje de una respuesta o la media de una escala. La relación es descriptiva: compara grupos, no personas.</p>
@@ -291,7 +291,7 @@
     </div>
   </div>
 
-  <div id="view-datos" hidden>
+  <div id="view-datos" role="tabpanel" aria-labelledby="tab-datos" hidden>
     <div class="mbody">
       <section><h2>Datos y descargas</h2>
         <p>El fichero armonizado contiene una fila por entrevista y una columna por pregunta armonizada, con la ponderación de cada estudio. Formato Parquet: se abre en R (<code>arrow::read_parquet()</code>), Python (<code>pandas.read_parquet()</code>) o DuckDB.</p>

@@ -15,7 +15,7 @@ function pasosGuia() {
     'qe-rupturas': [{ preg: 'ideologia' }],
     'qe-cruces': [{ preg: 'prob_esp', cruce: 'edad_g', cat1: viv }],
     'qe-dispersion': [{ tipo: 'dispersion', grupo: 'voto_simpatia', x: { preg: 'ideologia' }, y: { preg: 'prob_esp', cat: viv }, acum: 3 }],
-    'qe-voto': [{ preg: 'intencion_voto' }, { preg: 'intencion_voto', recuerdo: true }],
+    'qe-voto': [{ preg: 'intencion_voto_r' }, { preg: 'intencion_voto_r', recuerdo: true }],
   };
 }
 

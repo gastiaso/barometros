@@ -44,18 +44,19 @@ for r in cw:
     key = (r["concepto"], r["estudio"])
     ch = r["cambios"]
     e = en.get(key)
-    notas, nivel = [], "A"
+    notas, publicas, nivel = [], [], "A"   # publicas: las que se muestran en la web (sin reglas internas)
     if r["nivel_propuesto"] == "AUSENTE":
         nivel = "AUSENTE"
     else:
         cat = r["tipo"] in ("cerrada", "escala") and ("categorías +" in ch or "categorías -" in ch or "SIGNIFICADO" in ch
                                                       or "valores observados" in ch)
         if cat:
-            nivel = "C"; notas.append("Cambian las categorías de respuesta.")
+            nivel = "C"; notas.append("Cambian las categorías de respuesta."); publicas.append("Cambian las categorías de respuesta.")
         if e and e["cambio_vs_anterior"] == "sí":
             v = int(e["version"])
             nivel = max(nivel, "B") if nivel != "C" else nivel
             notas.append(f"Cambia el enunciado en el cuestionario (v{v - 1} → v{v}): «{ver_txt.get((r['concepto'], str(v)), '')[:160]}».")
+            publicas.append(f"Cambia el enunciado de la pregunta (versión {v}; texto completo en las fichas de preguntas).")
         if "códigos de no respuesta" in ch:
             m = re.search(r"códigos de no respuesta cambian: \[(.*?)\] → \[(.*?)\]", ch)
             a = set(re.findall(r"'(-?\d+)'", m.group(1))) if m else set()
@@ -76,7 +77,7 @@ for r in cw:
             notas.append("Solo cambia el nombre de la variable.")
     if key in man:
         nivel = man[key]["nivel_final"]
-        notas = [man[key]["nota"]]
+        notas = publicas = [man[key]["nota"]]
         rev = "manual"
     elif e and e["calidad"] == "ok":
         rev = "auto: cuestionario + .sav"
@@ -84,12 +85,13 @@ for r in cw:
         rev = "pendiente"
     else:
         rev = "auto: .sav" + (" (enunciado no extraído)" if e else "")
-    r["nivel_final"], r["revisado"], r["nota"] = nivel, rev, " ".join(notas)
+    r["nivel_final"], r["revisado"], r["nota"], r["nota_publica"] = nivel, rev, " ".join(notas), " ".join(publicas)
     r["enunciado_version"] = e["version"] if e else ""
 
 dump("crosswalk_revisado.csv", cw,
      ["concepto", "mes", "estudio", "variable", "metodo", "etiqueta", "tipo", "n_validos", "n_categorias",
-      "rango_observado", "codigos_missing", "enunciado_version", "nivel_propuesto", "cambios", "nivel_final", "revisado", "nota"])
+      "rango_observado", "codigos_missing", "enunciado_version", "nivel_propuesto", "cambios", "nivel_final", "revisado", "nota",
+      "nota_publica"])
 
 # ============================================================ 2. partidos
 MANUAL_PARTIDOS = {

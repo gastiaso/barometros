@@ -83,6 +83,7 @@ python scripts/00_extraer.py .
 Rscript -e 'targets::tar_make()'
 Rscript scripts/07_web.R
 python scripts/08_prueba_web.py .
+python scripts/09_vista_previa.py .
 cd web && python -m http.server
 ```
 

@@ -1,0 +1,11 @@
+concepto,version,desde,hasta,n_estudios,enunciado
+intencion_voto_r,1,2021-01,2026-10,,"Misma pregunta que la intención directa de voto, con la agrupación de partidos que publica el CIS (variable INTENCIONGR)."
+voto_simpatia,1,2021-01,2026-10,,"Recodificación del CIS (VOTOSIMG): la intención directa de voto y, para quien no declara intención, el partido por el que siente más simpatía."
+lideres,1,2021-01,2021-03,,"«¿Y qué valoración le merece cada uno/a de los/as siguientes políticos/as? Puntúelos/as de 1 a 10, sabiendo que el 1 significa que lo/a valora “muy mal” y el 10 que lo/a valora “muy bien”». Sin pregunta previa de conocimiento: «No conoce» es una respuesta más."
+lideres,2,2021-04,2022-08,,"Pregunta previa: «A continuación, voy a mencionarle los nombres de algunos/as líderes políticos/as y nos gustaría que nos dijera si los conoce». A quien conoce a cada líder: «¿Y qué valoración le merece cada uno/a de ellos/as? Puntúelos/as de 1 a 10, sabiendo que el 1 significa que lo/a valora “muy mal” y el 10 que lo/a valora “muy bien”»."
+lideres,1,2022-09,2022-10,,"Como en la versión 1: sin pregunta previa de conocimiento."
+lideres,2,2022-11,2026-10,,"Como en la versión 2: pregunta previa de conocimiento y valoración de 1 a 10 de los que conoce."
+ministros,1,2021-01,2021-04,,"«A continuación voy a leerle la lista de los/as ministros y ministras que forman el Gobierno. Dígame, por favor, para cada uno/a de ellos/as si lo/a conoce y cómo lo/a valoraría en una escala de 1 a 10, sabiendo que el 1 significa que lo/a valora “muy mal” y el 10 que lo/a valora “muy bien”». Trimestral."
+ministros,2,2021-07,2022-07,,"Pregunta previa de conocimiento de cada ministro/a. A quien lo/a conoce: «¿cómo lo/a valoraría en una escala de 1 a 10, sabiendo que el 1 significa que lo/a valora “muy mal” y el 10 que lo/a valora “muy bien”?» (la redacción varía ligeramente entre cuestionarios). Trimestral."
+ministros,1,2022-10,2022-10,,"Como en la versión 1: sin pregunta previa de conocimiento."
+ministros,2,2023-01,2026-10,,"Como en la versión 2: pregunta previa de conocimiento y valoración de 1 a 10 de los que conoce."

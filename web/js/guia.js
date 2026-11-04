@@ -10,6 +10,7 @@ const GUIA = { cfg: new Map(), io: null };
 function pasosGuia() {
   const viv = vivienda();
   return {
+    'qe-portada': [defectoPuntos()],
     'qe-leer': [{ preg: 'eco_esp' }],
     'qe-cambio': [{ tipo: 'comparar', preg: 'prob_esp', banda: true }],
     'qe-rupturas': [{ preg: 'ideologia' }],

@@ -14,14 +14,15 @@ El Centro de Investigaciones Sociológicas (CIS) publica cada barómetro por sep
 - **Cruzar y filtrar** por sexo, edad, comunidad autónoma, tamaño de municipio, estudios, situación laboral, grupo ocupacional, situación profesional, ingresos del hogar, nacionalidad, lugar de nacimiento, clase, religiosidad, ideología, recuerdo de voto o intención de voto. La provincia sirve como filtro.
 - **Ver qué cambia en el último barómetro**: un resumen de las diferencias significativas con el anterior.
 - **Agrupar respuestas en bloques** (por ejemplo, partidos) y seguir el bloque como una respuesta más.
-- **Elegir entre siete gráficos**:
+- **Elegir entre ocho gráficos**:
   - evolución mensual, con media móvil opcional;
   - barras apiladas al 100 % para un barómetro;
   - comparación de dos barómetros con significación;
   - mapa de calor;
   - transferencias de voto;
   - dispersión de electorados;
-  - mapa por comunidades.
+  - mapa por comunidades;
+  - cada punto, una entrevista: todas las entrevistas dibujadas una a una, sin ponderar, con el color según dos problemas que cite la persona.
 - **Reponderar por recuerdo de voto**, opcionalmente, para ver cuánto cambia la serie cuando el recuerdo se ajusta al resultado real de las últimas generales.
 - **Exportar** cada panel como tabla, CSV o PNG, y compartir un enlace con la configuración exacta.
 - **Descargar los microdatos armonizados** (Parquet, una fila por entrevista) para trabajar en R, Python o DuckDB.

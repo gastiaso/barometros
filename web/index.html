@@ -115,6 +115,14 @@
       </nav>
     </section>
 
+    <section class="qe-portada" id="qe-portada">
+      <div class="qe-txt">
+        <h2>Cada punto, una entrevista</h2>
+        <p>Las <span data-qe="nent">264.081</span> entrevistas, una a una: el mes en horizontal, la edad en vertical y, en color, quienes citan la vivienda o la crisis económica entre los problemas que más les afectan. Sin ponderar ni agregar, que es lo que permite partir de los microdatos; no es una estimación. <span class="ui">Abrir en el explorador</span> deja cambiar las respuestas, el eje y el periodo.</p>
+      </div>
+      <div class="qe-graf" data-paso="qe-portada"></div>
+    </section>
+
     <section class="qe-paso" id="qe-leer">
       <div class="qe-txt">
         <h2>¿Qué estoy mirando?</h2>
@@ -182,7 +190,7 @@
         <h2>¿Cómo me lo llevo?</h2>
         <ul>
           <li><span class="ui">Nuevo panel</span> añade un gráfico desde cero y <span class="ui">Restablecer paneles</span> vuelve a la selección inicial.</li>
-          <li><span class="ui">Tabla</span>, <span class="ui">CSV</span> y <span class="ui">PNG</span> en cada panel. El PNG lleva título, periodo y fuente.</li>
+          <li><span class="ui">Tabla</span>, <span class="ui">CSV</span> y <span class="ui">PNG</span> en cada panel. El PNG lleva título, periodo y fuente. En «Cada punto, una entrevista», <span class="ui">Banner</span> descarga además una versión de 1584 × 396 con la muestra completa, para cabeceras de redes.</li>
           <li><span class="ui">Copiar enlace a estos paneles</span> guarda la configuración en la dirección: quien abra el enlace verá exactamente lo mismo.</li>
           <li>En <a href="#" data-goto="datos">Datos y descargas</a>, los microdatos armonizados (Parquet, una fila por entrevista) para R, Python o DuckDB, y los metadatos con categorías y rupturas.</li>
           <li>Para citar: «Origen de los datos: Centro de Investigaciones Sociológicas (CIS), barómetros mensuales (microdatos), hasta <span class="cita-ult">el último barómetro incluido</span>. Armonización: Guillermo Astiaso Llamazares, <i>Barómetro a barómetro</i>, https://gastiaso.github.io/barometros/ (CC BY 4.0)», con la fecha de consulta.</li>
@@ -241,6 +249,7 @@
           <h3>Dispersión de grupos</h3><p>Cada punto es un grupo (por defecto, el electorado de cada partido según voto + simpatía) y cada eje un indicador: el porcentaje de una respuesta o la media de una escala. La relación es descriptiva: compara grupos, no personas.</p>
           <h3>Mapa por comunidades</h3><p>Los barómetros no están diseñados para dar resultados por comunidad. El mapa acumula seis barómetros por defecto, colorea en cinco tramos de igual amplitud y deja en gris las comunidades con menos de 50 entrevistas. Los márgenes de las comunidades pequeñas son amplios: están en la tabla del panel.</p>
           <h3>Comparar dos barómetros</h3><p>La diferencia se marca como significativa cuando supera 1,96 veces el error típico combinado de los dos meses, con el efecto de diseño de cada estudio. No se compara a través de una ruptura de tipo C.</p>
+          <h3>Cada punto, una entrevista</h3><p>La nube dibuja una entrevista por punto, sin ponderar: el mes en horizontal (cada punto cae al azar dentro del suyo), la edad o la autoubicación ideológica en vertical, y el color según la persona cite una, otra, las dos o ninguna de dos respuestas de un bloque de problemas, en cualquiera de sus tres menciones. Para que ningún barómetro pese más que otro, de cada uno se dibuja una muestra aleatoria de hasta el percentil 10 del número de entrevistas por barómetro (unas 3.800), con semilla fija, así que la misma configuración da siempre la misma imagen; en lienzos pequeños se dibujan menos puntos por barómetro. El orden de dibujo también es aleatorio, para que ningún color tape a los demás. No es una estimación: sin ponderar, las proporciones de color se separan de las series ponderadas, sobre todo desde noviembre de 2023, cuando el CIS empezó a ponderar por nivel de estudios (R10); la nota del panel calcula esa diferencia para la combinación elegida, y la tabla da los recuentos junto a la serie ponderada. Las rupturas no se marcan porque los puntos no se ponderan. Las edades de 93 años o más se dibujan a la altura de 92; quien no se sitúa en la escala ideológica queda fuera de esa versión. Para porcentajes, la evolución mensual.</p>
           <h3>Bloques de respuestas</h3><p>El editor permite sumar varias respuestas en un bloque (por ejemplo, varios partidos) que se dibuja como una respuesta más. En las preguntas de respuesta única, el bloque es la suma de sus respuestas; en los problemas, cada persona cuenta una sola vez aunque cite dos problemas del mismo bloque. El margen de error se calcula como para cualquier otra respuesta. La composición la decide quien usa la herramienta y figura en el panel, en el PNG y en el CSV. Las marcas cambian con el tiempo (Unidas Podemos hasta 2023; Sumar y Podemos después), así que un bloque solo suma las respuestas que contiene en cada mes. En las barras apiladas, una respuesta no puede estar a la vez sola y dentro de un bloque.</p>
           <h3>Qué cambia en el último barómetro</h3><p>El resumen de la pestaña de series compara el último barómetro con el anterior que hizo la misma pregunta. Solo recoge diferencias significativas al 99 % (error típico combinado con el efecto de diseño de cada estudio) y de al menos un punto, o una décima en las valoraciones; deja fuera las respuestas que no llegan al 2 % en ninguno de los dos meses y no compara a través de una ruptura de tipo C. El umbral es más exigente que el del panel «Comparar» porque se hacen muchas comparaciones a la vez. Un cambio significativo no siempre es un cambio de opinión: también puede deberse al cuestionario, por ejemplo a preguntas previas sobre el mismo tema.</p>
           <h3>Gráficos de barras</h3><p>Muestran un solo barómetro. En las preguntas de respuesta única, cada barra es un grupo del cruce (más una barra para el total) y suma 100 %: cada bloque es una respuesta y las no elegidas se agrupan en «Resto de respuestas». En los problemas (hasta tres menciones) y en las medias no tiene sentido apilar, así que las barras se agrupan. Se aplican la misma base, el mismo mínimo de entrevistas y el mismo margen de error que en las series.</p>

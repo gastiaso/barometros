@@ -71,6 +71,18 @@ BLOQUES = """async () => {
 # pregunta, la lista de líderes alterada por un cruce y el error típico que no devolvía puntoDe
 REGRESION = """async () => {
   const errores = [];
+  // cada punto, una entrevista: los recuentos por color suman los puntos de cada barómetro, ningún barómetro supera
+  // la muestra igualada, y la misma configuración da siempre la misma muestra (semilla fija)
+  const host = document.createElement('div');
+  const p1 = await VISTAS.puntos(host, { tipo: 'puntos' }), p2 = await VISTAS.puntos(host, { tipo: 'puntos' });
+  if (!p1.csv || p1.csv.filas.length !== EST.length) errores.push('puntos: falta un barómetro en el CSV');
+  else {
+    const cap = Math.max(...p1.csv.filas.map(f => f[2]));
+    for (const f of p1.csv.filas) if (f[3] + f[4] + f[5] + f[6] !== f[2] || f[2] > cap) errores.push('puntos: recuentos que no cuadran en ' + f[0]);
+    if (JSON.stringify(p1.csv.filas) !== JSON.stringify(p2.csv.filas)) errores.push('puntos: dos dibujos de la misma configuración no dan la misma muestra');
+    if (!p1.csv.filas.some(f => f[9] != null)) errores.push('puntos: sin serie ponderada de referencia');
+  }
+  if (!host.querySelector('canvas')) errores.push('puntos: no se ha dibujado el canvas');
   if (!META.columnas.intencion_voto_r) return errores;  // modo veda: sin series electorales
   const cfgS = { preg: 'intencion_voto_r', movil: true, cats: ['SUMAR'] };
   const s = series(await calcular(cfgS), cfgS)[0].pts;

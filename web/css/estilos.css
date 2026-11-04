@@ -74,6 +74,11 @@ select,input[type=search],input[type=text]{background:var(--surface);border:1px 
 .qe-indice li::marker{font-family:var(--font-d);font-weight:600;color:var(--acc)}
 .qe-indice a{color:var(--ink2);text-decoration:none}
 .qe-indice a:hover{color:var(--ink);text-decoration:underline}
+.qe-portada{display:flex;flex-direction:column;gap:14px;padding:18px 0 22px}
+.qe-portada .qe-txt{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 28px}
+.qe-portada>.qe-txt>h2{font-family:var(--font-d);font-size:20px;font-weight:600;text-transform:uppercase;letter-spacing:.03em;line-height:1.2;margin:0;flex:0 0 auto}
+.qe-portada>.qe-txt>h2::before{content:none}
+.qe-portada>.qe-txt>p{margin:0;font-size:14.5px;max-width:92ch;flex:1 1 40ch}
 .qe-paso{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,3fr);gap:28px;align-items:start;border-top:1px solid var(--line2);padding:26px 0;scroll-margin-top:12px;counter-increment:paso}
 .qe-paso.solo{grid-template-columns:minmax(0,1fr)}
 .qe-txt h2{font-family:var(--font-d);font-size:20px;font-weight:600;text-transform:uppercase;letter-spacing:.03em;line-height:1.2;margin:0 0 12px}

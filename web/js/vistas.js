@@ -467,4 +467,228 @@ async function vistaComparar(host, cfg) {
   };
 }
 
-const VISTAS = { transferencias: vistaTransferencias, dispersion: vistaDispersion, mapa: vistaMapa, calor: vistaCalor, comparar: vistaComparar };
+/* ---------- cada punto, una entrevista ---------- */
+/* Nube en la que cada punto es una entrevista: el mes en horizontal (cada punto cae al azar dentro de su mes), la edad
+   o la autoubicación ideológica en vertical, y el color según la persona cite una, otra, las dos o ninguna de dos
+   respuestas de un bloque de problemas (hasta tres menciones). Sin ponderar y con la muestra igualada por mes, así que
+   no es una estimación; la nota del panel mide en vivo cuánto se separa de la serie ponderada. Se dibuja en canvas:
+   con más de 200.000 puntos, el SVG no es viable. Semilla fija: la misma configuración da siempre la misma imagen. */
+const PUNTOS_SEMILLA = 7;
+const PUNTOS_AREA_REF = 1e6;          // píxeles de dispositivo a partir de los cuales se dibuja la muestra igualada completa
+const BLOQUES_PUNTOS = ['prob_per', 'prob_esp'];
+const EJES_PUNTOS = { edad: 'edad', ideologia: 'autoubicación ideológica (1 a 10)' };
+// generador con semilla (mulberry32): reproducible y suficiente para muestrear y desplazar puntos
+const azar = s => () => { s = (s + 0x6d2b79f5) | 0; let t = Math.imul(s ^ (s >>> 15), 1 | s); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+// etiqueta breve para la leyenda («La crisis económica, los problemas de índole económica» → «La crisis económica»)
+const breve = s => String(s).replace(/,.*$/, '').replace(/\s*\(.*$/, '');
+const minuscula = s => s.replace(/^(La|El|Los|Las)\b/, m => m.toLowerCase());
+// respuesta de un bloque de problemas por su etiqueta
+const idProblema = (pregId, inicio) => (META.conceptos[`${pregId}_1`]?.categorias || []).find(c => !c.no_respuesta && c.etiqueta.startsWith(inicio))?.id;
+function defectoPuntos() {
+  return { tipo: 'puntos', preg: 'prob_per', cats: [idProblema('prob_per', 'La vivienda'), idProblema('prob_per', 'La crisis económica')].filter(Boolean), eje: 'edad', ancho: true };
+}
+// configuración saneada: bloque, dos respuestas distintas que existan y eje
+function cfgPuntos(cfg) {
+  const pregId = BLOQUES_PUNTOS.includes(cfg.preg) ? cfg.preg : 'prob_per';
+  const P = preg(pregId);
+  if (!disponible(P)) throw new Error('Serie no disponible.');
+  const validas = new Set((META.conceptos[P.cols[0]]?.categorias || []).filter(c => !c.no_respuesta).map(c => c.id));
+  const d = defectoPuntos();
+  const cats = [...new Set((cfg.cats || []).filter(id => validas.has(id)))];
+  for (const id of (pregId === 'prob_per' ? d.cats : [idProblema(pregId, 'La vivienda'), idProblema(pregId, 'La crisis económica')]))
+    if (cats.length < 2 && id && !cats.includes(id)) cats.push(id);
+  for (const id of validas) if (cats.length < 2 && !cats.includes(id)) cats.push(id);
+  if (cats.length < 2) throw new Error('Hacen falta dos respuestas.');
+  const eje = cfg.eje === 'ideologia' ? 'ideologia' : 'edad';
+  if (!META.columnas[eje]) throw new Error('Serie no disponible.');
+  return { P, pregId, cats: cats.slice(0, 2), eje, desde: cfg.desde, hasta: cfg.hasta };
+}
+const capPuntos = (meses, area) => {
+  const ns = meses.map(e => e.hasta - e.desde).sort((a, b) => a - b);
+  const ref = ns[Math.floor(0.1 * (ns.length - 1))];          // percentil 10 de las entrevistas por barómetro
+  return Math.max(Math.round(ref * 0.2), Math.round(ref * Math.min(1, area / PUNTOS_AREA_REF)));
+};
+/* Puntos de un periodo: posición, color y recuento por barómetro. cap: entrevistas por barómetro (muestra igualada). */
+async function datosPuntos(c, cap) {
+  const { P, eje } = c;
+  await Promise.all([...P.cols, eje].map(col));
+  const cs = P.cols.map(k => COLS[k]), Y = COLS[eje];
+  const [A, B] = c.cats;
+  const cA = P.cols.map(k => nivelesDe(k).indexOf(A) + 1), cB = P.cols.map(k => nivelesDe(k).indexOf(B) + 1);
+  const meses = EST.filter(e => (!c.desde || e.mes >= c.desde) && (!c.hasta || e.mes <= c.hasta));
+  if (!meses.length) throw new Error('No hay barómetros en el periodo elegido.');
+  const rng = azar(PUNTOS_SEMILLA);
+  const X = [], YV = [], CAT = [], porMes = [];
+  let total = 0, sinEje = 0;
+  for (const e of meses) {
+    const cand = [];
+    for (let r = e.desde; r < e.hasta; r++) { if (Y[r] !== 0) cand.push(r); else sinEje++; }
+    total += e.hasta - e.desde;
+    const k = Math.min(cap, cand.length);
+    for (let i = 0; i < k; i++) { const j = i + Math.floor(rng() * (cand.length - i)); const t = cand[i]; cand[i] = cand[j]; cand[j] = t; }
+    const dias = new Date(Date.UTC(+e.mes.slice(0, 4), +e.mes.slice(5, 7), 0)).getUTCDate();
+    const t0 = fecha(e.mes).getTime();
+    const cont = [0, 0, 0, 0];
+    for (let i = 0; i < k; i++) {
+      const r = cand[i];
+      let a = false, b = false;
+      for (let j = 0; j < cs.length; j++) { const v = cs[j][r]; if (!v) continue; if (v === cA[j]) a = true; else if (v === cB[j]) b = true; }
+      const cat = a && b ? 3 : a ? 1 : b ? 2 : 0;
+      X.push(t0 + rng() * dias * 864e5);
+      YV.push((eje === 'edad' ? Math.min(Y[r], 92) : Y[r]) + rng() - 0.5);
+      CAT.push(cat); cont[cat]++;
+    }
+    porMes.push({ e, n: k, cand: cand.length, cont });
+  }
+  // orden de dibujo al azar: ninguna categoría tapa a las demás y la proporción de color es la real
+  const orden = new Uint32Array(X.length);
+  for (let i = 0; i < orden.length; i++) orden[i] = i;
+  for (let i = orden.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); const t = orden[i]; orden[i] = orden[j]; orden[j] = t; }
+  return { x: Float64Array.from(X), y: Float32Array.from(YV), cat: Uint8Array.from(CAT), orden, porMes, meses, cap, total, sinEje };
+}
+/* Dibujo en un canvas: W × H en píxeles CSS, a la escala indicada. En modo banner lleva título y fuente dentro. */
+function pintarPuntos(cv, D, c, W, H, escala, opc = {}) {
+  cv.width = Math.round(W * escala); cv.height = Math.round(H * escala);
+  const ctx = cv.getContext('2d');
+  ctx.scale(escala, escala);
+  ctx.fillStyle = PAL.surface; ctx.fillRect(0, 0, W, H);
+  const fs = opc.banner ? Math.max(12, W * 0.0105) : 12;
+  const fuente = (peso, tam) => `${peso} ${tam}px ${PAL.fontD}`;
+  const [A, B] = c.cats, conc = c.P.cols[0];
+  const nombres = ['ninguna de las dos', minuscula(breve(etiqueta(conc, A))), minuscula(breve(etiqueta(conc, B))), 'ambas'];
+  const colores = [PAL.ink3, PAL.cat[0], PAL.cat[1], PAL.cat[6]], alfa = [0.45, 0.85, 0.85, 0.85];
+  // cabecera: en el banner, título y fuente; en el panel, solo la leyenda
+  let top = 6;
+  if (opc.banner) {
+    ctx.textBaseline = 'alphabetic'; ctx.fillStyle = PAL.ink; ctx.font = fuente(600, fs * 1.3);
+    const t1 = 'Cada punto, una entrevista del CIS';
+    ctx.fillText(t1, W * 0.025, fs * 1.75);
+    const w1 = ctx.measureText(t1).width;
+    ctx.fillStyle = PAL.ink2; ctx.font = fuente(400, fs * 1.05);
+    const m0 = D.meses[0].mes.slice(0, 4), m1 = D.meses[D.meses.length - 1].mes.slice(0, 4);
+    ctx.fillText(`barómetros mensuales, ${m0 === m1 ? m0 : `${m0}–${m1}`}`, W * 0.025 + w1 + fs, fs * 1.75);
+    ctx.fillStyle = PAL.ink3; ctx.font = fuente(400, fs * 0.75); ctx.textAlign = 'right';
+    ctx.fillText('Fuente: CIS, microdatos  ·  gastiaso.github.io/barometros', W * 0.975, fs * 1.75); ctx.textAlign = 'left';
+    top = fs * 2.3;
+  }
+  // leyenda, con salto de línea si no cabe
+  ctx.font = fuente(400, fs); ctx.textBaseline = 'middle';
+  const cab = opc.banner ? (c.pregId === 'prob_per' ? 'Entre los problemas que más le afectan, menciona:' : 'Entre los principales problemas de España, menciona:') : 'Menciona:';
+  const items = [[cab, null], [nombres[1], 1], [nombres[2], 2], [nombres[3], 3], [nombres[0], 0]];
+  const x0 = opc.banner ? W * 0.025 : 6, sep = fs * 1.4, lh = fs * 1.5;
+  let lx = x0, ly = top + lh / 2;
+  items.forEach(([txt, k]) => {
+    ctx.font = fuente(k === 1 || k === 2 ? 500 : 400, fs);
+    const w = ctx.measureText(txt).width + (k == null ? 0 : fs * 0.9);
+    if (lx + w > W - 6 && lx > x0) { lx = x0; ly += lh; }
+    if (k != null) { ctx.fillStyle = colores[k]; ctx.beginPath(); ctx.arc(lx + fs * 0.32, ly, fs * 0.32, 0, 2 * Math.PI); ctx.fill(); lx += fs * 0.9; }
+    ctx.fillStyle = k == null || k === 0 ? PAL.ink2 : PAL.ink; ctx.fillText(txt, lx, ly);
+    lx += w - (k == null ? 0 : fs * 0.9) + sep;
+  });
+  top = ly + lh / 2 + fs * 0.5;
+  // área de datos
+  const ideo = c.eje === 'ideologia';
+  const m = { l: opc.banner ? W * 0.025 : 4, r: (ideo ? 7.2 : 3.2) * fs, t: top, b: fs * 1.9 };
+  const t0 = fecha(D.meses[0].mes).getTime(), ult = D.meses[D.meses.length - 1].mes;
+  const t1 = Date.UTC(+ult.slice(0, 4), +ult.slice(5, 7), 1);
+  const xs = t => m.l + (W - m.l - m.r) * (t - t0) / (t1 - t0);
+  const yd = ideo ? [0.4, 10.6] : [17, 93];
+  const ys = v => H - m.b - (H - m.t - m.b) * (v - yd[0]) / (yd[1] - yd[0]);
+  // guías y eje vertical, a la derecha
+  ctx.font = fuente(400, fs * 0.95); ctx.fillStyle = PAL.ink3; ctx.textBaseline = 'middle'; ctx.strokeStyle = PAL.line; ctx.lineWidth = 1;
+  const marcas = ideo ? [[1, '1 · izquierda'], [5, '5'], [10, '10 · derecha']] : [[20, '20'], [40, '40'], [60, '60'], [80, '80']];
+  marcas.forEach(([v, t]) => {
+    ctx.beginPath(); ctx.moveTo(m.l, ys(v)); ctx.lineTo(W - m.r + fs * 0.3, ys(v)); ctx.stroke();
+    ctx.fillText(t, W - m.r + fs * 0.6, ys(v));
+  });
+  if (!ideo) ctx.fillText('edad', W - m.r + fs * 0.6, m.t + fs * 0.6);   // en ideología, «1 · izquierda» y «10 · derecha» ya lo dicen
+  // puntos: tamaño según la resolución del lienzo; en cada bloque del orden aleatorio, un cambio de color por categoría
+  const ps = Math.max(escala >= 2 ? 2 : 1, Math.min(3, Math.round(W * escala * 0.00075))) / escala;
+  const { x, y, cat, orden } = D;
+  const L = 16, paso = Math.ceil(orden.length / L);
+  for (let b = 0; b < L; b++) {
+    const ini = b * paso, fin = Math.min(orden.length, ini + paso);
+    for (let k = 0; k < 4; k++) {
+      ctx.fillStyle = colores[k]; ctx.globalAlpha = alfa[k];
+      for (let i = ini; i < fin; i++) { const p = orden[i]; if (cat[p] !== k) continue; ctx.fillRect(xs(x[p]) - ps / 2, ys(y[p]) - ps / 2, ps, ps); }
+    }
+  }
+  ctx.globalAlpha = 1;
+  // años: marca en el 1 de enero (los bloques van de septiembre a julio, y agosto deja el hueco); si hay menos de
+  // dos años, los meses
+  ctx.font = fuente(400, fs); ctx.fillStyle = PAL.ink3; ctx.strokeStyle = PAL.ink3; ctx.lineWidth = 1.2; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+  const anos = d3.utcYear.range(d3.utcYear.ceil(new Date(t0)), new Date(t1 + 1)).map(d => d.getTime()).filter(t => t >= t0 && t <= t1);
+  const marcasX = anos.length >= 2 ? anos.map(t => [t, String(new Date(t).getUTCFullYear())])
+    : D.meses.map(e => [fecha(e.mes).getTime(), mesCorto(e.mes)]).filter((_, i, a) => a.length <= 8 || i % Math.ceil(a.length / 8) === 0);
+  marcasX.forEach(([t, txt]) => {
+    const xx = xs(t), w = ctx.measureText(txt).width;
+    ctx.beginPath(); ctx.moveTo(xx, H - m.b + 2); ctx.lineTo(xx, H - m.b + fs * 0.5); ctx.stroke();
+    // la etiqueta no se sale del lienzo por los bordes
+    ctx.textAlign = xx - w / 2 < 2 ? 'left' : xx + w / 2 > W - 2 ? 'right' : 'center';
+    ctx.fillText(txt, ctx.textAlign === 'left' ? Math.max(2, xx - fs * 0.15) : ctx.textAlign === 'right' ? Math.min(W - 2, xx + fs * 0.15) : xx, H - fs * 0.3);
+  });
+  ctx.textAlign = 'left';
+  return ctx;
+}
+async function vistaPuntos(host, cfg) {
+  const c = cfgPuntos(cfg);
+  const W = Math.max(300, Math.round(host.clientWidth || 600));
+  const H = Math.round(Math.max(240, Math.min(400, W * 0.28)));
+  const escala = Math.max(1, Math.min(3, devicePixelRatio || 1));
+  const meses = EST.filter(e => (!c.desde || e.mes >= c.desde) && (!c.hasta || e.mes <= c.hasta));
+  if (!meses.length) return { vacio: 'No hay barómetros en el periodo elegido.' };
+  const cap = capPuntos(meses, W * H * escala * escala);
+  // la serie ponderada de la vista de líneas, para medir en la nota cuánto se separa la nube
+  const [D, res] = await Promise.all([datosPuntos(c, cap), calcular({ preg: c.pregId, desde: meses[0].mes, hasta: meses[meses.length - 1].mes })]);
+  host.innerHTML = '';
+  const cv = document.createElement('canvas');
+  cv.style.width = W + 'px'; cv.style.height = H + 'px'; cv.style.display = 'block';
+  cv.setAttribute('role', 'img');
+  host.appendChild(cv);
+  pintarPuntos(cv, D, c, W, H, escala);
+  const [A, B] = c.cats, conc = c.P.cols[0];
+  const nomA = etiqueta(conc, A), nomB = etiqueta(conc, B);
+  const vA = minuscula(breve(nomA)), vB = minuscula(breve(nomB));
+  cv.setAttribute('aria-label', `Cada punto, una entrevista: ${vA} y ${vB}`);
+  const pond = (f, id) => f.grupos[0].vals[id];
+  const filas = D.porMes.map((p, i) => {
+    const f = res.filas[i];
+    const pa = p.n ? 100 * (p.cont[1] + p.cont[3]) / p.n : null, pb = p.n ? 100 * (p.cont[2] + p.cont[3]) / p.n : null;
+    return { ...p, pa, pb, wa: f ? pond(f, A) ?? null : null, wb: f ? pond(f, B) ?? null : null };
+  });
+  const mostrados = d3.sum(filas, f => f.n);
+  const ultimo = filas[filas.length - 1];
+  const dif = filas.flatMap(f => [[f.pa, f.wa, vA, f.e.mes], [f.pb, f.wb, vB, f.e.mes]]).filter(d => d[0] != null && d[1] != null)
+    .map(([p, w, nom, mes]) => ({ d: p - w, nom, mes })).sort((a, z) => Math.abs(z.d) - Math.abs(a.d))[0];
+  const ambas = ultimo.n ? 100 * ultimo.cont[3] / ultimo.n : 0;
+  const signo = d => `${d >= 0 ? '+' : '−'}${fmt1(Math.abs(d))}`;
+  const notas = [
+    `Cada punto es una entrevista, sin ponderar. Para que ningún mes pese más que otro, se dibujan hasta ${fmtInt(cap)} entrevistas por barómetro, elegidas al azar con semilla fija (${fmtInt(mostrados)} de ${fmtInt(D.total)}). El color sigue las menciones de cada persona (hasta tres). No es una estimación: para porcentajes, la evolución mensual.`,
+    ultimo.pa != null && ultimo.wa != null
+      ? `Sin ponderar, en ${mesLargo(ultimo.e.mes)} ${vA} es el ${fmt1(ultimo.pa)} % de los puntos frente al ${fmt1(ultimo.wa)} % de la serie ponderada, y ${vB}, el ${fmt1(ultimo.pb)} % frente al ${fmt1(ultimo.wb)} %${dif ? `; la mayor diferencia del periodo es de ${signo(dif.d)} puntos (${dif.nom}, ${mesCorto(dif.mes)})` : ''}. Citan ambas el ${fmt1(ambas)} %.`
+      : '',
+    c.eje === 'edad' ? 'Las edades de 93 años o más se dibujan a la altura de 92.' : `Quien no se sitúa en la escala ideológica (${fmtInt(D.sinEje)} entrevistas del periodo) queda fuera del dibujo.`,
+  ].filter(Boolean);
+  const per = meses.length === 1 ? mesLargo(meses[0].mes) : `${mesCorto(meses[0].mes)} a ${mesCorto(meses[meses.length - 1].mes)}`;
+  const nA = `${breve(nomA)} (n)`, nB = `${breve(nomB)} (n)`;
+  return {
+    titulo: `Cada punto, una entrevista: ${vA} y ${vB}`,
+    meta: `${c.P.t}; en vertical, ${EJES_PUNTOS[c.eje]}. ${per}, ${fmtInt(mostrados)} entrevistas sin ponderar`,
+    notas,
+    tabla: { cab: ['Mes', 'Estudio', 'Puntos', nA, nB, 'Ambas (n)', 'Ninguna (n)', `${breve(nomA)}, serie ponderada`, `${breve(nomB)}, serie ponderada`],
+      filas: filas.map(f => [mesCorto(f.e.mes), f.e.estudio, fmtInt(f.n), fmtInt(f.cont[1]), fmtInt(f.cont[2]), fmtInt(f.cont[3]), fmtInt(f.cont[0]), fmtV(f.wa, false), fmtV(f.wb, false)]).reverse() },
+    csv: { cab: ['mes', 'estudio', 'puntos', 'n_a', 'n_b', 'n_ambas', 'n_ninguna', 'pct_a_puntos', 'pct_b_puntos', 'pct_a_ponderado', 'pct_b_ponderado'],
+      filas: filas.map(f => [f.e.mes, f.e.estudio, f.n, f.cont[1], f.cont[2], f.cont[3], f.cont[0], f.pa, f.pb, f.wa, f.wb]) },
+    // imagen a la escala pedida (PNG del panel) y banner de 1584 × 396 (2×) con la muestra completa
+    lienzo: esc => { const k = document.createElement('canvas'); pintarPuntos(k, D, c, W, H, esc); return k; },
+    banner: async (esc = 2) => {
+      const Wb = 1584, Hb = 396;
+      const Db = await datosPuntos(c, capPuntos(meses, Wb * Hb * esc * esc));
+      const k = document.createElement('canvas');
+      pintarPuntos(k, Db, c, Wb, Hb, esc, { banner: true });
+      return new Promise(ok => k.toBlob(ok));
+    },
+  };
+}
+
+const VISTAS = { transferencias: vistaTransferencias, dispersion: vistaDispersion, mapa: vistaMapa, calor: vistaCalor, comparar: vistaComparar, puntos: vistaPuntos };

@@ -574,8 +574,11 @@ function dibujar(host, res, cfg) {
   const ends = ser.map(s => { const p = [...s.pts].reverse().find(def); return p ? { s, p, y: y(p.v) } : null; }).filter(Boolean).sort((a, b) => a.y - b.y);
   for (let i = 1; i < ends.length; i++) if (ends[i].y - ends[i - 1].y < 13) ends[i].y = ends[i - 1].y + 13;
   ends.forEach(e => {
-    svg.append('circle').attr('cx', x(fecha(e.p.mes))).attr('cy', y(e.p.v)).attr('r', 3.5).attr('fill', col[e.s.id]).attr('stroke', PAL.surface).attr('stroke-width', 2);
-    svg.append('text').attr('x', x(fecha(e.p.mes)) + 7).attr('y', e.y + 4).attr('fill', PAL.ink).attr('font-size', 11).attr('font-weight', 600)
+    const cx = x(fecha(e.p.mes)), cy = y(e.p.v);
+    // si la etiqueta se ha desplazado para no pisar otra, una guía del color de la serie la une con su punto
+    if (Math.abs(e.y - cy) > 1.5) svg.append('line').attr('x1', cx + 3.5).attr('y1', cy).attr('x2', cx + 6).attr('y2', e.y).attr('stroke', col[e.s.id]).attr('stroke-width', 1.2);
+    svg.append('circle').attr('cx', cx).attr('cy', cy).attr('r', 3.5).attr('fill', col[e.s.id]).attr('stroke', PAL.surface).attr('stroke-width', 2);
+    svg.append('text').attr('x', cx + 7).attr('y', e.y + 4).attr('fill', PAL.ink).attr('font-size', 11).attr('font-weight', 600)
       .text(media ? fmt2(e.p.v) : fmt1(e.p.v));
   });
   // leyenda
@@ -824,6 +827,7 @@ function panelEl(cfg) {
       <button class="ib" type="button" data-a="tabla" aria-pressed="false">Tabla</button>
       <button class="ib" type="button" data-a="csv">CSV</button>
       <button class="ib" type="button" data-a="png">PNG</button>
+      ${cfg.tipo === 'puntos' ? '<button class="ib" type="button" data-a="banner" title="PNG de 1584 × 396 (a doble resolución), con título y fuente">Banner</button>' : ''}
       <button class="ib" type="button" data-a="dup">Duplicar</button>
       <button class="ib" type="button" data-a="del" aria-label="Quitar panel">Quitar</button>
     </div></header>
@@ -844,6 +848,7 @@ function panelEl(cfg) {
     }
     if (a === 'csv') exportarCSV(el);
     if (a === 'png') exportarPNG(el);
+    if (a === 'banner') exportarBanner(el);
   });
   return el;
 }
@@ -968,10 +973,14 @@ function exportarCSV(el) {
   lines.push('', q(`${tituloPanel(cfg, res)}. ${metaPanel(cfg, res)}`), ...notasR, q('Fuente: CIS, barómetros mensuales (microdatos). Elaboración: Barómetro a barómetro.'));
   descargar(slug(tituloPanel(cfg, res)) + '.csv', new Blob(['﻿' + lines.join('\n')], { type: 'text/csv;charset=utf-8' }));
 }
+/* PNG del panel a doble resolución: el gráfico (SVG, o el lienzo de una vista en canvas, redibujado a esa escala)
+   con título, metadatos y fuente */
 function exportarPNG(el) {
-  const svg = el.querySelector('.chart svg'); if (!svg || !el._res) return;
+  if (!el._res) return;
+  const svg = el.querySelector('.chart svg'), lienzo = el._res.generico?.lienzo, canvas = el.querySelector('.chart canvas');
+  if (!svg && !(lienzo && canvas)) return;
   const titulo = el.querySelector('h2').textContent, metaT = el.querySelector('.meta').textContent;
-  const W = +svg.getAttribute('width'), H = +svg.getAttribute('height');
+  const W = svg ? +svg.getAttribute('width') : parseFloat(canvas.style.width), H = svg ? +svg.getAttribute('height') : parseFloat(canvas.style.height);
   const fuente = 'Fuente: CIS, barómetros mensuales (microdatos). Elaboración: Barómetro a barómetro.';
   const fT = `600 16px ${PAL.fontD}`, fM = `12px ${PAL.font}`;
   // título, metadatos y fuente parten línea si no caben en el ancho del gráfico
@@ -995,9 +1004,19 @@ function exportarPNG(el) {
   ctx.fillStyle = PAL.ink; ctx.font = fT; lT.forEach((l, i) => ctx.fillText(l, 8, 22 + i * 20));
   ctx.fillStyle = PAL.ink3; ctx.font = fM; lM.forEach((l, i) => ctx.fillText(l, 8, 22 + lT.length * 20 + i * 16));
   lF.forEach((l, i) => ctx.fillText(l, 8, H + top + 20 + i * 16));
+  const pegar = img => { ctx.drawImage(img, 0, top, W, H); cv.toBlob(b => descargar(slug(titulo) + '.png', b)); };
+  if (!svg) return pegar(lienzo(s));
   const img = new Image();
-  img.onload = () => { ctx.drawImage(img, 0, top, W, H); cv.toBlob(b => descargar(slug(titulo) + '.png', b)); };
+  img.onload = () => pegar(img);
   img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(new XMLSerializer().serializeToString(svg));
+}
+/* Banner de una vista que lo ofrece (puntos): 1584 × 396 a doble resolución, con título y fuente dentro */
+async function exportarBanner(el) {
+  const g = el._res?.generico;
+  if (!g || !g.banner) return;
+  const titulo = el.querySelector('h2').textContent;
+  try { descargar(slug(titulo) + '_banner.png', await g.banner(2)); }
+  catch (e) { el.querySelector('.notas').insertAdjacentHTML('beforeend', `<p class="note">No se ha podido generar el banner: ${esc(e.message)}</p>`); }
 }
 
 const grid = $('#grid');
@@ -1093,7 +1112,7 @@ function abrirEditor(cfg) {
 const TIPOS = [
   ['lineas', 'Evolución mensual (líneas)'], ['barras', 'Un barómetro (barras)'], ['comparar', 'Comparar dos barómetros'],
   ['calor', 'Mapa de calor: meses × respuestas'], ['transferencias', 'Transferencias de voto'],
-  ['dispersion', 'Dispersión de grupos'], ['mapa', 'Mapa por comunidades'],
+  ['dispersion', 'Dispersión de grupos'], ['mapa', 'Mapa por comunidades'], ['puntos', 'Cada punto, una entrevista'],
 ];
 const GRUPOS_DISP = [['voto_simpatia', 'Voto + simpatía (electorados)'], ['intencion_voto_r', 'Intención directa de voto'], ['recuerdo_voto', 'Recuerdo de voto'],
   ...CRUCES.filter(([k]) => !['voto_simpatia', 'intencion_voto_r', 'recuerdo_voto'].includes(k)), ['provincia', 'Provincia']];
@@ -1107,6 +1126,8 @@ function ajustarTipo(b) {
   if (t === 'comparar') b.cruce = null;
   if (t === 'dispersion') { b.grupo = b.grupo || 'voto_simpatia'; b.x = b.x || { preg: 'ideologia' }; b.y = b.y || { preg: 'prob_esp', cat: vivienda() }; b.acum = b.acum || 3; }
   if (t === 'mapa') { b.ind = b.ind || { preg: 'prob_esp', cat: vivienda() }; b.acum = b.acum || 6; }
+  // puntos: solo bloques de problemas, sin cruce ni filtro, y a todo el ancho salvo que se diga lo contrario
+  if (t === 'puntos') { if (!BLOQUES_PUNTOS.includes(b.preg)) b.preg = 'prob_per'; b.cruce = null; b.filtro = null; b.bloques = null; b.eje = b.eje === 'ideologia' ? 'ideologia' : 'edad'; if (b.ancho == null) b.ancho = true; }
 }
 function selectorIndicador(pref, ind, titulo) {
   const grupos = [...new Set(PREG.map(p => p.g))];
@@ -1121,9 +1142,10 @@ async function pintarEditor() {
   const b = BORRADOR;
   ORDEN_DEF = { cats: [], gcats: [] };
   const tipo = b.tipo || 'lineas';
+  if (tipo === 'puntos') ajustarTipo(b);   // un panel de puntos puede venir sin pregunta ni eje: valores por defecto
   const ultMes = EST[EST.length - 1].mes;
   const grupos = [...new Set(PREG.map(p => p.g))];
-  const filtroPreg = p => tipo === 'transferencias' ? PARTIDISTAS.includes(p.id) : tipo === 'calor' ? ['cat', 'multi'].includes(preg(p.id).tipo) : true;
+  const filtroPreg = p => tipo === 'transferencias' ? PARTIDISTAS.includes(p.id) : tipo === 'calor' ? ['cat', 'multi'].includes(preg(p.id).tipo) : tipo === 'puntos' ? BLOQUES_PUNTOS.includes(p.id) : true;
   const optPreg = grupos.map(g => { const ps = PREG.filter(p => p.g === g && disponible(preg(p.id)) && filtroPreg(p)); return ps.length ? `<optgroup label="${esc(g)}">${ps.map(p => `<option value="${p.id}"${p.id === b.preg ? ' selected' : ''}>${esc(p.t)}</option>`).join('')}</optgroup>` : ''; }).join('');
   const optCruce = `<option value="">Sin cruce</option>` + CRUCES.filter(([k]) => META.columnas[k] && k !== b.preg).map(([k, t]) => `<option value="${k}"${k === b.cruce ? ' selected' : ''}>${esc(t)}</option>`).join('');
   const optFiltro = `<option value="">Sin filtro</option>` + FILTROS.filter(([k]) => META.columnas[k]).map(([k, t]) => `<option value="${k}"${b.filtro && k === b.filtro.col ? ' selected' : ''}>${esc(t)}</option>`).join('');
@@ -1141,6 +1163,7 @@ async function pintarEditor() {
   const opRec = META.columnas.peso_recuerdo ? chk('f-recuerdo', 'Reponderar por recuerdo de voto (estimación propia: no coincide con el CIS)', b.recuerdo) : '';
   const opAncho = chk('f-ancho', 'Panel a todo el ancho', b.ancho);
   const lista = `<div class="fld full" id="f-cats"><span class="lab">Respuestas</span><p class="hint">Calculando…</p></div>`;
+  const fEje = `<div class="fld"><label for="f-eje">En vertical</label><select id="f-eje"><option value="edad"${b.eje !== 'ideologia' ? ' selected' : ''}>Edad</option><option value="ideologia"${b.eje === 'ideologia' ? ' selected' : ''}>Autoubicación ideológica (1 a 10)</option></select><span class="hint">En horizontal, el mes; cada punto cae al azar dentro del suyo.</span></div>`;
   const secciones = {
     lineas: () => fPreg + fCruce + fFiltro + fPeriodo + lista + `<div class="fld full"><span class="lab">Opciones</span>${opExNR}${opBanda}${opMovil}${opRec}${opAncho}</div>`,
     barras: () => fPreg + fCruce + fFiltro + fMes('f-mes', 'Barómetro', b.mes) + '<div class="fld"></div>' + lista + `<div class="fld full"><span class="lab">Opciones</span>${opExNR}${opBanda}${opRec}${opAncho}</div>`,
@@ -1150,6 +1173,7 @@ async function pintarEditor() {
     dispersion: () => `<div class="fld full"><label for="f-grupo">Cada punto es un grupo de</label><select id="f-grupo">${GRUPOS_DISP.filter(([k]) => META.columnas[k]).map(([k, t]) => `<option value="${k}"${k === b.grupo ? ' selected' : ''}>${esc(t)}</option>`).join('')}</select></div>` +
       selectorIndicador('x', b.x, 'Eje horizontal') + selectorIndicador('y', b.y, 'Eje vertical') + fFiltro + '<div class="fld"></div>' + fMes('f-mes', 'Último barómetro', b.mes) + fAcum + lista + `<div class="fld full"><span class="lab">Opciones</span>${opBanda}${opRec}${opAncho}</div>`,
     mapa: () => selectorIndicador('i', b.ind, 'Indicador') + fFiltro + '<div class="fld"></div>' + fMes('f-mes', 'Último barómetro', b.mes) + fAcum + `<div class="fld full"><span class="lab">Opciones</span>${opExNR}${opRec}${opAncho}</div>`,
+    puntos: () => fPreg + fEje + '<div class="fld"></div>' + fPeriodo + lista + `<div class="fld full"><span class="lab">Opciones</span>${opAncho}</div>`,
   };
   edb.innerHTML = `<div class="fld full"><label for="f-tipo">Tipo de gráfico</label><select id="f-tipo">${TIPOS.map(([k, t]) => `<option value="${k}"${k === tipo ? ' selected' : ''}>${esc(t)}</option>`).join('')}</select></div>` + secciones[tipo]();
   const val = id => $('#' + id)?.value;
@@ -1164,6 +1188,8 @@ async function pintarEditor() {
     if ($('#f-mesA')) { b.mesA = val('f-mesA'); b.mesB = val('f-mesB') === ultMes ? null : val('f-mesB'); }
     if ($('#f-acum')) b.acum = +val('f-acum');
     if ($('#f-grupo')) b.grupo = val('f-grupo');
+    if ($('#f-eje')) b.eje = val('f-eje');
+    if ($('#f-catA')) b.cats = [val('f-catA'), val('f-catB')];
     [['x', 'x'], ['y', 'y'], ['i', 'ind']].forEach(([p, k]) => { if ($(`#f-${p}-preg`)) b[k] = { preg: val(`f-${p}-preg`), cat: val(`f-${p}-cat`) || null }; });
     b.exNR = !!$('#f-exnr')?.checked; b.ancho = !!$('#f-ancho')?.checked;
     if ($('#f-banda')) b.banda = $('#f-banda').checked;
@@ -1219,6 +1245,14 @@ async function pintarEditor() {
       : catsDefecto(resTot);
     ORDEN_DEF.cats = defCats;
     const hintRef = tipo === 'calor' ? 'la media del periodo' : mesRef ? `el valor en ${mesLargo(mesRef)}` : 'el último valor disponible';
+    if (tipo === 'puntos') {
+      // dos respuestas del bloque, cada una en un selector; la configuración saneada aporta las de por defecto
+      const cp = cfgPuntos(b);
+      const opts = sel => orden.filter(id => !NR.has(id)).map(id => `<option value="${esc(id)}"${id === sel ? ' selected' : ''}>${esc(nom(id))}${ref(id) != null ? ' (' + fmtv(ref(id)) + ')' : ''}</option>`).join('');
+      box.innerHTML = `<span class="lab">Dos respuestas a resaltar</span><div class="row"><select id="f-catA" aria-label="Primera respuesta">${opts(cp.cats[0])}</select><select id="f-catB" aria-label="Segunda respuesta">${opts(cp.cats[1])}</select></div>` +
+        `<span class="hint">Entre paréntesis, ${hintRef} de la serie ponderada. Quien cita las dos se dibuja en un tercer color. Los puntos no se ponderan: no es una estimación.</span>`;
+      return;
+    }
     if (tipo === 'lineas' && b.cruce) {
       const c1 = b.cat1 && res.ids.includes(b.cat1) ? b.cat1 : catsDefecto(res)[0];
       ORDEN_DEF.gcats = gruposDefecto(res);
@@ -1311,7 +1345,8 @@ $('#ed-ok').addEventListener('click', () => {
   if (b.desde && b.hasta && b.desde > b.hasta) return err('El mes inicial es posterior al final.');
   if (b.tipo === 'barras' && preg(b.preg)?.tipo === 'cat' && sinSolapes(cats, b).length < cats.length)
     return err('En las barras apiladas cada respuesta cuenta una vez: no marques a la vez un bloque y alguna de sus respuestas.');
-  b.cats = $('#chk-cats') ? cats : null;
+  if ($('#f-catA') && $('#f-catA').value === $('#f-catB').value) return err('Elige dos respuestas distintas.');
+  b.cats = $('#chk-cats') ? cats : $('#f-catA') ? [$('#f-catA').value, $('#f-catB').value] : null;
   b.gcats = $('#chk-grupos') ? gcats : null;
   b.cat1 = $('#f-cat1')?.value || null;
   if (EDITANDO) { const i = PANELES.findIndex(p => p.id === EDITANDO); PANELES[i] = { ...b, id: EDITANDO }; }

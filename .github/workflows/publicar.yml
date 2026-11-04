@@ -27,7 +27,8 @@ concurrency:
 
 jobs:
   construir:
-    runs-on: ubuntu-latest
+    # Versión fija: desde noviembre de 2026 ubuntu-latest es Ubuntu 26.04, y Playwright 1.56 no instala Chromium ahí
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
 

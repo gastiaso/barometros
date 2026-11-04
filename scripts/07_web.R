@@ -52,6 +52,12 @@ for (k in setdiff(names(d), c("estudio", "mes", retirar))) {
 if (VEDA) {
   meta$conceptos <- meta$conceptos[setdiff(names(meta$conceptos), retirar)]
 }
+# de la situación de cada pregunta en cada estudio, la web solo usa las notas de los estudios B: el resto se queda en
+# la descarga completa de los metadatos (menos peso al arrancar)
+meta$conceptos <- lapply(meta$conceptos, \(k) {
+  if (!is.null(k$estudios)) k$estudios <- Filter(\(x) identical(x$nivel, "B") && !is.null(x$nota), k$estudios)
+  k
+})
 # enunciados de cada pregunta (versiones con su periodo), para la nota metodológica
 # Se limpian restos de maquetación del cuestionario, las tres menciones de problemas van en una sola ficha, la
 # nacionalidad queda en su versión con texto completo y se añaden las preguntas sin enunciado extraído

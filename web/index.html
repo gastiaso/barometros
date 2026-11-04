@@ -81,17 +81,17 @@
   </header>
 
   <nav class="tabs" role="tablist" aria-label="Secciones">
-    <button type="button" role="tab" data-tab="que" aria-selected="true"><span class="lg">¿Qué es esto?</span><span class="ct" aria-hidden="true">Qué es</span></button>
-    <button type="button" role="tab" data-tab="series" aria-selected="false">Series</button>
-    <button type="button" role="tab" data-tab="meth" aria-selected="false"><span class="lg">Nota metodológica</span><span class="ct" aria-hidden="true">Método</span></button>
-    <button type="button" role="tab" data-tab="datos" aria-selected="false"><span class="lg">Datos y descargas</span><span class="ct" aria-hidden="true">Datos</span></button>
+    <button type="button" role="tab" id="tab-que" aria-controls="view-que" data-tab="que" aria-selected="true"><span class="lg">¿Qué es esto?</span><span class="ct" aria-hidden="true">Qué es</span></button>
+    <button type="button" role="tab" id="tab-series" aria-controls="view-series" data-tab="series" aria-selected="false">Series</button>
+    <button type="button" role="tab" id="tab-meth" aria-controls="view-meth" data-tab="meth" aria-selected="false"><span class="lg">Nota metodológica</span><span class="ct" aria-hidden="true">Método</span></button>
+    <button type="button" role="tab" id="tab-datos" aria-controls="view-datos" data-tab="datos" aria-selected="false"><span class="lg">Datos y descargas</span><span class="ct" aria-hidden="true">Datos</span></button>
   </nav>
 
   <noscript><p class="aviso">Esta web calcula las series en el navegador y necesita JavaScript. Los microdatos armonizados de los barómetros del CIS (2021-2026) se pueden descargar en formato Parquet en <a href="datos/descargas/barometros_armonizados.parquet">datos/descargas</a>; la documentación está en <a href="https://github.com/gastiaso/barometros">GitHub</a>.</p></noscript>
 
   <div class="aviso" id="aviso-veda" hidden><b>Periodo de prohibición de sondeos.</b> Del 24 al 29 de noviembre de 2026 no se publican series de intención de voto, simpatía, cercanía, preferencia como presidente ni valoración de líderes y ministros. El art. 69.7 de la LOREG prohíbe difundir sondeos electorales en los cinco días anteriores a la votación (del 24 al 28); el día 29 siguen retiradas. El resto de series sigue disponible.</div>
 
-  <div id="view-que">
+  <div id="view-que" role="tabpanel" aria-labelledby="tab-que">
     <section class="qe-hero">
       <div class="qe-intro">
         <p class="qe-kicker">Cómo funciona, en tres minutos</p>
@@ -196,7 +196,7 @@
     </section>
   </div>
 
-  <div id="view-series" hidden>
+  <div id="view-series" role="tabpanel" aria-labelledby="tab-series" hidden>
     <details class="resumen" id="resumen" hidden></details>
     <div class="addbar">
       <span class="lab">Añadir:</span>
@@ -205,11 +205,11 @@
       <button class="btn" type="button" id="b-link">Copiar enlace a estos paneles</button>
       <button class="btn" type="button" id="b-reset">Restablecer paneles</button>
     </div>
-    <main class="grid" id="grid" aria-live="polite"></main>
+    <main class="grid" id="grid"></main>
     <p class="foot">Porcentajes ponderados sobre el total de entrevistados que reciben la pregunta. Los puntos con menos de 50 entrevistas sin ponderar no se muestran. La banda sombreada es el margen de error al 95 %. Las líneas verticales marcan rupturas de serie: las de tipo C (en color) impiden comparar a ambos lados y las de tipo B indican un cambio con regla de armonización. Detalle en la <a href="#" data-goto="meth">nota metodológica</a>.</p>
   </div>
 
-  <div id="view-meth" hidden>
+  <div id="view-meth" role="tabpanel" aria-labelledby="tab-meth" hidden>
     <div class="meth">
       <nav aria-label="Índice de la nota metodológica"><ol>
         <li><a href="#m-objeto">Objeto y cobertura</a></li>
@@ -291,7 +291,7 @@
     </div>
   </div>
 
-  <div id="view-datos" hidden>
+  <div id="view-datos" role="tabpanel" aria-labelledby="tab-datos" hidden>
     <div class="mbody">
       <section><h2>Datos y descargas</h2>
         <p>El fichero armonizado contiene una fila por entrevista y una columna por pregunta armonizada, con la ponderación de cada estudio. Formato Parquet: se abre en R (<code>arrow::read_parquet()</code>), Python (<code>pandas.read_parquet()</code>) o DuckDB.</p>

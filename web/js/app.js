@@ -834,7 +834,7 @@ function panelEl(cfg) {
     const i = PANELES.findIndex(p => p.id === cfg.id);
     if (a === 'edit') abrirEditor(PANELES[i]);
     if (a === 'dup') { PANELES.splice(i + 1, 0, { ...structuredClone(PANELES[i]), id: nuevoId() }); guardar(); renderTodo(); }
-    if (a === 'del') { PANELES.splice(i, 1); guardar(); renderTodo(); }
+    if (a === 'del') { const [q] = PANELES.splice(i, 1); guardar(); renderTodo(); avisoDeshacer(q, i); }
     if (a === 'tabla') { const t = el.querySelector('.tabla'); t.hidden = !t.hidden; ev.target.setAttribute('aria-pressed', String(!t.hidden)); }
     if (a === 'rupt') {
       const p = PANELES[i]; p.sinRupturas = !p.sinRupturas; guardar();
@@ -930,14 +930,24 @@ function descargar(nombre, blob) {
   document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
 }
 const slug = s => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '').slice(0, 60);
+/* Rupturas que explican las marcas R del panel, para el CSV y el PNG */
+function rupturasPanel(el) {
+  const r = el._res; if (!r) return [];
+  if (r.out && r.out.rup) return [...new Map(r.out.rup.map(x => [x.ruptura_id, x])).values()]
+    .map(x => `${x.ruptura_id} (${mesCorto(x.m)}, tipo ${x.tipo}): ${breveRuptura(x.descripcion)}`);
+  if (r.generico && r.cfg.tipo === 'calor') return r.generico.notas;
+  return [];
+}
 function exportarCSV(el) {
   if (!el._res) return;
-  const q = s => `"${String(s).replace(/"/g, '""')}"`;
+  // entre comillas; si empieza por =, +, - o @, con un apóstrofo delante para que la hoja de cálculo no lo ejecute
+  const q = s => { let t = String(s); if (/^[=+\-@\t\r]/.test(t)) t = "'" + t; return `"${t.replace(/"/g, '""')}"`; };
+  const notasR = rupturasPanel(el).map(q);
   const titulo = el.querySelector('h2').textContent, metaT = el.querySelector('.meta').textContent;
   if (el._res.generico) {
     const G = el._res.generico.csv;
     const cel = v => v == null || (typeof v === 'number' && !isFinite(v)) ? '' : typeof v === 'number' ? (Number.isInteger(v) ? String(v) : v.toFixed(3)) : typeof v === 'boolean' ? (v ? 'sí' : 'no') : q(v);
-    const lines = [G.cab.join(','), ...G.filas.map(f => f.map(cel).join(',')), '', q(`${titulo}. ${metaT}`), q('Fuente: CIS, barómetros mensuales (microdatos). Elaboración: Barómetro a barómetro.')];
+    const lines = [G.cab.join(','), ...G.filas.map(f => f.map(cel).join(',')), '', q(`${titulo}. ${metaT}`), ...notasR, q('Fuente: CIS, barómetros mensuales (microdatos). Elaboración: Barómetro a barómetro.')];
     return descargar(slug(titulo) + '.csv', new Blob(['\ufeff' + lines.join('\n')], { type: 'text/csv;charset=utf-8' }));
   }
   const { out, res, cfg } = el._res;
@@ -955,7 +965,7 @@ function exportarCSV(el) {
     lines = [['mes', 'estudio', 'serie', 'valor', 'margen_inferior', 'margen_superior', 'n_base'].join(',')];
     out.ser.forEach(s => s.pts.forEach((p, i) => lines.push([res.filas[i].e.mes, res.filas[i].e.estudio, q(s.label), num(p.v), num(p.lo), num(p.hi), p.n ?? ''].join(','))));
   }
-  lines.push('', q(`${tituloPanel(cfg, res)}. ${metaPanel(cfg, res)}`), q('Fuente: CIS, barómetros mensuales (microdatos). Elaboración: Barómetro a barómetro.'));
+  lines.push('', q(`${tituloPanel(cfg, res)}. ${metaPanel(cfg, res)}`), ...notasR, q('Fuente: CIS, barómetros mensuales (microdatos). Elaboración: Barómetro a barómetro.'));
   descargar(slug(tituloPanel(cfg, res)) + '.csv', new Blob(['﻿' + lines.join('\n')], { type: 'text/csv;charset=utf-8' }));
 }
 function exportarPNG(el) {
@@ -974,7 +984,10 @@ function exportarPNG(el) {
       return ls;
     }, []);
   };
-  const lT = partir(titulo, fT), lM = partir(metaT, fM), lF = partir(fuente, fM);
+  const lT = partir(titulo, fT), lM = partir(metaT, fM);
+  // al pie, qué es cada marca R del gráfico (solo las que se dibujan)
+  const rupt = el._res.cfg.sinRupturas ? [] : rupturasPanel(el);
+  const lF = [...rupt.flatMap(t => partir(t, fM)), ...partir(fuente, fM)];
   const s = 2, top = 14 + lT.length * 20 + lM.length * 16 + 8, bot = lF.length * 16 + 18;
   const cv = document.createElement('canvas'); cv.width = W * s; cv.height = (H + top + bot) * s;
   const ctx = cv.getContext('2d'); ctx.scale(s, s);
@@ -994,7 +1007,26 @@ let IO_PANELES = null;
 function pintarPanel(el) {
   el.classList.remove('pendiente'); el._pintado = true;
   const cfg = PANELES.find(p => p.id === el.dataset.id);
-  if (cfg) renderPanel(el, cfg);
+  if (cfg) renderPanel(el, cfg).then(() => {
+    const t = el.querySelector('h2').textContent, q = el.querySelector('[data-a=del]');
+    if (q && t) q.setAttribute('aria-label', 'Quitar el panel «' + t + '»');
+  });
+}
+/* Quitar un panel se puede deshacer durante unos segundos */
+let DESHACER = null;
+function avisoDeshacer(cfg, i) {
+  let bar = $('#deshacer');
+  if (!bar) {
+    bar = document.createElement('div'); bar.id = 'deshacer'; bar.className = 'deshacer'; bar.setAttribute('role', 'status');
+    document.body.appendChild(bar);
+  }
+  bar.innerHTML = 'Panel quitado. <button class="btn" type="button">Deshacer</button>';
+  bar.hidden = false;
+  clearTimeout(DESHACER);
+  bar.querySelector('button').addEventListener('click', () => {
+    PANELES.splice(Math.min(i, PANELES.length), 0, cfg); guardar(); renderTodo(); bar.hidden = true; clearTimeout(DESHACER);
+  });
+  DESHACER = setTimeout(() => { bar.hidden = true; }, 8000);
 }
 function renderTodo() {
   if (IO_PANELES) IO_PANELES.disconnect();
@@ -1190,7 +1222,7 @@ async function pintarEditor() {
     if (tipo === 'lineas' && b.cruce) {
       const c1 = b.cat1 && res.ids.includes(b.cat1) ? b.cat1 : catsDefecto(res)[0];
       ORDEN_DEF.gcats = gruposDefecto(res);
-      box.innerHTML = `<span class="lab">Respuesta</span><select id="f-cat1">${orden.map(id => `<option value="${esc(id)}"${id === c1 ? ' selected' : ''}>${esc(nom(id))}${ref(id) != null ? ' (' + fmtv(ref(id)) + ')' : ''}</option>`).join('')}</select>` +
+      box.innerHTML = `<span class="lab">Respuesta</span><select id="f-cat1" aria-label="Respuesta">${orden.map(id => `<option value="${esc(id)}"${id === c1 ? ' selected' : ''}>${esc(nom(id))}${ref(id) != null ? ' (' + fmtv(ref(id)) + ')' : ''}</option>`).join('')}</select>` +
         `<span class="lab" style="margin-top:8px">Grupos de ${esc(CRUCE_DE[b.cruce].toLowerCase())} (hasta ${MAX_SERIES})</span>` +
         listaChk('chk-grupos', ordenMeta(b.cruce, res.glev.filter(id => id !== 'NP')).map(id => ({ id, nom: etiqueta(b.cruce, id) })), new Set(b.gcats && b.gcats.length ? b.gcats : gruposDefecto(res)));
     } else {
@@ -1363,6 +1395,11 @@ async function pintarResumen() {
   box.hidden = false;
   box.open = abierto;
   box.innerHTML = `<summary><span class="rs-t">Qué cambia en el último barómetro</span><span class="rs-m">${esc(mesLargo(ult.mes))} frente a ${esc(mesLargo(ant.mes))}</span></summary><p class="note">Calculando…</p>`;
+  // cerrado, no se calcula (ni descarga sus columnas) hasta que se abre
+  await new Promise(ok => {
+    if (box.open) return ok();
+    box.addEventListener('toggle', function abrir() { if (box.open) { box.removeEventListener('toggle', abrir); ok(); } });
+  });
   box.addEventListener('toggle', () => { try { localStorage.setItem('bet-resumen', box.open ? 'abierto' : 'cerrado'); } catch (e) { /* */ } });
   let rs;
   try { rs = (await Promise.all(RESUMEN.map(cambiosUltimo))).filter(Boolean); }
@@ -1404,10 +1441,13 @@ function tema(v) {
 const VISTAS_WEB = ['que', 'series', 'meth', 'datos'];
 let GRID_LISTO = false;
 function mostrarVista(t) {
-  document.querySelectorAll('.tabs button').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === t)));
+  document.querySelectorAll('.tabs button').forEach(b => { const on = b.dataset.tab === t; b.setAttribute('aria-selected', String(on)); b.tabIndex = on ? 0 : -1; });
   VISTAS_WEB.forEach(v => { const el = $('#view-' + v); if (el) el.hidden = v !== t; });
 }
-function pestana(t) {
+/* La pestaña va en la dirección (#que, #series, #meth, #datos): el botón atrás vuelve a la anterior */
+const vistaDeHash = () => { const h = location.hash.slice(1); return h.startsWith('p=') ? 'series' : VISTAS_WEB.includes(h) ? h : null; };
+function pestana(t, historial = true) {
+  if (historial && vistaDeHash() !== t) history.pushState(null, '', '#' + t);
   mostrarVista(t);
   if (!META) return;
   if (t === 'series') { if (GRID_LISTO) rerender(); else { GRID_LISTO = true; leerPaleta(); renderTodo(); } pintarResumen(); }
@@ -1425,14 +1465,27 @@ async function iniciar() {
   cargarPaneles();
   if (typeof iniciarGuia === 'function') iniciarGuia();
   pintarMetodologia();
-  pestana(VISTAS_WEB.find(v => $('#view-' + v) && !$('#view-' + v).hidden) || ($('#view-que') ? 'que' : 'series'));
+  pestana(VISTAS_WEB.find(v => $('#view-' + v) && !$('#view-' + v).hidden) || ($('#view-que') ? 'que' : 'series'), false);
 }
 
 document.querySelectorAll('#tema button').forEach(b => b.addEventListener('click', () => tema(b.dataset.v)));
 document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => pestana(b.dataset.tab)));
+// flechas, Inicio y Fin entre pestañas
+$('.tabs').addEventListener('keydown', ev => {
+  const bs = [...document.querySelectorAll('.tabs button')], i = bs.indexOf(document.activeElement);
+  if (i < 0) return;
+  const j = { ArrowRight: (i + 1) % bs.length, ArrowLeft: (i - 1 + bs.length) % bs.length, Home: 0, End: bs.length - 1 }[ev.key];
+  if (j == null) return;
+  ev.preventDefault(); bs[j].focus(); pestana(bs[j].dataset.tab);
+});
+addEventListener('popstate', () => { const t = vistaDeHash() || 'que'; if (META) pestana(t, false); else mostrarVista(t); });
 document.querySelectorAll('[data-goto]').forEach(a => a.addEventListener('click', ev => { ev.preventDefault(); pestana(a.dataset.goto); scrollTo(0, 0); }));
 $('#b-add').addEventListener('click', () => abrirEditor(null));
-$('#b-reset').addEventListener('click', () => { PANELES = defecto().map(p => ({ ...p, id: nuevoId() })); try { localStorage.removeItem(CLAVE); } catch (e) { /* */ } history.replaceState(null, '', location.pathname); renderTodo(); });
+$('#b-reset').addEventListener('click', () => {
+  if (!confirm('¿Volver a los paneles iniciales? Se pierden los paneles actuales.')) return;
+  PANELES = defecto().map(p => ({ ...p, id: nuevoId() })); try { localStorage.removeItem(CLAVE); } catch (e) { /* */ }
+  history.replaceState(null, '', location.pathname + '#series'); renderTodo();
+});
 $('#b-link').addEventListener('click', async ev => {
   const url = location.origin + location.pathname + '#p=' + b64e(JSON.stringify(PANELES.map(limpio)));
   history.replaceState(null, '', url);
@@ -1441,6 +1494,6 @@ $('#b-link').addEventListener('click', async ev => {
 });
 matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', rerender);
 let rto; addEventListener('resize', () => { clearTimeout(rto); rto = setTimeout(rerender, 200); });
-// los enlaces a paneles (#p=…) y #series entran directamente en el explorador
-if (/^#(p=|series$)/.test(location.hash)) mostrarVista('series');
+// los enlaces a paneles (#p=…) y a una pestaña (#series, #meth…) entran directamente en ella
+if (vistaDeHash()) mostrarVista(vistaDeHash());
 iniciar();

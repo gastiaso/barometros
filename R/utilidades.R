@@ -34,9 +34,13 @@ relacionadas <- function(a, b) {
   1 - utils::adist(a, b)[1, 1] / max(nchar(a), nchar(b)) >= 0.9
 }
 
+# Etiqueta normalizada sin la marca de instrucción al entrevistador «(NO LEER)», que en algunas variables precede a la
+# no respuesta («(NO LEER) No recuerda» en PARTICIPACIONG1 de 3420)
+norm_sin_instruccion <- function(x) sub("^no leer ", "", norm_etiqueta(x))
+
 # El código 0 (y -99) es siempre «no procede»: en 3502 (INTENCIONGALTER) el CIS lo etiqueta «N.C.» por error.
 tipo_no_respuesta <- function(etiqueta, codigo) {
-  e <- norm_etiqueta(ifelse(is.na(etiqueta), "", etiqueta))
+  e <- norm_sin_instruccion(ifelse(is.na(etiqueta), "", etiqueta))
   dplyr::case_when(
     codigo %in% c(0, -99) ~ "NP",
     grepl("^(n p|no procede)", e) ~ "NP",
@@ -57,7 +61,7 @@ valores_sav <- function(x) {
   decl <- v %in% attr(x, "na_values", exact = TRUE)
   rng <- attr(x, "na_range", exact = TRUE)
   if (!is.null(rng)) decl <- decl | (!is.na(v) & v >= rng[1] & v <= rng[2])
-  nr <- decl | (!is.na(et) & grepl(RX_NO_RESPUESTA, norm_etiqueta(et)))
+  nr <- decl | (!is.na(et) & grepl(RX_NO_RESPUESTA, norm_sin_instruccion(et)))
   tibble::tibble(codigo = v, etiqueta = et, nr = nr)
 }
 

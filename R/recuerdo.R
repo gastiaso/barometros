@@ -9,7 +9,8 @@
 #    blanco y nulo), con las cuotas sobre votantes de la elección. Quien votó pero no recuerda a quién no entra aquí;
 #  - sexo, grupo de edad y nivel de estudios, con la distribución que da el propio peso del CIS, para que el ajuste
 #    por recuerdo no la altere.
-# La referencia es noviembre de 2019 hasta septiembre de 2023 y julio de 2023 desde octubre (R09).
+# La referencia es noviembre de 2019 hasta agosto de 2023 y julio de 2023 desde septiembre de 2023 (R09): el barómetro
+# postelectoral de septiembre (3420) toma el recuerdo y la participación de su módulo postelectoral, que ya preguntan por el 23J.
 # Hasta oct-2026 el margen de recuerdo era uno solo (participación y partidos) y excluía a quien no recordaba o no
 # contestaba; como casi todos ellos votaron, la abstención sobre el total quedaba por debajo de la real.
 
@@ -136,7 +137,7 @@ ponderar_recuerdo <- function(d, resultados) {
   diag <- list()
   for (e in unique(d$estudio)) {
     i <- which(d$estudio == e)
-    el <- if (d$mes[i[1]] >= "2023-10") "2023-07" else "2019-11"
+    el <- if (d$mes[i[1]] >= "2023-09") "2023-07" else "2019-11"
     margenes <- list(
       list(cel = celda_participacion(d$recuerdo_voto[i], d$participacion_g[i]), obj = obj[[el]]$participacion),
       list(cel = celda_recuerdo(d$recuerdo_voto[i], el), obj = obj[[el]]$voto)

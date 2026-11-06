@@ -13,6 +13,11 @@ test_that("los códigos 0 y -99 son siempre no procede, aunque el CIS los etique
   expect_equal(tipo_no_respuesta(c("N.C.", "N.C.", "N.S."), c(0, -99, 99)), c("NP", "NP", "NS"))
 })
 
+test_that("la instrucción «(NO LEER)» delante de la no respuesta no la esconde (PARTICIPACIONG1 de 3420)", {
+  expect_equal(tipo_no_respuesta(c("(NO LEER) No recuerda", "(NO LEER) N.C."), c(8, 9)), c("NR", "NC"))
+  expect_equal(norm_sin_instruccion("(NO LEER) No tenía derecho a voto"), "no tenia derecho a voto")
+})
+
 test_that("una etiqueta de no respuesta no reconocida cuenta como NC y una vacía también", {
   expect_equal(tipo_no_respuesta(c("Sin respuesta", NA), c(99, 99)), c("NC", "NC"))
 })

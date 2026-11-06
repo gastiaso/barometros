@@ -103,7 +103,7 @@ async function vistaTransferencias(host, cfg) {
   const nRow = gid => acumular(res, idxs, res.glev.indexOf(gid), cols[0]).n || 0;
   const rowsAll = res.glev.filter(id => id !== 'NP' && !NR.has(id));
   const rows = (cfg.gcats && cfg.gcats.length ? cfg.gcats.filter(id => res.glev.includes(id)) : filasDefectoTransf(rowsAll, nRow)).slice(0, MAX_SERIES);
-  const ref = res.filas[idxs[0]].e.mes >= '2023-10' ? 'generales de 2023' : 'generales de 2019';
+  const ref = res.filas[idxs[0]].e.mes >= '2023-09' ? 'generales de 2023' : 'generales de 2019';
   const celdas = rows.map(gid => {
     const g = res.glev.indexOf(gid);
     const vals = cols.map(cid => acumular(res, idxs, g, cid));
@@ -166,7 +166,7 @@ async function vistaTransferencias(host, cfg) {
     titulo: `Transferencias de voto: recuerdo (${ref}) y ${P.t.toLowerCase()}`,
     meta: `% de cada fila. ${per}${cfg.filtro ? '. Solo ' + etiqueta(cfg.filtro.col, cfg.filtro.val) : ''}`,
     notas: ['Cada fila suma 100 %. Recuadro: mismo partido en el recuerdo y en la respuesta actual.',
-      ref === 'generales de 2023' && idxs.length ? '' : 'Antes de octubre de 2023 el recuerdo se refiere a las generales de noviembre de 2019 (R09).',
+      ref === 'generales de 2023' && idxs.length ? '' : 'Antes de septiembre de 2023 el recuerdo se refiere a las generales de noviembre de 2019 (R09).',
       'Se acumulan barómetros consecutivos para ganar muestra; la acumulación no cruza rupturas de tipo C.'].filter(Boolean),
     tabla: { cab: ['Recuerdo de voto', ...cols.map(colLab), 'Resto', 'Base (n)'], filas: filasT },
     csv: { cab: ['recuerdo', 'respuesta', 'valor', 'margen_inferior', 'margen_superior', 'n_base'],

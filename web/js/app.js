@@ -412,7 +412,13 @@ function ventanaMovil(res, cfg, i) {
 function series(res, cfg) {
   const { P, filas, glev } = res;
   const punto = cfg.movil
-    ? (f, g, id) => { const i = filas.indexOf(f); const w = ventanaMovil(res, cfg, i); const pt = acumular(res, w.idxs, g, id); if (pt.v != null && !w.centrada) pt.prov = true; return pt; }
+    ? (f, g, id) => {
+      // sin la respuesta en el propio mes no hay punto (una respuesta nueva, como Sumar en abr-2023, no se anticipa
+      // con la ventana centrada); la ventana solo suaviza meses que la tienen
+      const propio = puntoDe(res, f, g, id);
+      if (propio.v == null && !propio.omit) return { v: null, n: 0 };
+      const i = filas.indexOf(f); const w = ventanaMovil(res, cfg, i); const pt = acumular(res, w.idxs, g, id); if (pt.v != null && !w.centrada) pt.prov = true; return pt;
+    }
     : (f, g, id) => puntoDe(res, f, g, id);
   const conc = P.tipo === 'multi' ? P.cols[0] : P.cols[0];
   let out;

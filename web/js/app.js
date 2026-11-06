@@ -1151,6 +1151,7 @@ function rerender() {
   leerPaleta();
   grid.querySelectorAll('.panel').forEach(el => { if (el._pintado) pintarPanel(el); });
   if (typeof repintarGuia === 'function') repintarGuia();
+  if (typeof estRepintar === 'function' && !$('#view-est').hidden) estRepintar();
 }
 
 /* ================= estado ================= */
@@ -1604,7 +1605,7 @@ function tema(v) {
 /* La web entra por «¿Qué es esto?» la primera vez; cuando ya se ha visto la pestaña de series en este navegador, entra
    directamente en ella (la guía sigue a un clic). Los paneles del explorador no se pintan (ni descargan sus columnas)
    hasta que se abre la pestaña de series. */
-const VISTAS_WEB = ['que', 'series', 'meth', 'datos'];
+const VISTAS_WEB = ['que', 'series', 'est', 'meth', 'datos'];
 const CLAVE_GUIA = 'bet-guia';
 const guiaVista = () => { try { return localStorage.getItem(CLAVE_GUIA) === 'vista'; } catch (e) { return false; } };
 let GRID_LISTO = false;
@@ -1612,14 +1613,15 @@ function mostrarVista(t) {
   document.querySelectorAll('.tabs button').forEach(b => { const on = b.dataset.tab === t; b.setAttribute('aria-selected', String(on)); b.tabIndex = on ? 0 : -1; });
   VISTAS_WEB.forEach(v => { const el = $('#view-' + v); if (el) el.hidden = v !== t; });
 }
-/* La pestaña va en la dirección (#que, #series, #meth, #datos): el botón atrás vuelve a la anterior */
-const vistaDeHash = () => { const h = location.hash.slice(1); return h.startsWith('p=') || PRESETS[h] ? 'series' : VISTAS_WEB.includes(h) ? h : null; };
+/* La pestaña va en la dirección (#que, #series, #est, #meth, #datos): el botón atrás vuelve a la anterior */
+const vistaDeHash = () => { const h = location.hash.slice(1); return h.startsWith('p=') || PRESETS[h] ? 'series' : h.startsWith('est=') ? 'est' : VISTAS_WEB.includes(h) ? h : null; };
 function pestana(t, historial = true) {
   if (historial && vistaDeHash() !== t) history.pushState(null, '', '#' + t);
   mostrarVista(t);
   if (!META) return;
   if (t === 'series') { try { localStorage.setItem(CLAVE_GUIA, 'vista'); } catch (e) { /* */ } if (GRID_LISTO) rerender(); else { GRID_LISTO = true; leerPaleta(); renderTodo(); } pintarResumen(); }
   if (t === 'que') repintarGuia();
+  if (t === 'est' && typeof pintarEstimacion === 'function') pintarEstimacion();
 }
 
 async function iniciar() {

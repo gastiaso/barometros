@@ -227,4 +227,42 @@ dialog::backdrop{background:rgba(10,12,14,.45)}
 #m-rupt-tabla td:nth-child(5){min-width:30ch}
 @media (max-width:900px){.meth{grid-template-columns:minmax(0,1fr)}.meth nav{position:static;background:var(--surface);border:1px solid var(--line);padding:12px 14px}}
 @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+/* Construye tu estimación */
+.est{display:flex;flex-direction:column;gap:16px}
+.est-cab{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--acc);padding:18px 22px}
+.est-cab h1{font-size:clamp(22px,2.8vw,30px);margin-bottom:10px}
+.est-cab p{margin:0 0 8px;max-width:80ch;font-size:14.5px}
+.est-atajos{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.est-atajos .btn[aria-pressed="true"]{background:var(--chip-on);color:var(--chip-on-ink);border-color:var(--chip-on)}
+.est-mandos{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media (max-width:900px){.est-mandos{grid-template-columns:minmax(0,1fr)}}
+.est-dim{border:1px solid var(--line);background:var(--surface);margin:0;padding:10px 12px 12px;min-width:0;display:flex;flex-direction:column;gap:6px}
+.est-dim legend{font-family:var(--font-d);font-weight:600;text-transform:uppercase;letter-spacing:.04em;font-size:13px;padding:0 4px}
+.est-dim.pendiente{border-color:var(--acc)}
+.est-dim.pendiente legend{color:var(--acc)}
+.est-dim .seg button{font-size:13px;text-align:left}
+.est-aviso{color:var(--acc)}
+.est-panel{background:var(--surface);border:1px solid var(--line);padding:14px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.est-panel h2{font-family:var(--font-d);font-size:17px;font-weight:600;margin:0}
+.est-panel .meta{margin:0;font-size:12.5px;color:var(--ink3)}
+.est-partidos{display:flex;flex-wrap:wrap;gap:4px}
+.est-chip{border:1px solid var(--line2);background:transparent;color:var(--ink3);padding:3px 8px;font-size:12.5px;cursor:pointer;display:inline-flex;align-items:center;gap:5px}
+.est-chip[aria-pressed="true"]{color:var(--ink);background:var(--chip);border-color:var(--ink3)}
+.est-chip[aria-pressed="false"] .sw{opacity:.35}
+.est-chip .sw,.est-t .sw{display:inline-block;width:10px;height:10px;margin-right:6px;vertical-align:-1px}
+.est-acciones{display:flex;gap:4px;justify-content:flex-end}
+.est-mes h3,.est-contraste h3{font-family:var(--font-d);font-size:16px;font-weight:600;text-transform:uppercase;letter-spacing:.03em;margin:0 0 8px}
+.est-mes h3 select{font-family:var(--font-b);font-size:14px;text-transform:none;letter-spacing:0}
+.est-t{border-collapse:collapse;font-size:13.5px;min-width:420px}
+.est-t th{font-weight:600;text-align:left;border-bottom:1px solid var(--line2);padding:5px 10px 5px 0;font-size:12.5px;color:var(--ink2)}
+.est-t td{border-bottom:1px solid var(--line);padding:5px 10px 5px 0}
+.est-t td.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.est-mes,.est-contraste,.est-ficha{background:var(--surface);border:1px solid var(--line);padding:14px}
+.est-mes .note,.est-contraste .note{margin-top:8px;max-width:90ch}
+.est-ficha summary{font-family:var(--font-d);font-weight:600;text-transform:uppercase;letter-spacing:.03em;cursor:pointer}
+.est-dl{margin:10px 0 0;display:grid;grid-template-columns:160px minmax(0,1fr);gap:6px 14px;font-size:13.5px}
+.est-dl dt{font-weight:600}
+.est-dl dd{margin:0;max-width:85ch}
+.est-dl ul{margin:0;padding-left:18px}
+@media (max-width:620px){.est-dl{grid-template-columns:minmax(0,1fr)}.est-dl dd{margin-bottom:6px}}
 @media print{body{background:#fff}.addbar,.acts,.tabs,.toolbar{display:none!important}}

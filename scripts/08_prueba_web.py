@@ -5,13 +5,15 @@ columnas de web/datos) cada cifra de inventario/referencias_cis.csv y la compara
   - el valor calculado en R (inventario/validacion_cifras_cis.csv), con una tolerancia de 0,001 (la web guarda los
     pesos en coma flotante de 32 bits);
   - la cifra publicada por el CIS, con la tolerancia de la referencia.
-Comprueba además que los bloques suman lo que suman sus respuestas, unos casos de regresión (REGRESION) y que el
-descompresor alternativo (para navegadores sin DecompressionStream) da los mismos datos.
+Comprueba además que los bloques suman lo que suman sus respuestas, unos casos de regresión (REGRESION), que el
+descompresor alternativo (para navegadores sin DecompressionStream) da los mismos datos y que «Construye tu
+estimación» muestra las cifras de la rejilla (estimacion/rejilla.csv.gz): los cuatro atajos en el último barómetro,
+una muestra del resto y lo que se ve en la tabla. En modo veda comprueba que la sección está retirada.
 
 Uso: python scripts/08_prueba_web.py <raíz del proyecto>   (después de scripts/07_web.R)
 Sale con código 1 si algo no cuadra.
 """
-import asyncio, csv, functools, http.server, os, socketserver, sys, threading
+import asyncio, csv, functools, gzip, http.server, os, socketserver, sys, threading
 
 from playwright.async_api import async_playwright
 
@@ -103,6 +105,48 @@ REGRESION = """async () => {
 }"""
 
 
+ESTIMACION = """async (casos) => {
+  const errores = [];
+  pestana('est');
+  await pintarEstimacion();
+  if (META.veda) {
+    if (!/retirada/.test(document.querySelector('#est-app').textContent)) errores.push('en veda, la estimación no aparece retirada');
+    return errores;
+  }
+  if (!document.querySelector('#est-graf svg')) errores.push('estimación: sin gráfico del rango');
+  for (const c of casos) {
+    if (!ESTIM.est[c.partido] && c.est < 1) continue;   // la web no lleva las candidaturas que nunca llegan al 1 %
+    const mi = ESTIM.meses.indexOf(c.mes);
+    const v = mi < 0 ? null : estVal(ESTIM.est[c.partido] || [], mi, estK(c.cfg));
+    if (v == null || Math.abs(v - c.est) > 0.051) errores.push(`estimación ${JSON.stringify(c.cfg)} ${c.mes} ${c.partido}: web ${v}, rejilla ${c.est}`);
+  }
+  // lo que se ve: cada atajo pinta en la tabla del último barómetro el valor de la rejilla
+  for (const m of Object.keys(ESTIM.presets)) {
+    document.querySelector(`[data-atajo="${m}"]`).click();
+    const fila = [...document.querySelectorAll('#est-tabla tbody tr')].find(tr => tr.cells[0].textContent.trim() === estEtiqueta('PSOE'));
+    const k = estK(ESTIM.presets[m]), esperado = fmt1(estVal(ESTIM.est.PSOE, ESTIM.meses.length - 1, k));
+    if (!fila || fila.cells[1].textContent.trim() !== esperado) errores.push(`atajo ${m}: la tabla no muestra ${esperado} para el PSOE`);
+    if (!document.querySelector('#est-graf svg path')) errores.push(`atajo ${m}: sin gráfico`);
+  }
+  return errores;
+}"""
+
+
+def casos_estimacion():
+    ruta = os.path.join(ROOT, "estimacion", "rejilla.csv.gz")
+    if not os.path.exists(ruta):
+        return []
+    presets = {("simpatia", "todos", "ninguno", "0"), ("simpatia", "todos", "ninguno", "1"),
+               ("intencion", "p9", "scr", "1"), ("intencion", "p9", "regresion", "1")}
+    filas = list(csv.DictReader(gzip.open(ruta, "rt", encoding="utf-8")))
+    ultimo = max(f["mes"] for f in filas)
+    alfa = lambda a: format(float(a), "g")
+    casos = [f for i, f in enumerate(filas)
+             if (f["mes"] == ultimo and (f["base"], f["votante"], f["reparto"], alfa(f["alfa"])) in presets) or i % 997 == 0]
+    return [{"cfg": {"base": f["base"], "votante": f["votante"], "reparto": f["reparto"], "alfa": alfa(f["alfa"])},
+             "mes": f["mes"], "partido": f["partido"], "est": float(f["est"])} for f in casos]
+
+
 async def main():
     refs = [dict(r) for r in csv.DictReader(open(os.path.join(INV, "referencias_cis.csv"), encoding="utf-8"))]
     en_r = {(r["estudio"], r["indicador"]): float(r["calculado"])
@@ -130,6 +174,11 @@ async def main():
                 fallos.append(f"web ≠ CIS en {clave}: web {web:.4f}, CIS {cis}")
         fallos += await pg.evaluate(BLOQUES)
         fallos += await pg.evaluate(REGRESION)
+        casos = casos_estimacion()
+        veda = await pg.evaluate("META.veda")
+        if casos or veda:
+            fallos += await pg.evaluate(ESTIMACION, casos)
+            print("Estimación: retirada (modo veda)" if veda else f"Estimación: {len(casos)} cifras de la rejilla comprobadas")
         # descompresor alternativo: mismas columnas sin DecompressionStream
         ctx = await nav.new_context()
         await ctx.add_init_script("delete window.DecompressionStream;")

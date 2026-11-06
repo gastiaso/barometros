@@ -503,6 +503,13 @@ async function vistaComparar(host, cfg) {
    no es una estimación; la nota del panel mide en vivo cuánto se separa de la serie ponderada. Se dibuja en canvas:
    con más de 200.000 puntos, el SVG no es viable. Semilla fija: la misma configuración da siempre la misma imagen. */
 const PUNTOS_SEMILLA = 7;
+/* Cuántos problemas cita cada persona varía entre barómetros (R30): con más menciones, más puntos de color y más «ambas» */
+function notaMenciones(P, filas) {
+  const k = P.cols[0].startsWith('prob_esp') ? 'menciones_esp' : 'menciones_per';
+  const a = filas[0]?.e.info?.[k], b = filas[filas.length - 1]?.e.info?.[k];
+  if (filas.length < 2 || a == null || b == null || Math.abs(b - a) < 0.1) return '';
+  return `El número de problemas que cita cada persona ${b > a ? 'sube' : 'baja'} en el periodo (${fmt2(+a)} de media en ${mesCorto(filas[0].e.mes)}, ${fmt2(+b)} en ${mesCorto(filas[filas.length - 1].e.mes)}; R30): parte del cambio de color, sobre todo en «ambas», viene de ahí y no de las prioridades.`;
+}
 const PUNTOS_AREA_REF = 1e6;          // píxeles de dispositivo a partir de los cuales se dibuja la muestra igualada completa
 const BLOQUES_PUNTOS = ['prob_per', 'prob_esp'];
 const EJES_PUNTOS = { edad: 'edad', ideologia: 'autoubicación ideológica (1 a 10)' };
@@ -716,6 +723,7 @@ async function vistaPuntos(host, cfg) {
       ? `Sin ponderar, en ${mesLargo(ultimo.e.mes)} ${vA} es el ${fmt1(ultimo.pa)} % de los puntos frente al ${fmt1(ultimo.wa)} % de la serie ponderada, y ${vB}, el ${fmt1(ultimo.pb)} % frente al ${fmt1(ultimo.wb)} %${dif ? `; la mayor diferencia del periodo es de ${signo(dif.d)} puntos (${dif.nom}, ${mesCorto(dif.mes)})` : ''}. Citan ambas el ${fmt1(ambas)} %.`
       : '',
     c.eje === 'edad' ? 'Las edades de 93 años o más se dibujan a la altura de 92.' : `Quien no se sitúa en la escala ideológica (${fmtInt(D.sinEje)} entrevistas del periodo) queda fuera del dibujo.`,
+    notaMenciones(c.P, filas),
   ].filter(Boolean);
   const per = meses.length === 1 ? mesLargo(meses[0].mes) : `${mesCorto(meses[0].mes)} a ${mesCorto(meses[meses.length - 1].mes)}`;
   const nA = `${breve(nomA)} (n)`, nB = `${breve(nomB)} (n)`;

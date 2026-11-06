@@ -894,7 +894,16 @@ function metaPanel(cfg, res) {
   const exn = cfg.exNR && res.unidad !== 'media' ? '. Sin NS/NC en la base' : '';
   const mov = cfg.movil && cfg.tipo !== 'barras' ? '. Media móvil centrada de 3 barómetros: cada punto resume ese barómetro, el anterior y el siguiente (el último, los dos anteriores)' : '';
   const rec = cfg.recuerdo ? '. Pesos ajustados al recuerdo de voto (estimación propia)' : '';
-  return `${ud}. ${per}${fil}${exn}${mov}${rec}${textoBloques(cfg)}${avisoVoto(cfg)}`;
+  return `${ud}. ${per}${fil}${exn}${mov}${rec}${textoMenciones(P, f)}${textoBloques(cfg)}${avisoVoto(cfg)}`;
+}
+/* Las series que suman cualquiera de las tres menciones dependen de cuántas cita cada persona, que varía entre barómetros
+   (R30): se dice cuántas de media en el primer y el último barómetro del panel */
+function textoMenciones(P, f) {
+  if (P.tipo !== 'multi' || f.length < 2) return '';
+  const k = P.cols[0].startsWith('prob_esp') ? 'menciones_esp' : 'menciones_per';
+  const a = f[0].e.info?.[k], b = f[f.length - 1].e.info?.[k];
+  if (a == null || b == null) return '';
+  return `. Menciones por persona: ${fmt2(+a)} de media en ${mesCorto(f[0].e.mes)} y ${fmt2(+b)} en ${mesCorto(f[f.length - 1].e.mes)} (R30)`;
 }
 
 function panelEl(cfg) {
@@ -1461,7 +1470,9 @@ function pintarMetodologia() {
   $('#m-rupt-tabla').innerHTML = `<table><thead><tr><th>Ruptura</th><th>Mes</th><th>Tipo</th><th>Afecta a</th><th>Qué cambia</th><th>Estado</th></tr></thead><tbody>${META.rupturas.map(r => `<tr id="r-${esc(r.ruptura_id)}"><td>${esc(r.ruptura_id)}${r.etiqueta_corta ? `<br><small>${esc(r.etiqueta_corta)}</small>` : ''}</td><td>${esc(r.mes)}</td><td><span class="tipo ${esc(r.tipo)}">${esc(tipos[r.tipo] || r.tipo)}</span></td><td>${esc(r.conceptos_afectados.replace(/,\s*/g, ', '))}</td><td>${esc(r.descripcion)}</td><td>${esc(r.estado)}</td></tr>`).join('')}</tbody></table>`;
   const titulo = id => PREG.find(p => p.id === id)?.t || (META.conceptos[id]?.etiqueta) || id;
   $('#m-preg-fichas').innerHTML = Object.entries(META.enunciados || {}).sort((a, z) => titulo(a[0]).localeCompare(titulo(z[0]), 'es')).map(([id, vs]) => `<div class="ficha"><h4>${esc(titulo(id))}</h4>${vs.map(v => `<p class="per">Versión ${esc(v.version)}: ${esc(mesCorto(v.desde))} a ${esc(mesCorto(v.hasta))}</p><p>${esc(v.enunciado.replace(/\s+\.$/, ''))}</p>`).join('')}</div>`).join('');
-  $('#m-est-tabla').innerHTML = `<table><thead><tr><th>Mes</th><th>Estudio</th><th>Trabajo de campo</th><th>Entrevistas</th><th>Efecto de diseño</th></tr></thead><tbody>${META.estudios.map(e => `<tr><td>${esc(mesCorto(e.mes))}</td><td>${esc(e.estudio)}</td><td>${esc(e.fecha_campo_inicio)} a ${esc(e.fecha_campo_fin)}</td><td class="n">${fmtInt(+e.n)}</td><td class="n">${fmt2(+e.deff)}</td></tr>`).join('')}</tbody></table>`;
+  // menciones medias por persona en las preguntas de problemas (R30), si los metadatos las traen
+  const conMenc = META.estudios.some(e => e.menciones_esp != null);
+  $('#m-est-tabla').innerHTML = `<table><thead><tr><th>Mes</th><th>Estudio</th><th>Trabajo de campo</th><th>Entrevistas</th><th>Efecto de diseño</th>${conMenc ? '<th>Menciones: España</th><th>Menciones: personales</th>' : ''}</tr></thead><tbody>${META.estudios.map(e => `<tr><td>${esc(mesCorto(e.mes))}</td><td>${esc(e.estudio)}</td><td>${esc(e.fecha_campo_inicio)} a ${esc(e.fecha_campo_fin)}</td><td class="n">${fmtInt(+e.n)}</td><td class="n">${fmt2(+e.deff)}</td>${conMenc ? `<td class="n">${fmt2(e.menciones_esp == null ? null : +e.menciones_esp)}</td><td class="n">${fmt2(e.menciones_per == null ? null : +e.menciones_per)}</td>` : ''}</tr>`).join('')}</tbody></table>`;
 }
 
 /* ================= qué cambia en el último barómetro ================= */

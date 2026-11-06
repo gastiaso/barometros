@@ -17,6 +17,28 @@ ETIQUETAS_CORTAS <- list(
   nacionalidad = c("La nacionalidad española" = "Solo española", "La nacionalidad española y otra" = "Española y otra")
 )
 
+# Menciones sustantivas por persona en las preguntas de problemas (hasta tres por bloque), ponderadas con el peso del
+# CIS, por estudio: diagnóstico de la deriva del protocolo de campo (R30). NS/NC/NP, «Ninguno» (PROB_094) y los códigos
+# sin mapa no cuentan como mención. Se publica en inventario/menciones_problemas.csv y, las medias, en metadatos.json.
+PROBLEMA_NINGUNO <- "PROB_094"
+menciones_problemas <- function(d) {
+  sustantiva <- function(x) { x <- as.character(x); !is.na(x) & !x %in% c(names(NO_RESPUESTA), "SIN_MAPA", PROBLEMA_NINGUNO) }
+  resumen <- function(bloque) {
+    cols <- paste0(bloque, "_", 1:3)
+    n <- Reduce(`+`, lapply(cols, \(k) as.integer(sustantiva(d[[k]]))))
+    preguntada <- Reduce(`|`, lapply(cols, \(k) !is.na(d[[k]])))
+    tibble::tibble(estudio = d$estudio, mes = d$mes, w = d$peso, n = n, preguntada = preguntada) |>
+      dplyr::filter(preguntada, !is.na(w)) |>
+      dplyr::group_by(estudio, mes) |>
+      dplyr::summarise(media = round(sum(n * w) / sum(w), 3), tres = round(100 * sum(w[n == 3]) / sum(w), 1),
+                       cero = round(100 * sum(w[n == 0]) / sum(w), 1), .groups = "drop")
+  }
+  esp <- resumen("prob_esp"); per <- resumen("prob_per")
+  names(esp)[3:5] <- c("menciones_esp", "tres_esp", "cero_esp")
+  names(per)[3:5] <- c("menciones_per", "tres_per", "cero_per")
+  dplyr::full_join(esp, per, by = c("estudio", "mes")) |> dplyr::arrange(mes)
+}
+
 construir_metadatos <- function(d, canon, insumos, lecturas) {
   cw <- insumos$crosswalk
   conc <- insumos$conceptos
@@ -99,7 +121,8 @@ construir_metadatos <- function(d, canon, insumos, lecturas) {
     no_respuesta = as.list(NO_RESPUESTA),
     estudios = dplyr::select(est, estudio, mes, titulo, n, deff = deff_kish, fecha_campo_inicio, fecha_campo_fin) |>
       dplyr::mutate(n = as.integer(n), deff = as.numeric(deff)) |>
-      dplyr::left_join(dplyr::transmute(deff_recuerdo(d), estudio = as.character(estudio), deff_recuerdo), by = "estudio"),
+      dplyr::left_join(dplyr::transmute(deff_recuerdo(d), estudio = as.character(estudio), deff_recuerdo), by = "estudio") |>
+      dplyr::left_join(dplyr::transmute(menciones_problemas(d), estudio = as.character(estudio), menciones_esp, menciones_per), by = "estudio"),
     correcciones = correcciones,
     conceptos = conceptos,
     rupturas = insumos$rupturas

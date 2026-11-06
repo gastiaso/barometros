@@ -12,3 +12,5 @@ estimacion/extract/
 estimacion/raw/
 estimacion/historico.parquet
 estimacion/historico_cache.rds
+web/img/tarjeta.png
+web/img/tarjeta.txt

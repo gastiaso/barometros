@@ -1,13 +1,14 @@
 # Validación del fichero armonizado: integridad interna y cifras publicadas por el CIS
 
 # Cifras publicadas por el CIS que el fichero debe reproducir: inventario/referencias_cis.csv
-# Indicadores: "pct:<columna>:<categoría>" (porcentaje ponderado sin «no procede») y "media:<columna>".
+# Indicadores: "pct:<columna>:<categoría>" (porcentaje ponderado sin «no procede») y "media:<columna>". Varias
+# categorías unidas con «+» se suman (la nota de estimación da «Más País / Compromís» en una fila: MAS_PAIS+MES_COMPROMIS).
 calcular_referencia <- function(d, estudio, indicador) {
   x <- d[d$estudio == as.integer(estudio), ]
   p <- strsplit(indicador, ":", fixed = TRUE)[[1]]
   if (p[1] == "media") return(stats::weighted.mean(x[[p[2]]], x$peso, na.rm = TRUE))
   v <- as.character(x[[p[2]]]); ok <- !is.na(v) & v != "NP"
-  100 * sum(x$peso[ok & v == p[3]]) / sum(x$peso[ok])
+  100 * sum(x$peso[ok & v %in% strsplit(p[3], "+", fixed = TRUE)[[1]]]) / sum(x$peso[ok])
 }
 
 pct_pond <- function(x, w) 100 * sum(w[x], na.rm = TRUE) / sum(w, na.rm = TRUE)

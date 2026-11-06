@@ -3,14 +3,11 @@
 'use strict';
 
 /* ================= estado ================= */
-const limpio = p => { const { id, ...r } = p; return r; };
 function guardar() {
   try { localStorage.setItem(CLAVE, JSON.stringify(PANELES.map(limpio))); } catch (e) { /* sin almacenamiento */ }
   // tras un cambio manda lo guardado: un enlace #p= en la dirección lo taparía al recargar
   if (location.hash.startsWith('#p=') || presetDeHash()) history.replaceState(null, '', location.pathname + '#series');
 }
-const b64e = s => btoa(unescape(encodeURIComponent(s))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-const b64d = s => decodeURIComponent(escape(atob(s.replace(/-/g, '+').replace(/_/g, '/'))));
 const presetDeHash = () => { const h = location.hash.slice(1); return PRESETS[h] ? h : null; };
 function cargarPaneles() {
   let ps = null;
@@ -19,18 +16,6 @@ function cargarPaneles() {
   if (!ps) { try { ps = JSON.parse(localStorage.getItem(CLAVE) || 'null'); } catch (e) { ps = null; } }
   if (!Array.isArray(ps) || !ps.length) ps = defecto();
   PANELES = ps.filter(p => VISTAS[p.tipo] || preg(p.preg)).map(p => ({ ...p, id: nuevoId() }));
-}
-// paneles de partida; las categorías indicadas por etiqueta se traducen a identificadores
-function resolver(lista) {
-  const porEtq = (concepto, et) => Object.entries(LAB[concepto] || {}).find(([, e]) => e === et)?.[0];
-  return lista.map(p => {
-    const { catsEtq, cat1Etq, yEtq, indEtq, ...r } = p;
-    if (catsEtq) r.cats = catsEtq.map(e => porEtq(preg(p.preg).cols[0], e)).filter(Boolean);
-    if (cat1Etq) r.cat1 = porEtq(preg(p.preg).cols[0], cat1Etq);
-    if (yEtq) r.y = { preg: yEtq[0], cat: porEtq(preg(yEtq[0]).cols[0], yEtq[1]) };
-    if (indEtq) r.ind = { preg: indEtq[0], cat: porEtq(preg(indEtq[0]).cols[0], indEtq[1]) };
-    return r;
-  });
 }
 function defecto() {
   return resolver(META.veda ? DEFECTO_VEDA : esMovil() ? DEFECTO_MOVIL : DEFECTO);
@@ -141,8 +126,9 @@ async function pintarResumen() {
   RESUMEN_LISTO = true;
   const n = EST.length;
   if (n < 2) return;
-  // abierto en pantallas anchas; en el móvil, cerrado para que los paneles no queden tres pantallas más abajo
-  let abierto = !esMovil();
+  // abierto en pantallas anchas y altas; en el móvil y en pantallas bajas (portátil pequeño, zoom alto), cerrado para que
+  // los paneles no queden varias pantallas más abajo
+  let abierto = !esMovil() && innerHeight >= 800;
   try { const v = localStorage.getItem('bet-resumen'); if (v) abierto = v === 'abierto'; } catch (e) { /* */ }
   const ult = EST[n - 1], ant = EST[n - 2];
   box.hidden = false;
@@ -183,10 +169,7 @@ async function pintarResumen() {
 }
 
 /* ================= arranque ================= */
-/* Modo daltónico: paleta categórica segura (Okabe-Ito y afines, en estilos.css) y un trazo distinto por serie en las líneas.
-   Los colores de partido se mantienen (son convención), por eso el trazo. */
-const TRAZOS_CVD = [null, '7 3', '2 2.5', '9 3 2 3', '1 3', '12 4', '4 2 1 2', '14 3 2 3'];
-const modoCVD = () => document.documentElement.dataset.cvd === '1';
+/* Modo daltónico (TRAZOS_CVD y modoCVD, en comun.js): aquí, el conmutador */
 function cvd(on) {
   try { if (on) localStorage.setItem('bet-cvd', '1'); else localStorage.removeItem('bet-cvd'); } catch (e) { /* */ }
   if (on) document.documentElement.dataset.cvd = '1'; else delete document.documentElement.dataset.cvd;

@@ -59,6 +59,7 @@ function panelEl(cfg) {
       <button class="ib" type="button" data-a="csv">CSV</button>
       <button class="ib" type="button" data-a="png">PNG</button>
       ${cfg.tipo === 'puntos' ? '<button class="ib" type="button" data-a="banner" title="PNG de 1584 × 396 (a doble resolución), con título y fuente">Banner</button>' : ''}
+      <button class="ib" type="button" data-a="insertar" title="Copia el código para insertar este panel en otra página (iframe)">Insertar</button>
       <button class="ib" type="button" data-a="dup">Duplicar</button>
       <button class="ib" type="button" data-a="del" aria-label="Quitar panel">Quitar</button>
     </div></header>
@@ -82,11 +83,25 @@ function panelEl(cfg) {
       ev.target.setAttribute('aria-pressed', String(!!p.elecciones));
       renderPanel(el, p);
     }
+    if (a === 'insertar') copiarIframe(ev.target, PANELES[i]);
     if (a === 'csv') exportarCSV(el);
     if (a === 'png') exportarPNG(el);
     if (a === 'banner') exportarBanner(el);
   });
   return el;
+}
+
+/* Código <iframe> de embed.html con este panel, al portapapeles. La altura es orientativa: embed.html avisa de la suya
+   por postMessage({ bab: 'altura', altura }) para quien quiera ajustarla. */
+async function copiarIframe(boton, cfg) {
+  const src = location.origin + location.pathname.replace(/[^/]*$/, '') + 'embed.html?p=' + b64e(JSON.stringify(limpio(cfg)));
+  const alto = cfg.tipo === 'transferencias' || cfg.tipo === 'mapa' ? 620 : cfg.tipo === 'calor' ? 700 : 520;
+  const titulo = (boton.closest('.panel')?.querySelector('h2')?.textContent || 'Barómetro a barómetro').replace(/"/g, '');
+  const codigo = `<iframe src="${src}" title="${titulo}" width="100%" height="${alto}" style="border:0;max-width:100%" loading="lazy"></iframe>`;
+  const texto = boton.textContent;
+  try { await navigator.clipboard.writeText(codigo); boton.textContent = 'Código copiado'; }
+  catch (e) { window.prompt('Copia el código del iframe:', codigo); }
+  setTimeout(() => { boton.textContent = texto; }, 2500);
 }
 
 async function renderPanel(el, cfg) {

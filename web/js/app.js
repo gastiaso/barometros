@@ -108,6 +108,19 @@ const DEFECTO_MOVIL = [
   { preg: 'prob_esp' },
   { preg: 'eco_esp' },
 ];
+/* Enlaces con nombre (#vivienda, #lideres…): una selección de paneles cada uno, en la misma notación que DEFECTO */
+const PRESETS = {
+  voto: [{ preg: 'intencion_voto_r' }, { preg: 'voto_simpatia' }, { tipo: 'comparar', preg: 'intencion_voto_r' }],
+  edad: [{ tipo: 'barras', preg: 'intencion_voto_r', cruce: 'edad_g', ancho: true, cats: ['PSOE', 'PP', 'VOX', 'SUMAR', 'PODEMOS', 'SALF', 'NO_VOTARIA', 'NS'] }, { preg: 'intencion_voto_r', cruce: 'edad_g', cat1: 'VOX' }, { preg: 'intencion_voto_r', cruce: 'edad_g', cat1: 'PSOE' }],
+  transferencias: [{ tipo: 'transferencias', preg: 'intencion_voto_r', acum: 3, ancho: true }],
+  lideres: [{ preg: 'lideres' }, { preg: 'pref_presidente', catsEtq: ['Pedro Sánchez', 'Alberto Núñez Feijóo', 'Santiago Abascal', 'Yolanda Díaz', 'Gabriel Rufián', 'Irene Montero'] }],
+  problemas: [{ preg: 'prob_esp' }, { preg: 'prob_per' }, { tipo: 'calor', preg: 'prob_esp', ancho: true }],
+  vivienda: [{ preg: 'prob_esp', catsEtq: ['La vivienda'] }, { preg: 'prob_per', catsEtq: ['La vivienda'] }, { preg: 'prob_esp', cruce: 'edad_g', cat1Etq: 'La vivienda' }, { tipo: 'mapa', indEtq: ['prob_esp', 'La vivienda'], acum: 6 }],
+  economia: [{ preg: 'eco_esp' }, { preg: 'eco_per' }],
+  ideologia: [{ preg: 'ideologia' }, { tipo: 'dispersion', grupo: 'voto_simpatia', x: { preg: 'ideologia' }, yEtq: ['prob_esp', 'La vivienda'], acum: 3 }],
+  recuerdo: [{ preg: 'intencion_voto_r', recuerdo: true }, { preg: 'recuerdo_voto' }],
+  puntos: [{ tipo: 'puntos', ancho: true }],
+};
 const esMovil = () => matchMedia('(max-width: 640px)').matches;
 const CLAVE = 'bet-paneles-v4';
 const NOTA_RECUERDO = 'Reponderado por recuerdo de voto: los pesos del CIS se ajustan para que quienes podían votar reproduzcan la participación de las últimas generales, y quienes recuerdan su voto, el resultado (2019 hasta septiembre de 2023; 2023 desde octubre). Es una estimación propia y no coincide con las tablas del CIS. El margen de error usa el efecto de diseño de los nuevos pesos, mayor que el del CIS.';
@@ -250,7 +263,7 @@ async function calcular(cfg) {
     const cs = P.cols.map(c => COLS[c]);
     const K = ids.length;
     for (const e of meses) {
-      const base = new Float64Array(G), n = new Uint32Array(G), num = new Float64Array(G * K);
+      const base = new Float64Array(G), base2 = new Float64Array(G), n = new Uint32Array(G), num = new Float64Array(G * K);
       const marca = new Int32Array(K).fill(-1), pres = new Uint8Array(K);
       for (let r = e.desde; r < e.hasta; r++) {
         // respuestas que existen en el barómetro: las que alguien da en toda la muestra (sin filtro ni cruce)
@@ -267,7 +280,7 @@ async function calcular(cfg) {
         const k0 = mapas[0][c0 - 1];
         if (isNP[k0] || (cfg.exNR && isNR[k0])) continue;
         const w = peso[r];
-        base[g] += w; n[g]++;
+        base[g] += w; base2[g] += w * w; n[g]++;
         if (P.tipo === 'cat') { num[g * K + k0] += w; for (const kb of enBloque[k0]) num[g * K + kb] += w; continue; }
         for (let j = 0; j < cs.length; j++) {           // hasta tres menciones, sin contar dos veces la misma
           const c = cs[j][r]; if (c === 0) continue;
@@ -282,7 +295,7 @@ async function calcular(cfg) {
         const vals = {}, wnum = {};
         // 0 % solo si la respuesta existe ese mes; si no existía, no hay dato
         if (n[g] > 0) for (let k = 0; k < K; k++) if (pres[k]) { vals[ids[k]] = 100 * num[g * K + k] / base[g]; wnum[ids[k]] = num[g * K + k]; }
-        grupos.push({ n: n[g], base: base[g], vals, wnum });
+        grupos.push({ n: n[g], base: base[g], base2: base2[g], vals, wnum });
       }
       filas.push({ e, grupos, pres: ids.filter((id, k) => pres[k]) });
     }
@@ -292,7 +305,7 @@ async function calcular(cfg) {
   const cs = P.cols.map(c => COLS[c]);
   for (const e of meses) {
     const K = cs.length;
-    const sw = new Float64Array(G * K), swx = new Float64Array(G * K), swx2 = new Float64Array(G * K), n = new Uint32Array(G * K);
+    const sw = new Float64Array(G * K), sw2 = new Float64Array(G * K), swx = new Float64Array(G * K), swx2 = new Float64Array(G * K), n = new Uint32Array(G * K);
     for (let r = e.desde; r < e.hasta; r++) {
       if (fcol && fcol[r] !== fcod) continue;
       let g = 0;
@@ -300,23 +313,35 @@ async function calcular(cfg) {
       const w = peso[r];
       for (let k = 0; k < K; k++) {
         const v = cs[k][r]; if (v === 0) continue;
-        const i = g * K + k; sw[i] += w; swx[i] += w * v; swx2[i] += w * v * v; n[i]++;
+        const i = g * K + k; sw[i] += w; sw2[i] += w * w; swx[i] += w * v; swx2[i] += w * v * v; n[i]++;
       }
     }
     const grupos = [];
     for (let g = 0; g < G; g++) {
-      const vals = {}, ns = {}, sd = {}, a = {}, b = {}, c = {};
+      const vals = {}, ns = {}, sd = {}, a = {}, a2 = {}, b = {}, c = {};
       for (let k = 0; k < K; k++) {
         const i = g * K + k, id = P.cols[k];
-        if (n[i] > 0) { const m = swx[i] / sw[i]; vals[id] = m; ns[id] = n[i]; sd[id] = Math.sqrt(Math.max(0, swx2[i] / sw[i] - m * m)); a[id] = sw[i]; b[id] = swx[i]; c[id] = swx2[i]; }
+        if (n[i] > 0) { const m = swx[i] / sw[i]; vals[id] = m; ns[id] = n[i]; sd[id] = Math.sqrt(Math.max(0, swx2[i] / sw[i] - m * m)); a[id] = sw[i]; a2[id] = sw2[i]; b[id] = swx[i]; c[id] = swx2[i]; }
       }
-      grupos.push({ vals, ns, sd, sw: a, swx: b, swx2: c });
+      grupos.push({ vals, ns, sd, sw: a, sw2: a2, swx: b, swx2: c });
     }
     filas.push({ e, grupos });
   }
   return { P, cfg, filas, ids: P.cols.slice(), glev, unidad: 'media' };
 }
 
+/* Efecto de diseño de Kish de un conjunto de entrevistas: n · Σw² / (Σw)². El del subgrupo, no el del estudio entero,
+   porque en los cruces el peso puede estar correlacionado con el grupo (por nivel de estudios desde nov-2023, por ejemplo) */
+const kish = (n, sw, sw2) => (n > 0 && sw > 0 && sw2 > 0 ? n * sw2 / (sw * sw) : 1);
+const Z = 1.96;
+/* Intervalo al 95 % de un porcentaje: Wilson sobre el tamaño efectivo n/deff. No se trunca en 0 porque nunca baja de 0,
+   y cubre mejor que Wald cuando p es pequeño o la base es corta (50 entrevistas) */
+function intervaloPct(p, n, deff) {
+  const ne = n / deff, z2 = Z * Z;
+  const centro = (p + z2 / (2 * ne)) / (1 + z2 / ne);
+  const semi = Z * Math.sqrt(p * (1 - p) / ne + z2 / (4 * ne * ne)) / (1 + z2 / ne);
+  return { se: 100 * Math.sqrt(deff * p * (1 - p) / n), lo: 100 * Math.max(0, centro - semi), hi: 100 * Math.min(1, centro + semi) };
+}
 /* Series a dibujar a partir de la agregación */
 function puntoDe(res, f, g, id) {
   const media = res.unidad === 'media';
@@ -324,10 +349,13 @@ function puntoDe(res, f, g, id) {
   const v = gr.vals[id];
   const n = media ? (gr.ns[id] || 0) : gr.n;
   if (v == null || n < MIN_N) return { v: null, n, omit: v != null && n > 0 };
-  let se;
-  if (media) se = Math.sqrt(f.e.deff * gr.sd[id] ** 2 / n);
-  else { const p = v / 100; se = 100 * Math.sqrt(f.e.deff * p * (1 - p) / n); }
-  return { v, n, se, lo: Math.max(0, v - 1.96 * se), hi: v + 1.96 * se };
+  if (media) {
+    const deff = kish(n, gr.sw[id], gr.sw2?.[id]);
+    const se = Math.sqrt(deff * gr.sd[id] ** 2 / n);
+    return { v, n, se, deff, lo: v - Z * se, hi: v + Z * se };
+  }
+  const deff = kish(n, gr.base, gr.base2);
+  return { v, n, deff, ...intervaloPct(v / 100, n, deff) };
 }
 /* Acumula varios barómetros (índices de res.filas) para un grupo y una respuesta: suma de pesos y de casos */
 function acumular(res, idxs, g, id) {
@@ -337,18 +365,18 @@ function acumular(res, idxs, g, id) {
     const gr = res.filas[i].grupos[g]; if (!gr) continue;
     if (media) {
       const n = gr.ns[id] || 0; if (!n) continue;
-      N += n; B += gr.sw[id]; S += gr.swx[id]; S2 += gr.swx2[id]; D += res.filas[i].e.deff * n;
+      N += n; B += gr.sw[id]; S += gr.swx[id]; S2 += gr.swx2[id]; D += kish(n, gr.sw[id], gr.sw2?.[id]) * n;
     } else {
       if (!gr.n || !(id in gr.wnum)) continue;          // la respuesta no existía ese mes: el barómetro no cuenta
-      N += gr.n; B += gr.base; S += gr.wnum[id]; D += res.filas[i].e.deff * gr.n;
+      N += gr.n; B += gr.base; S += gr.wnum[id]; D += kish(gr.n, gr.base, gr.base2) * gr.n;
     }
   }
   if (!N) return { v: null, n: 0 };
   if (N < MIN_N) return { v: null, n: N, omit: true };
   const deff = D / N;
-  if (media) { const m = S / B, sd = Math.sqrt(Math.max(0, S2 / B - m * m)), se = Math.sqrt(deff * sd * sd / N); return { v: m, n: N, se, lo: m - 1.96 * se, hi: m + 1.96 * se }; }
-  const p = S / B, se = Math.sqrt(deff * p * (1 - p) / N);
-  return { v: 100 * p, n: N, se: 100 * se, lo: Math.max(0, 100 * (p - 1.96 * se)), hi: 100 * (p + 1.96 * se) };
+  if (media) { const m = S / B, sd = Math.sqrt(Math.max(0, S2 / B - m * m)), se = Math.sqrt(deff * sd * sd / N); return { v: m, n: N, se, deff, lo: m - Z * se, hi: m + Z * se }; }
+  const p = S / B;
+  return { v: 100 * p, n: N, deff, ...intervaloPct(p, N, deff) };
 }
 /* Los k barómetros consecutivos que terminan en el índice i (los que tienen la pregunta), sin cruzar una ruptura C de
    los conceptos del panel. Con exigirMes, si el barómetro i no tiene la pregunta no hay ventana (media móvil). */
@@ -364,10 +392,33 @@ function ventana(res, cfg, i, k, exigirMes = false) {
   }
   return out;
 }
+/* Ventana de la media móvil, centrada: el barómetro, el anterior y el siguiente (por índice, como «ventana»), sin cruzar
+   una ruptura C. En el último barómetro de cada tramo (o si el siguiente no tiene la pregunta) se toman los dos anteriores,
+   y en el primero los dos siguientes; esos puntos se marcan como provisionales. */
+function ventanaMovil(res, cfg, i) {
+  const F = res.filas;
+  if (!conDatos(F[i])) return { idxs: [], centrada: false };
+  const cortes = rupturas(cfg).filter(r => r.tipo === 'C').map(r => r.m);
+  const tramo = mes => cortes.filter(c => c <= mes).length;
+  const t = tramo(F[i].e.mes);
+  const mismo = j => j >= 0 && j < F.length && tramo(F[j].e.mes) === t;
+  const con = j => mismo(j) && conDatos(F[j]);
+  if (con(i - 1) && con(i + 1)) return { idxs: [i - 1, i, i + 1], centrada: true };
+  const idxs = [i];
+  if (!con(i + 1)) { for (let j = i - 1; j >= i - 2 && mismo(j); j--) if (conDatos(F[j])) idxs.push(j); }
+  else { for (let j = i + 1; j <= i + 2 && mismo(j); j++) if (conDatos(F[j])) idxs.push(j); }
+  return { idxs, centrada: false };
+}
 function series(res, cfg) {
   const { P, filas, glev } = res;
   const punto = cfg.movil
-    ? (f, g, id) => { const i = filas.indexOf(f); return acumular(res, ventana(res, cfg, i, 3, true), g, id); }
+    ? (f, g, id) => {
+      // sin la respuesta en el propio mes no hay punto (una respuesta nueva, como Sumar en abr-2023, no se anticipa
+      // con la ventana centrada); la ventana solo suaviza meses que la tienen
+      const propio = puntoDe(res, f, g, id);
+      if (propio.v == null && !propio.omit) return { v: null, n: 0 };
+      const i = filas.indexOf(f); const w = ventanaMovil(res, cfg, i); const pt = acumular(res, w.idxs, g, id); if (pt.v != null && !w.centrada) pt.prov = true; return pt;
+    }
     : (f, g, id) => puntoDe(res, f, g, id);
   const conc = P.tipo === 'multi' ? P.cols[0] : P.cols[0];
   let out;
@@ -430,6 +481,10 @@ function rupturas(cfg) {
     .filter(r => ids.has(r.ruptura_id) && (r.tipo === 'C' || r.tipo === 'B') && !/descartada/.test(r.estado))
     .flatMap(r => mesesRuptura(r).map(m => ({ ...r, m })));
 }
+/* Cómo se nombra una ruptura: en la guía, la etiqueta corta («ponderación por estudios»); en el explorador, el código
+   (R10), que es el que figura en la nota metodológica y en los CSV. En tooltips y notas, ambos. */
+const nombreRuptura = (r, cfg) => (cfg && cfg.guia && r.etiqueta_corta ? r.etiqueta_corta : r.ruptura_id);
+const tituloRuptura = r => `${r.ruptura_id}${r.etiqueta_corta ? ' · ' + r.etiqueta_corta : ''}`;
 function notasEstudio(cfg, mes) {
   return conceptosDe(cfg).flatMap(c => (META.conceptos[c]?.estudios || []).filter(x => x.mes === mes && x.nivel === 'B' && x.nota).map(x => x.nota));
 }
@@ -442,12 +497,18 @@ const breveRuptura = d => {
 
 /* ================= paleta ================= */
 let PAL = {};
+/* Valores de la paleta clara, por si alguna variable CSS no se resuelve al leerla (hoja aún no aplicada, navegador con
+   problemas): un canvas con fillStyle inválido pinta en negro, y un SVG con fill vacío también */
+const PAL_DEFECTO = { surface: '#f7f6f3', ink: '#1c1d1f', ink2: '#4f5257', ink3: '#65686d', line: '#dcdad5', line2: '#c4c1bb', acc: '#b2422e',
+  cat: ['#d64a33', '#1794b5', '#a93772', '#bc9121', '#284e99', '#6f7d1a', '#8c64b7', '#177c52', '#e8899a', '#3f8fd0', '#b0652a', '#6a5bd8'],
+  fontD: "Bahnschrift,'DIN Alternate','DIN 2014','D-DIN','Roboto Condensed','Arial Narrow',sans-serif" };
 function leerPaleta() {
   const cs = getComputedStyle(document.documentElement);
-  const v = n => cs.getPropertyValue(n).trim();
-  PAL = { surface: v('--surface'), ink: v('--ink'), ink2: v('--ink2'), ink3: v('--ink3'), line: v('--line'), line2: v('--line2'),
-    acc: v('--acc'), band: +v('--band') || .12, cat: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(i => v('--c' + i)), font: getComputedStyle(document.body).fontFamily,
-    fontD: v('--font-d') };
+  const v = (n, d) => cs.getPropertyValue(n).trim() || d;
+  PAL = { surface: v('--surface', PAL_DEFECTO.surface), ink: v('--ink', PAL_DEFECTO.ink), ink2: v('--ink2', PAL_DEFECTO.ink2), ink3: v('--ink3', PAL_DEFECTO.ink3),
+    line: v('--line', PAL_DEFECTO.line), line2: v('--line2', PAL_DEFECTO.line2), acc: v('--acc', PAL_DEFECTO.acc), band: +v('--band', '') || .12,
+    cat: PAL_DEFECTO.cat.map((d, i) => v('--c' + (i + 1), d)), font: getComputedStyle(document.body).fontFamily || 'sans-serif',
+    fontD: v('--font-d', PAL_DEFECTO.fontD), completa: !!cs.getPropertyValue('--surface').trim() };
 }
 function colores(lista, cfg, dim = 'cat') {
   const P = preg(cfg.preg);
@@ -533,18 +594,33 @@ function dibujar(host, res, cfg) {
     // zona sensible solo en la franja superior: en el área del gráfico la ruptura sale en el tooltip del mes
     g.append('rect').attr('x', mk.x - 7).attr('y', m.t - 20).attr('width', 14).attr('height', 22).attr('fill', 'transparent')
       .style('cursor', 'help')
-      .on('pointermove', ev => { ev.stopPropagation(); showTip(`<b>${esc(mesLargo(mk.mes))}</b>` + mk.rs.map(r => `<div class="tnote"><b>${esc(r.ruptura_id)}, tipo ${esc(r.tipo)}</b><br>${esc(breveRuptura(r.descripcion))}</div>`).join(''), ev); })
+      .on('pointermove', ev => { ev.stopPropagation(); showTip(`<b>${esc(mesLargo(mk.mes))}</b>` + mk.rs.map(r => `<div class="tnote"><b>${esc(tituloRuptura(r))}, tipo ${esc(r.tipo)}</b><br>${esc(breveRuptura(r.descripcion))}</div>`).join(''), ev); })
       .on('pointerleave', hideTip);
   });
-  // etiquetas de las rupturas C, agrupadas cuando caen a menos de 34 px
-  const grupos = [];
+  // convocatorias electorales (capa opcional): generales y europeas con línea punteada y rótulo en la base;
+  // autonómicas y municipales, marca corta en el eje. Solo convocatorias: ningún otro acontecimiento.
+  const finMes = meses[meses.length - 1];
+  const evs = cfg.elecciones && META.eventos ? META.eventos.filter(e => e.fecha.slice(0, 7) >= meses[0] && e.fecha.slice(0, 7) <= finMes) : [];
+  [...d3.group(evs, e => e.fecha)].forEach(([f, es]) => {
+    const xe = Math.min(x.range()[1], x(new Date(f + 'T00:00:00Z'))), mayor = es.some(e => e.ambito === 'generales' || e.ambito === 'europeas');
+    const g = svg.append('g');
+    g.append('line').attr('x1', xe).attr('x2', xe).attr('y1', mayor ? m.t : H - m.b - 10).attr('y2', H - m.b)
+      .attr('stroke', PAL.ink3).attr('stroke-width', 1).attr('stroke-dasharray', mayor ? '1 3' : null);
+    if (mayor) g.append('text').attr('x', xe + 3).attr('y', H - m.b - 4).attr('font-family', PAL.fontD).attr('font-size', 10).attr('fill', PAL.ink3)
+      .text(es.find(e => e.ambito === 'generales' || e.ambito === 'europeas').etiqueta.replace(/^(Generales|Europeas) del? /, ''));
+    g.append('rect').attr('x', xe - 5).attr('y', H - m.b - 12).attr('width', 10).attr('height', 14).attr('fill', 'transparent').style('cursor', 'help')
+      .on('pointermove', ev => { ev.stopPropagation(); showTip(`<b>${esc(f.slice(8, 10))}-${esc(f.slice(5, 7))}-${esc(f.slice(0, 4))}</b>` + es.map(e => `<div class="tnote">${esc(e.etiqueta)}</div>`).join(''), ev); })
+      .on('pointerleave', hideTip);
+  });
+  // etiquetas de las rupturas C, agrupadas cuando caen a menos de 34 px (en la guía, con etiqueta corta, a 140 px)
+  const grupos = [], dist = cfg.guia ? 140 : 34;
   marcas.filter(mk => mk.esC).sort((a, z) => a.x - z.x).forEach(mk => {
     const ult = grupos[grupos.length - 1];
-    if (ult && mk.x - ult[ult.length - 1].x < 34) ult.push(mk); else grupos.push([mk]);
+    if (ult && mk.x - ult[ult.length - 1].x < dist) ult.push(mk); else grupos.push([mk]);
   });
   grupos.forEach(gr => {
     const xm = d3.mean(gr, d => d.x);
-    const txt = gr.flatMap(d => d.rs.filter(r => r.tipo === 'C').map(r => r.ruptura_id)).join(' ');
+    const txt = gr.flatMap(d => d.rs.filter(r => r.tipo === 'C').map(r => nombreRuptura(r, cfg))).join(cfg.guia ? ' · ' : ' ');
     const anchor = xm > W - m.r - 30 ? 'end' : xm < m.l + 30 ? 'start' : 'middle';
     svg.append('text').attr('x', xm).attr('y', m.t - 9).attr('text-anchor', anchor).attr('font-family', PAL.fontD).attr('font-size', 10.5)
       .attr('font-weight', 600).attr('fill', PAL.acc).text(txt);
@@ -559,10 +635,13 @@ function dibujar(host, res, cfg) {
     ser.forEach(s => svg.append('path').attr('d', area(preguntados(s))).attr('fill', col[s.id]).attr('fill-opacity', PAL.band).attr('stroke', 'none'));
   }
   const line = d3.line().defined(def).x(p => x(fecha(p.mes))).y(p => y(p.v));
-  ser.forEach(s => {
+  // en modo daltónico cada serie lleva además un trazo distinto, para no depender solo del color (PSOE y VOX, por ejemplo,
+  // se confunden con deuteranopia); el mismo trazo va en la leyenda
+  const trazo = i => (modoCVD() ? TRAZOS_CVD[i % TRAZOS_CVD.length] : null);
+  ser.forEach((s, i) => {
     const pts = preguntados(s);
     svg.append('path').attr('d', line(pts)).attr('fill', 'none').attr('stroke', col[s.id]).attr('stroke-width', 2)
-      .attr('stroke-linejoin', 'round').attr('stroke-linecap', 'round');
+      .attr('stroke-dasharray', trazo(i)).attr('stroke-linejoin', 'round').attr('stroke-linecap', trazo(i) ? 'butt' : 'round');
     pts.forEach((p, i) => {
       if (p.v == null) return;
       const prev = pts[i - 1], next = pts[i + 1];
@@ -584,8 +663,9 @@ function dibujar(host, res, cfg) {
   // leyenda
   if (ser.length > 1) ser.forEach((s, i) => {
     const gx = 8 + (i % perRow) * colW, gy = 2 + Math.floor(i / perRow) * 18;
-    svg.append('rect').attr('x', gx).attr('y', gy + 5).attr('width', 14).attr('height', 3).attr('fill', col[s.id]);
-    svg.append('text').attr('x', gx + 20).attr('y', gy + 10).attr('fill', PAL.ink2).attr('font-size', 11.5)
+    if (trazo(i)) svg.append('line').attr('x1', gx).attr('x2', gx + 22).attr('y1', gy + 6.5).attr('y2', gy + 6.5).attr('stroke', col[s.id]).attr('stroke-width', 2.5).attr('stroke-dasharray', trazo(i));
+    else svg.append('rect').attr('x', gx).attr('y', gy + 5).attr('width', 14).attr('height', 3).attr('fill', col[s.id]);
+    svg.append('text').attr('x', gx + (trazo(i) ? 28 : 20)).attr('y', gy + 10).attr('fill', PAL.ink2).attr('font-size', 11.5)
       .text(s.label.length > maxL ? s.label.slice(0, maxL - 1) + '…' : s.label).append('title').text(s.label);
   });
   svg.selectAll('path, circle, text, line').attr('pointer-events', 'none');
@@ -614,7 +694,8 @@ function dibujar(host, res, cfg) {
         return `<div class="r"><span><i class="sw" style="background:${col[s.id]}"></i>${esc(s.label)}</span><span>${v}${d}</span></div>`;
       }).join('');
       const n = !cfg.cruce && !media ? ser[0].pts[i].n : null;
-      const notas = rup.filter(r => r.m === mes).map(r => `<div class="tnote"><b>${esc(r.ruptura_id)}, tipo ${esc(r.tipo)}</b><br>${esc(breveRuptura(r.descripcion))}</div>`).join('') +
+      const prov = cfg.movil && ser.some(s => s.pts[i].prov) ? '<div class="tnote">Media provisional: sin barómetro posterior (o anterior) en el tramo, resume este y los dos más próximos.</div>' : '';
+      const notas = prov + rup.filter(r => r.m === mes).map(r => `<div class="tnote"><b>${esc(tituloRuptura(r))}, tipo ${esc(r.tipo)}</b><br>${esc(breveRuptura(r.descripcion))}</div>`).join('') +
         notasEstudio(cfg, mes).map(t => `<div class="tnote">${esc(t)}</div>`).join('');
       showTip(`<b>${esc(mesLargo(mes))}</b>${rows}<div class="tnote">Estudio ${esc(res.filas[i].e.estudio)}${n ? `, base ${fmtInt(n)} entrevistas` : ''}. Variación en puntos respecto al barómetro anterior${cRupt.length ? '; «s. c.»: sin comparación por ruptura C' : ''}.</div>${notas}`, ev);
     })
@@ -811,7 +892,7 @@ function metaPanel(cfg, res) {
   const per = !f.length ? '' : cfg.tipo === 'barras' ? `${mesLargo(f[0].e.mes)} (estudio ${f[0].e.estudio})` : `${mesCorto(f[0].e.mes)} a ${mesCorto(f[f.length - 1].e.mes)}`;
   const fil = cfg.filtro ? `. Solo ${etiqueta(cfg.filtro.col, cfg.filtro.val)}` : '';
   const exn = cfg.exNR && res.unidad !== 'media' ? '. Sin NS/NC en la base' : '';
-  const mov = cfg.movil && cfg.tipo !== 'barras' ? '. Media móvil de 3 barómetros: cada punto resume ese barómetro y los dos anteriores' : '';
+  const mov = cfg.movil && cfg.tipo !== 'barras' ? '. Media móvil centrada de 3 barómetros: cada punto resume ese barómetro, el anterior y el siguiente (el último, los dos anteriores)' : '';
   const rec = cfg.recuerdo ? '. Pesos ajustados al recuerdo de voto (estimación propia)' : '';
   return `${ud}. ${per}${fil}${exn}${mov}${rec}${textoBloques(cfg)}${avisoVoto(cfg)}`;
 }
@@ -824,6 +905,7 @@ function panelEl(cfg) {
     <div class="acts">
       <button class="ib" type="button" data-a="edit">Configurar</button>
       ${cfg.tipo && cfg.tipo !== 'calor' ? '' : `<button class="ib" type="button" data-a="rupt" aria-pressed="${!cfg.sinRupturas}">${cfg.sinRupturas ? 'Mostrar rupturas' : 'Ocultar rupturas'}</button>`}
+      ${!cfg.tipo && META.eventos?.length ? `<button class="ib" type="button" data-a="elec" aria-pressed="${!!cfg.elecciones}" title="Marcar las convocatorias electorales en el eje">Elecciones</button>` : ''}
       <button class="ib" type="button" data-a="tabla" aria-pressed="false">Tabla</button>
       <button class="ib" type="button" data-a="csv">CSV</button>
       <button class="ib" type="button" data-a="png">PNG</button>
@@ -844,6 +926,11 @@ function panelEl(cfg) {
       const p = PANELES[i]; p.sinRupturas = !p.sinRupturas; guardar();
       ev.target.textContent = p.sinRupturas ? 'Mostrar rupturas' : 'Ocultar rupturas';
       ev.target.setAttribute('aria-pressed', String(!p.sinRupturas));
+      renderPanel(el, p);
+    }
+    if (a === 'elec') {
+      const p = PANELES[i]; p.elecciones = !p.elecciones; guardar();
+      ev.target.setAttribute('aria-pressed', String(!!p.elecciones));
       renderPanel(el, p);
     }
     if (a === 'csv') exportarCSV(el);
@@ -901,7 +988,7 @@ async function renderPanel(el, cfg) {
     const vistas = new Set();
     const ns = cfg.sinRupturas && out.rup.length ? ['<p class="note">Líneas de ruptura ocultas en el gráfico. Las variaciones mensuales siguen sin calcularse a través de una ruptura C.</p>'] : [];
     ns.push(...out.rup.filter(r => !vistas.has(r.ruptura_id) && vistas.add(r.ruptura_id))
-      .map(r => `<p class="note"><span class="rid">${esc(r.ruptura_id)}</span> (${esc(mesCorto(r.m))}, tipo ${esc(r.tipo)}): ${esc(breveRuptura(r.descripcion))}</p>`));
+      .map(r => `<p class="note"><span class="rid">${esc(r.ruptura_id)}</span>${r.etiqueta_corta ? ' ' + esc(r.etiqueta_corta) : ''} (${esc(mesCorto(r.m))}, tipo ${esc(r.tipo)}): ${esc(breveRuptura(r.descripcion))}</p>`));
     if (cfg.recuerdo) ns.unshift(`<p class="note">${esc(NOTA_RECUERDO)}</p>`);
     if (out.barras) notasEstudio(cfg, res.filas[0].e.mes).forEach(t => ns.push(`<p class="note">${esc(t)}</p>`));
     if (out.omitidos) ns.push(`<p class="note">${out.omitidos} ${out.barras ? (out.omitidos === 1 ? 'barra omitida' : 'barras omitidas') : (out.omitidos === 1 ? 'punto omitido' : 'puntos omitidos')} por tener menos de ${MIN_N} entrevistas.</p>`);
@@ -1071,27 +1158,33 @@ const limpio = p => { const { id, ...r } = p; return r; };
 function guardar() {
   try { localStorage.setItem(CLAVE, JSON.stringify(PANELES.map(limpio))); } catch (e) { /* sin almacenamiento */ }
   // tras un cambio manda lo guardado: un enlace #p= en la dirección lo taparía al recargar
-  if (location.hash.startsWith('#p=')) history.replaceState(null, '', location.pathname + '#series');
+  if (location.hash.startsWith('#p=') || presetDeHash()) history.replaceState(null, '', location.pathname + '#series');
 }
 const b64e = s => btoa(unescape(encodeURIComponent(s))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 const b64d = s => decodeURIComponent(escape(atob(s.replace(/-/g, '+').replace(/_/g, '/'))));
+const presetDeHash = () => { const h = location.hash.slice(1); return PRESETS[h] ? h : null; };
 function cargarPaneles() {
   let ps = null;
   if (location.hash.startsWith('#p=')) { try { ps = JSON.parse(b64d(location.hash.slice(3))); } catch (e) { ps = null; } }
+  if (presetDeHash()) ps = resolver(PRESETS[presetDeHash()]);
   if (!ps) { try { ps = JSON.parse(localStorage.getItem(CLAVE) || 'null'); } catch (e) { ps = null; } }
   if (!Array.isArray(ps) || !ps.length) ps = defecto();
   PANELES = ps.filter(p => VISTAS[p.tipo] || preg(p.preg)).map(p => ({ ...p, id: nuevoId() }));
 }
 // paneles de partida; las categorías indicadas por etiqueta se traducen a identificadores
-function defecto() {
+function resolver(lista) {
   const porEtq = (concepto, et) => Object.entries(LAB[concepto] || {}).find(([, e]) => e === et)?.[0];
-  return (META.veda ? DEFECTO_VEDA : esMovil() ? DEFECTO_MOVIL : DEFECTO).map(p => {
-    const { catsEtq, yEtq, indEtq, ...r } = p;
-    if (catsEtq) r.cats = catsEtq.map(e => porEtq(p.preg, e)).filter(Boolean);
+  return lista.map(p => {
+    const { catsEtq, cat1Etq, yEtq, indEtq, ...r } = p;
+    if (catsEtq) r.cats = catsEtq.map(e => porEtq(preg(p.preg).cols[0], e)).filter(Boolean);
+    if (cat1Etq) r.cat1 = porEtq(preg(p.preg).cols[0], cat1Etq);
     if (yEtq) r.y = { preg: yEtq[0], cat: porEtq(preg(yEtq[0]).cols[0], yEtq[1]) };
     if (indEtq) r.ind = { preg: indEtq[0], cat: porEtq(preg(indEtq[0]).cols[0], indEtq[1]) };
     return r;
   });
+}
+function defecto() {
+  return resolver(META.veda ? DEFECTO_VEDA : esMovil() ? DEFECTO_MOVIL : DEFECTO);
 }
 
 /* ================= editor ================= */
@@ -1159,11 +1252,12 @@ async function pintarEditor() {
   const chk = (id, lab, v) => `<label class="row"><input type="checkbox" id="${id}"${v ? ' checked' : ''}> ${lab}</label>`;
   const opExNR = chk('f-exnr', 'Excluir de la base «no sabe», «no contesta» y «no recuerda»', b.exNR);
   const opBanda = chk('f-banda', tipo === 'dispersion' ? 'Mostrar el margen de error en los dos ejes' : 'Mostrar el margen de error', b.banda ?? (tipo === 'lineas' && !b.cruce));
-  const opMovil = chk('f-movil', 'Media móvil de 3 barómetros: cada punto resume ese barómetro y los dos anteriores (suaviza los cruces con poca muestra)', b.movil);
+  const opMovil = chk('f-movil', 'Media móvil centrada de 3 barómetros: cada punto resume ese barómetro, el anterior y el siguiente (suaviza los cruces con poca muestra)', b.movil);
   const opRec = META.columnas.peso_recuerdo ? chk('f-recuerdo', 'Reponderar por recuerdo de voto (estimación propia: no coincide con el CIS)', b.recuerdo) : '';
   const opAncho = chk('f-ancho', 'Panel a todo el ancho', b.ancho);
   const fApilar = tipo === 'barras' && preg(b.preg)?.tipo === 'cat' ? `<div class="fld"><label for="f-apilar">Disposición</label><select id="f-apilar">${[['', 'Automática: apiladas con cruce y cinco o más respuestas'], ['agrupadas', 'Barras agrupadas'], ['apiladas', 'Barras apiladas al 100 %']].map(([k, t]) => `<option value="${k}"${(b.apilar || '') === k ? ' selected' : ''}>${t}</option>`).join('')}</select></div>` : '<div class="fld"></div>';
   const lista = `<div class="fld full" id="f-cats"><span class="lab">Respuestas</span><p class="hint">Calculando…</p></div>`;
+  const fTam = `<div class="fld"><label for="f-tam">Tamaño de los puntos</label><select id="f-tam"><option value=""${b.tam !== 'n' ? ' selected' : ''}>Peso del grupo en la muestra ponderada</option><option value="n"${b.tam === 'n' ? ' selected' : ''}>Número de entrevistas</option></select></div>`;
   const fEje = `<div class="fld"><label for="f-eje">En vertical</label><select id="f-eje"><option value="edad"${b.eje !== 'ideologia' ? ' selected' : ''}>Edad</option><option value="ideologia"${b.eje === 'ideologia' ? ' selected' : ''}>Autoubicación ideológica (1 a 10)</option></select><span class="hint">En horizontal, el mes; cada punto cae al azar dentro del suyo.</span></div>`;
   const secciones = {
     lineas: () => fPreg + fCruce + fFiltro + fPeriodo + lista + `<div class="fld full"><span class="lab">Opciones</span>${opExNR}${opBanda}${opMovil}${opRec}${opAncho}</div>`,
@@ -1172,7 +1266,7 @@ async function pintarEditor() {
     calor: () => fPreg + fFiltro + '<div class="fld"></div>' + fPeriodo + lista + `<div class="fld full"><span class="lab">Opciones</span>${opExNR}${opRec}${opAncho}</div>`,
     transferencias: () => fPreg + fFiltro + '<div class="fld"></div>' + fMes('f-mes', 'Último barómetro', b.mes) + fAcum + lista + `<div class="fld full"><span class="lab">Opciones</span>${opExNR}${opAncho}</div>`,
     dispersion: () => `<div class="fld full"><label for="f-grupo">Cada punto es un grupo de</label><select id="f-grupo">${GRUPOS_DISP.filter(([k]) => META.columnas[k]).map(([k, t]) => `<option value="${k}"${k === b.grupo ? ' selected' : ''}>${esc(t)}</option>`).join('')}</select></div>` +
-      selectorIndicador('x', b.x, 'Eje horizontal') + selectorIndicador('y', b.y, 'Eje vertical') + fFiltro + '<div class="fld"></div>' + fMes('f-mes', 'Último barómetro', b.mes) + fAcum + lista + `<div class="fld full"><span class="lab">Opciones</span>${opBanda}${opRec}${opAncho}</div>`,
+      selectorIndicador('x', b.x, 'Eje horizontal') + selectorIndicador('y', b.y, 'Eje vertical') + fFiltro + fTam + fMes('f-mes', 'Último barómetro', b.mes) + fAcum + lista + `<div class="fld full"><span class="lab">Opciones</span>${opBanda}${opRec}${opAncho}</div>`,
     mapa: () => selectorIndicador('i', b.ind, 'Indicador') + fFiltro + '<div class="fld"></div>' + fMes('f-mes', 'Último barómetro', b.mes) + fAcum + `<div class="fld full"><span class="lab">Opciones</span>${opExNR}${opRec}${opAncho}</div>`,
     puntos: () => fPreg + fEje + '<div class="fld"></div>' + fPeriodo + lista + `<div class="fld full"><span class="lab">Opciones</span>${opAncho}</div>`,
   };
@@ -1189,6 +1283,7 @@ async function pintarEditor() {
     if ($('#f-mesA')) { b.mesA = val('f-mesA'); b.mesB = val('f-mesB') === ultMes ? null : val('f-mesB'); }
     if ($('#f-acum')) b.acum = +val('f-acum');
     if ($('#f-apilar')) b.apilar = val('f-apilar') || null;
+    if ($('#f-tam')) b.tam = val('f-tam') || null;
     if ($('#f-grupo')) b.grupo = val('f-grupo');
     if ($('#f-eje')) b.eje = val('f-eje');
     if ($('#f-catA')) b.cats = [val('f-catA'), val('f-catB')];
@@ -1230,7 +1325,6 @@ async function pintarEditor() {
     const res = await calcular(base);
     if (BORRADOR !== b) return;
     const P = res.P, media = res.unidad === 'media';
-    const conc = P.cols[0];
     const fmtv = v => v == null ? '' : media ? fmt2(v) : fmt1(v) + ' %';
     const resTot = base.cruce ? await calcular({ ...base, cruce: null }) : res;
     if (BORRADOR !== b) return;
@@ -1363,7 +1457,7 @@ function pintarMetodologia() {
   $('#m-cobertura').textContent = `Cobertura: ${EST.length} barómetros mensuales, de ${mesLargo(primero.mes)} a ${mesLargo(ultimo.mes)}, con ${fmtInt(nTot)} entrevistas en total.`;
   document.querySelectorAll('.cita-ult').forEach(x => { x.textContent = `${mesLargo(ultimo.mes)} (estudio ${ultimo.estudio})`; });
   const tipos = { C: 'C', B: 'B', tecnica: 'Técnica', 'tecnica-critica': 'Técnica', hueco: 'Hueco', descartada: 'Descartada' };
-  $('#m-rupt-tabla').innerHTML = `<table><thead><tr><th>Ruptura</th><th>Mes</th><th>Tipo</th><th>Afecta a</th><th>Qué cambia</th><th>Estado</th></tr></thead><tbody>${META.rupturas.map(r => `<tr id="r-${esc(r.ruptura_id)}"><td>${esc(r.ruptura_id)}</td><td>${esc(r.mes)}</td><td><span class="tipo ${esc(r.tipo)}">${esc(tipos[r.tipo] || r.tipo)}</span></td><td>${esc(r.conceptos_afectados.replace(/,\s*/g, ', '))}</td><td>${esc(r.descripcion)}</td><td>${esc(r.estado)}</td></tr>`).join('')}</tbody></table>`;
+  $('#m-rupt-tabla').innerHTML = `<table><thead><tr><th>Ruptura</th><th>Mes</th><th>Tipo</th><th>Afecta a</th><th>Qué cambia</th><th>Estado</th></tr></thead><tbody>${META.rupturas.map(r => `<tr id="r-${esc(r.ruptura_id)}"><td>${esc(r.ruptura_id)}${r.etiqueta_corta ? `<br><small>${esc(r.etiqueta_corta)}</small>` : ''}</td><td>${esc(r.mes)}</td><td><span class="tipo ${esc(r.tipo)}">${esc(tipos[r.tipo] || r.tipo)}</span></td><td>${esc(r.conceptos_afectados.replace(/,\s*/g, ', '))}</td><td>${esc(r.descripcion)}</td><td>${esc(r.estado)}</td></tr>`).join('')}</tbody></table>`;
   const titulo = id => PREG.find(p => p.id === id)?.t || (META.conceptos[id]?.etiqueta) || id;
   $('#m-preg-fichas').innerHTML = Object.entries(META.enunciados || {}).sort((a, z) => titulo(a[0]).localeCompare(titulo(z[0]), 'es')).map(([id, vs]) => `<div class="ficha"><h4>${esc(titulo(id))}</h4>${vs.map(v => `<p class="per">Versión ${esc(v.version)}: ${esc(mesCorto(v.desde))} a ${esc(mesCorto(v.hasta))}</p><p>${esc(v.enunciado.replace(/\s+\.$/, ''))}</p>`).join('')}</div>`).join('');
   $('#m-est-tabla').innerHTML = `<table><thead><tr><th>Mes</th><th>Estudio</th><th>Trabajo de campo</th><th>Entrevistas</th><th>Efecto de diseño</th></tr></thead><tbody>${META.estudios.map(e => `<tr><td>${esc(mesCorto(e.mes))}</td><td>${esc(e.estudio)}</td><td>${esc(e.fecha_campo_inicio)} a ${esc(e.fecha_campo_fin)}</td><td class="n">${fmtInt(+e.n)}</td><td class="n">${fmt2(+e.deff)}</td></tr>`).join('')}</tbody></table>`;
@@ -1384,7 +1478,21 @@ const RESUMEN = [
   { preg: 'eco_per', t: 'Situación económica personal' },
   { preg: 'ideologia', t: 'Autoubicación ideológica' },
 ];
-const Z_RESUMEN = 2.576, MIN_DIF = 1, MIN_DIF_MEDIA = 0.1, MIN_PCT_RESUMEN = 2, MAX_CAMBIOS = 4;
+const Q_FDR = 0.05, MIN_DIF = 1, MIN_DIF_MEDIA = 0.1, MIN_PCT_RESUMEN = 2, MAX_CAMBIOS = 4;
+/* Función de distribución normal estándar (Abramowitz y Stegun 7.1.26; error < 1,5e-7) */
+function phi(z) {
+  const t = 1 / (1 + 0.3275911 * Math.abs(z) / Math.SQRT2);
+  const y = 1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-z * z / 2);
+  return z >= 0 ? 0.5 + 0.5 * y : 0.5 - 0.5 * y;
+}
+const pBilateral = z => 2 * (1 - phi(Math.abs(z)));
+/* Benjamini–Hochberg: el mayor p que cumple p(k) ≤ k·q/m; todo p menor o igual se declara significativo */
+function umbralBH(ps, q = Q_FDR) {
+  const o = ps.slice().sort((a, b) => a - b), m = o.length;
+  let u = -1;
+  for (let k = m; k >= 1; k--) if (o[k - 1] <= k * q / m) { u = o[k - 1]; break; }
+  return u;
+}
 async function cambiosUltimo(spec) {
   const P = preg(spec.preg);
   if (!disponible(P)) return null;
@@ -1398,7 +1506,7 @@ async function cambiosUltimo(spec) {
   const corte = rupturas({ preg: spec.preg }).find(r => r.tipo === 'C' && r.m > fA.e.mes && r.m <= fB.e.mes);
   const base = { ...spec, fA, fB, media, conc: P.cols[0] };
   if (corte) return { ...base, corte };
-  const gA = fA.grupos[0], gB = fB.grupos[0], cambios = [];
+  const gA = fA.grupos[0], gB = fB.grupos[0], candidatos = [];
   for (const id of res.ids) {
     if (NR.has(id) && id !== 'NS') continue;
     const vA = gA.vals[id], vB = gB.vals[id];
@@ -1407,16 +1515,26 @@ async function cambiosUltimo(spec) {
     if (media) {
       const nA = gA.ns[id], nB = gB.ns[id];
       if (nA < MIN_N || nB < MIN_N || Math.abs(d) < MIN_DIF_MEDIA) continue;
-      se = Math.sqrt(fA.e.deff * gA.sd[id] ** 2 / nA + fB.e.deff * gB.sd[id] ** 2 / nB);
+      se = Math.sqrt(kish(nA, gA.sw[id], gA.sw2?.[id]) * gA.sd[id] ** 2 / nA + kish(nB, gB.sw[id], gB.sw2?.[id]) * gB.sd[id] ** 2 / nB);
     } else {
       if (Math.max(vA, vB) < MIN_PCT_RESUMEN || Math.abs(d) < MIN_DIF) continue;
       const pA = vA / 100, pB = vB / 100;
-      se = 100 * Math.sqrt(fA.e.deff * pA * (1 - pA) / gA.n + fB.e.deff * pB * (1 - pB) / gB.n);
+      se = 100 * Math.sqrt(kish(gA.n, gA.base, gA.base2) * pA * (1 - pA) / gA.n + kish(gB.n, gB.base, gB.base2) * pB * (1 - pB) / gB.n);
     }
-    if (se > 0 && Math.abs(d) / se >= Z_RESUMEN) cambios.push({ id, vA, vB, d });
+    if (se > 0) candidatos.push({ id, vA, vB, d, p: pBilateral(d / se) });
   }
-  cambios.sort((a, z) => Math.abs(z.d) - Math.abs(a.d));
-  return { ...base, cambios: cambios.slice(0, MAX_CAMBIOS), mas: Math.max(0, cambios.length - MAX_CAMBIOS) };
+  return { ...base, candidatos };
+}
+/* Con todos los candidatos del resumen a la vista, fija el umbral BH y reparte los cambios por pregunta */
+function aplicarFDR(rs) {
+  const todos = rs.flatMap(r => r.candidatos || []);
+  const u = umbralBH(todos.map(c => c.p));
+  for (const r of rs) {
+    if (!r.candidatos) continue;
+    const cambios = r.candidatos.filter(c => c.p <= u).sort((a, z) => Math.abs(z.d) - Math.abs(a.d));
+    r.cambios = cambios.slice(0, MAX_CAMBIOS); r.mas = Math.max(0, cambios.length - MAX_CAMBIOS);
+  }
+  return { rs, m: todos.length };
 }
 let RESUMEN_LISTO = false;
 async function pintarResumen() {
@@ -1438,8 +1556,8 @@ async function pintarResumen() {
     box.addEventListener('toggle', function abrir() { if (box.open) { box.removeEventListener('toggle', abrir); ok(); } });
   });
   box.addEventListener('toggle', () => { try { localStorage.setItem('bet-resumen', box.open ? 'abierto' : 'cerrado'); } catch (e) { /* */ } });
-  let rs;
-  try { rs = (await Promise.all(RESUMEN.map(cambiosUltimo))).filter(Boolean); }
+  let rs, m = 0;
+  try { rs = (await Promise.all(RESUMEN.map(cambiosUltimo))).filter(Boolean); ({ m } = aplicarFDR(rs)); }
   catch (e) { box.querySelector('.note').textContent = e.message; return; }
   const fmtv = (v, media) => media ? fmt2(v) : fmt1(v) + ' %';
   const fmtd = (d, media) => `${d > 0 ? '+' : '−'}${media ? fmt2(Math.abs(d)) : fmt1(Math.abs(d))}`;
@@ -1458,7 +1576,7 @@ async function pintarResumen() {
     ${sin.length ? `<p class="note"><b>Sin cambios significativos:</b> ${esc(sin.join(', ').toLowerCase())}.</p>` : ''}
     ${cortes.map(r => `<p class="note"><b>${esc(r.t)}:</b> sin comparación por la ruptura ${esc(r.corte.ruptura_id)} (${esc(breveRuptura(r.corte.descripcion))}).</p>`).join('')}
     ${ausentes.length ? `<p class="note"><b>No se preguntan en el último barómetro:</b> ${esc(ausentes.join(', ').toLowerCase())}.</p>` : ''}
-    <p class="note rs-crit">Solo cambios significativos al 99 % (con el efecto de diseño de cada estudio) y de al menos un punto, o una décima en las valoraciones. Con tantas comparaciones a la vez, un umbral menos exigente confundiría ruido con cambio. Variación en puntos; respuestas de menos del ${MIN_PCT_RESUMEN} % fuera. Un cambio significativo no siempre es un cambio de opinión: también puede deberse al cuestionario, por ejemplo a preguntas previas sobre el mismo tema.</p>`;
+    <p class="note rs-crit">Solo cambios de al menos un punto (una décima en las valoraciones) que siguen siendo significativos tras corregir por comparaciones múltiples: ${m} comparaciones a la vez, con la tasa de falsos descubrimientos controlada al 5 % (Benjamini–Hochberg) y el efecto de diseño de cada estudio. Variación en puntos; respuestas de menos del ${MIN_PCT_RESUMEN} % fuera. Un cambio significativo no siempre es un cambio de opinión: también puede deberse al cuestionario, por ejemplo a preguntas previas sobre el mismo tema.</p>`;
   box.querySelectorAll('[data-comparar]').forEach(bt => bt.addEventListener('click', () => {
     PANELES.unshift({ tipo: 'comparar', preg: bt.dataset.comparar, mesA: bt.dataset.mesa, id: nuevoId() });
     guardar(); renderTodo();
@@ -1467,27 +1585,40 @@ async function pintarResumen() {
 }
 
 /* ================= arranque ================= */
+/* Modo daltónico: paleta categórica segura (Okabe-Ito y afines, en estilos.css) y un trazo distinto por serie en las líneas.
+   Los colores de partido se mantienen (son convención), por eso el trazo. */
+const TRAZOS_CVD = [null, '7 3', '2 2.5', '9 3 2 3', '1 3', '12 4', '4 2 1 2', '14 3 2 3'];
+const modoCVD = () => document.documentElement.dataset.cvd === '1';
+function cvd(on) {
+  try { if (on) localStorage.setItem('bet-cvd', '1'); else localStorage.removeItem('bet-cvd'); } catch (e) { /* */ }
+  if (on) document.documentElement.dataset.cvd = '1'; else delete document.documentElement.dataset.cvd;
+  const b = $('#cvd'); if (b) b.setAttribute('aria-pressed', String(!!on));
+  rerender();
+}
 function tema(v) {
   try { if (v === 'system') localStorage.removeItem('bet-tema'); else localStorage.setItem('bet-tema', v); } catch (e) { /* */ }
   if (v === 'system') delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme = v;
   document.querySelectorAll('#tema button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === v)));
   rerender();
 }
-/* La web entra siempre por «¿Qué es esto?». Los paneles del explorador no se pintan (ni descargan sus columnas)
+/* La web entra por «¿Qué es esto?» la primera vez; cuando ya se ha visto la pestaña de series en este navegador, entra
+   directamente en ella (la guía sigue a un clic). Los paneles del explorador no se pintan (ni descargan sus columnas)
    hasta que se abre la pestaña de series. */
 const VISTAS_WEB = ['que', 'series', 'meth', 'datos'];
+const CLAVE_GUIA = 'bet-guia';
+const guiaVista = () => { try { return localStorage.getItem(CLAVE_GUIA) === 'vista'; } catch (e) { return false; } };
 let GRID_LISTO = false;
 function mostrarVista(t) {
   document.querySelectorAll('.tabs button').forEach(b => { const on = b.dataset.tab === t; b.setAttribute('aria-selected', String(on)); b.tabIndex = on ? 0 : -1; });
   VISTAS_WEB.forEach(v => { const el = $('#view-' + v); if (el) el.hidden = v !== t; });
 }
 /* La pestaña va en la dirección (#que, #series, #meth, #datos): el botón atrás vuelve a la anterior */
-const vistaDeHash = () => { const h = location.hash.slice(1); return h.startsWith('p=') ? 'series' : VISTAS_WEB.includes(h) ? h : null; };
+const vistaDeHash = () => { const h = location.hash.slice(1); return h.startsWith('p=') || PRESETS[h] ? 'series' : VISTAS_WEB.includes(h) ? h : null; };
 function pestana(t, historial = true) {
   if (historial && vistaDeHash() !== t) history.pushState(null, '', '#' + t);
   mostrarVista(t);
   if (!META) return;
-  if (t === 'series') { if (GRID_LISTO) rerender(); else { GRID_LISTO = true; leerPaleta(); renderTodo(); } pintarResumen(); }
+  if (t === 'series') { try { localStorage.setItem(CLAVE_GUIA, 'vista'); } catch (e) { /* */ } if (GRID_LISTO) rerender(); else { GRID_LISTO = true; leerPaleta(); renderTodo(); } pintarResumen(); }
   if (t === 'que') repintarGuia();
 }
 
@@ -1506,6 +1637,7 @@ async function iniciar() {
 }
 
 document.querySelectorAll('#tema button').forEach(b => b.addEventListener('click', () => tema(b.dataset.v)));
+$('#cvd')?.addEventListener('click', () => cvd(!modoCVD()));
 document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => pestana(b.dataset.tab)));
 // flechas, Inicio y Fin entre pestañas
 $('.tabs').addEventListener('keydown', ev => {
@@ -1515,7 +1647,18 @@ $('.tabs').addEventListener('keydown', ev => {
   if (j == null) return;
   ev.preventDefault(); bs[j].focus(); pestana(bs[j].dataset.tab);
 });
-addEventListener('popstate', () => { const t = vistaDeHash() || 'que'; if (META) pestana(t, false); else mostrarVista(t); });
+/* Carga una selección con nombre (#vivienda…) y abre las series; con historial, deja el nombre en la dirección */
+function aplicarPreset(nombre, historial = true) {
+  if (!PRESETS[nombre] || !META) return false;
+  PANELES = resolver(PRESETS[nombre]).map(p => ({ ...p, id: nuevoId() }));
+  if (historial) history.pushState(null, '', '#' + nombre);
+  GRID_LISTO = false;
+  pestana('series', false);
+  scrollTo(0, 0);
+  return true;
+}
+addEventListener('popstate', () => { if (presetDeHash() && aplicarPreset(presetDeHash(), false)) return; const t = vistaDeHash() || 'que'; if (META) pestana(t, false); else mostrarVista(t); });
+document.querySelectorAll('[data-preset]').forEach(a => a.addEventListener('click', ev => { ev.preventDefault(); aplicarPreset(a.dataset.preset); }));
 document.querySelectorAll('[data-goto]').forEach(a => a.addEventListener('click', ev => { ev.preventDefault(); pestana(a.dataset.goto); scrollTo(0, 0); }));
 $('#b-add').addEventListener('click', () => abrirEditor(null));
 $('#b-reset').addEventListener('click', () => {
@@ -1531,6 +1674,7 @@ $('#b-link').addEventListener('click', async ev => {
 });
 matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', rerender);
 let rto; addEventListener('resize', () => { clearTimeout(rto); rto = setTimeout(rerender, 200); });
-// los enlaces a paneles (#p=…) y a una pestaña (#series, #meth…) entran directamente en ella
-if (vistaDeHash()) mostrarVista(vistaDeHash());
+// los enlaces a paneles (#p=…, #vivienda…) y a una pestaña (#series, #meth…) entran directamente en ella; sin enlace,
+// quien ya ha visto las series entra en ellas
+if (vistaDeHash()) mostrarVista(vistaDeHash()); else if (guiaVista() && $('#view-series')) mostrarVista('series');
 iniciar();

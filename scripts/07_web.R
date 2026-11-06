@@ -88,6 +88,8 @@ enun <- leer_enun("inventario/enunciados_versiones.csv") |>
   dplyr::summarise(version = dplyr::first(version), desde = min(desde), hasta = max(hasta),
                    n_estudios = sum(as.integer(n_estudios)), enunciado = dplyr::first(enunciado), .groups = "drop")
 meta$enunciados <- split(dplyr::select(enun, version, desde, hasta, n_estudios, enunciado), enun$concepto)
+# convocatorias electorales (capa opcional de marcas en el eje temporal de las series): inventario/eventos_electorales.csv
+meta$eventos <- readr::read_csv("inventario/eventos_electorales.csv", col_types = readr::cols(.default = "c"), show_col_types = FALSE)
 meta$veda <- VEDA
 meta$filas <- nrow(d)
 meta$tramos_estudio <- est

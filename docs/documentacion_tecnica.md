@@ -41,6 +41,7 @@ Rscript -e 'targets::tar_make()'
 Rscript scripts/07_web.R              # VEDA=1 para la versión sin series electorales
 python scripts/08_prueba_web.py .     # la web calcula igual que R y que el CIS (Playwright + Chromium)
 python scripts/09_vista_previa.py .   # imagen de vista previa para redes
+npm ci && npm run lint                # comprobación estática de web/js (eslint; también en CI)
 python3 -m http.server -d web 8000    # vista previa en http://localhost:8000
 ```
 
@@ -54,7 +55,8 @@ El paso de R necesita los paquetes `targets`, `haven`, `arrow`, `dplyr`, `tidyr`
 |---|---|
 | `crosswalk_revisado.csv` | Concepto × estudio (2.560 filas): variable, versión del enunciado, **nivel_final** (A/B/C/AUSENTE), `revisado` (manual / auto), nota con la regla o el motivo y `nota_publica`, la que se muestra en la web |
 | `decisiones_manuales.csv` | Las 46 decisiones razonadas que se imponen a la regla automática (entrada editable de `05_revision.py`) |
-| `rupturas_candidatas.csv` | Registro de rupturas R01–R29, con evidencia y estado (confirmada / resuelta / descartada / nueva) |
+| `rupturas_candidatas.csv` | Registro de rupturas R01–R29, con evidencia, estado (confirmada / resuelta / descartada / nueva) y `etiqueta_corta` (la que rotula la guía) |
+| `eventos_electorales.csv` | Convocatorias electorales (generales, europeas, autonómicas, municipales) que la web puede marcar en el eje de las series; solo convocatorias |
 | `enunciados.csv`, `enunciados_versiones.csv` | Enunciado de cada pregunta en cada cuestionario y sus versiones con periodo |
 | `enunciados_adicionales.csv` | Enunciados para las fichas de la web que no salen de la extracción automática (intención recodificada, voto + simpatía, líderes y ministros) |
 | `mapa_partidos.csv` | Estudio × variable × código → partido armonizado |

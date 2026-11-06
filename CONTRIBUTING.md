@@ -10,7 +10,7 @@ El proyecto lo mantiene una persona y se actualiza cada mes con el barómetro nu
 
 - Rama por cambio y pull request contra `main`. La pull request construye el pipeline completo (R + Python) y pasa la prueba en Chromium sin publicar; `main` publica en GitHub Pages.
 - La web no se publica si la validación contra el CIS falla. Si un cambio hace que una cifra deje de cuadrar, el cambio es el problema, no la referencia.
-- Dependencias de Python en `requirements.txt`; paquetes de R en `docs/documentacion_tecnica.md`.
+- Dependencias de Python en `requirements.txt`; paquetes de R en `docs/documentacion_tecnica.md`. `npm run lint` comprueba `web/js` (eslint: variables no definidas o sin usar, igualdad estricta); la PR lo ejecuta antes de construir.
 - Textos en castellano, registro impersonal y sin valoraciones políticas. El proyecto no tiene relación con el CIS ni opina sobre sus métodos: describe lo que hay en los microdatos.
 - Mensajes de commit en castellano, en una línea que diga qué cambia para quien usa los datos o la web.
 

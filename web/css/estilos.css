@@ -26,6 +26,16 @@
   --s0:#301946; --s1:#462465; --s2:#5f3487; --s3:#7d4dad; --s4:#9d70ce; --s5:#be9be7; --s6:#dfc8fd;
   color-scheme:dark; }
 
+/* modo daltónico: paleta categórica segura para deuteranopia y protanopia (Okabe-Ito y afines; ΔE > 15 entre pares
+   simulados salvo c6/c11). Va después de los temas y con más especificidad para imponerse también en oscuro, donde
+   el negro de c10 y el índigo de c5 pasan a tonos claros */
+html:root[data-cvd="1"]{
+  --c1:#d55e00; --c2:#0072b2; --c3:#cc79a7; --c4:#e69f00; --c5:#332288; --c6:#009e73; --c7:#56b4e9; --c8:#882255;
+  --c9:#f0e442; --c10:#1c1d1f; --c11:#8c7a5b; --c12:#b2d08a;
+}
+@media (prefers-color-scheme: dark){ html:root[data-cvd="1"]:not([data-theme="light"]){ --c10:#ecebe8; --c5:#7b6fd0; } }
+html:root[data-cvd="1"][data-theme="dark"]{ --c10:#ecebe8; --c5:#7b6fd0; }
+
 *{box-sizing:border-box;border-radius:0!important}
 [hidden]{display:none!important}
 html,body{margin:0}

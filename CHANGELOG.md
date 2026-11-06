@@ -4,6 +4,23 @@ Registro de los cambios que afectan a los datos publicados (Parquet, columnas de
 
 ## Sin publicar
 
+Nivel 2 de la auditoría (PR #13):
+
+- **Margen de error**: el efecto de diseño se calcula sobre las entrevistas de la propia base (en un cruce, las del grupo) con la fórmula de Kish, en vez de aplicar a todo el del estudio; para porcentajes, intervalo de Wilson sobre el tamaño efectivo n/deff (no se trunca en cero). Cambian `lo`/`hi` en los CSV exportados y, ligeramente, qué diferencias resultan significativas en los cruces. Las cifras puntuales no cambian.
+- **Qué cambia en el último barómetro**: corrección por comparaciones múltiples con Benjamini–Hochberg (tasa de falsos descubrimientos al 5 % sobre todas las comparaciones del resumen) en lugar del umbral fijo del 99 %; se mantienen los umbrales de magnitud.
+- **Media móvil** centrada (anterior, ese y siguiente); en el último barómetro de cada tramo, los dos anteriores, y el detalle lo marca como provisional.
+- **Rupturas** con etiqueta corta (`etiqueta_corta` en `inventario/rupturas_candidatas.csv`): la guía rotula con ella; tooltips, notas y la tabla de la nota metodológica muestran código y etiqueta.
+- **Convocatorias electorales** (`inventario/eventos_electorales.csv`, exportado a `metadatos.json`): capa opcional por panel de series («Elecciones»).
+- **Enlaces con nombre**: `#voto`, `#edad`, `#transferencias`, `#lideres`, `#problemas`, `#vivienda`, `#economia`, `#ideologia`, `#recuerdo`, `#puntos`.
+- **Entrada**: quien ya ha abierto las series en ese navegador entra directamente en ellas; la guía sigue en su pestaña.
+- **Modo daltónico** (botón en la cabecera): paleta categórica segura para deuteranopia y protanopia y un trazo distinto por serie en las líneas; los colores de partido se mantienen.
+- **Dispersión**: el tamaño de los puntos es el peso del grupo en la muestra ponderada (antes, el número de entrevistas, que queda como opción); la tabla y el CSV añaden ese peso.
+- **Mapa**: tramos con cortes redondeados en vez de cinco de igual amplitud sobre el rango observado; tramado para las comunidades cuyo intervalo incluye el total de España; entrevistas por barómetro en la tabla.
+- **Nube de puntos**: si el canvas acelerado del navegador deja el lienzo en negro (visto en Firefox), se repinta en un canvas por software; se repinta también al recuperar el lienzo o volver a la pestaña; rótulo «sin ponderar» dentro del lienzo. La paleta tiene valores por defecto si una variable CSS no se resuelve.
+- **eslint** mínimo para `web/js` (`npm run lint`), también en CI antes de construir.
+
+Nivel 1 de la auditoría (PR #12):
+
 - Fuentes de `inventario/resultados_electorales.csv` contrastadas con los resúmenes de la Junta Electoral Central en el BOE (BOE-A-2019-17344 y su corrección BOE-A-2019-18147; BOE-A-2023-18907). Las cifras no cambian; cambia la cita. Las del voto CERA siguen procediendo de las actas de las juntas provinciales recopiladas por España Exterior.
 - Nota metodológica: se documenta que la participación objetivo de la reponderación excluye el CERA y el reparto entre partidos lo incluye (menos del 1 % de los votantes); se añade un apartado de abreviaturas.
 - README: la validación se describe con su cobertura real (185 cifras en 8 de 64 barómetros, de 1 a 55 por barómetro) y el margen de error como «más realista que el de la ficha técnica», no como «honesto»: incorpora el efecto de diseño de la ponderación, no el del muestreo por conglomerados.

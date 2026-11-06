@@ -17,6 +17,7 @@ scripts/05_revision.py          crosswalk revisado + mapas de partidos, problema
 scripts/06_revision_xlsx.py     inventario/revision.xlsx
 scripts/lib/                    parsers del libro de códigos y del cuestionario
 _targets.R, R/                  armonización en R: .sav -> microdatos armonizados + metadatos + validación
+tests/                          pruebas unitarias de R/ (testthat; Rscript tests/testthat.R)
 datos/publicacion/              microdatos.parquet y metadatos.json (generados)
 scripts/07_web.R                datos de la web: una columna comprimida por pregunta (web/datos/, generado)
 scripts/08_prueba_web.py        prueba en Chromium: la web recalcula las referencias del CIS y debe dar lo mismo que R
@@ -24,7 +25,7 @@ scripts/07_estimacion.R         datos de «Construye tu estimación» (web/datos
 scripts/09_vista_previa.py      imagen para redes (web/img/vista-previa.png): captura de los paneles por defecto
 estimacion/                     estimación de voto: rejilla de supuestos (rejilla.R), modelos de referencia con remuestreo
                                 (modelos.R), estimación publicada por el CIS (estimacion_cis.csv) y resumen (resumen_rejilla.py)
-web/                            la web: index.html, css/, js/app.js, js/vistas.js, js/guia.js (d3 autoalojado, sin dependencias externas)
+web/                            la web: index.html, css/, js/app.js, js/vistas.js, js/guia.js, js/estimacion.js (d3 autoalojado, sin dependencias externas)
 .github/workflows/publicar.yml  construcción y publicación en GitHub Pages
 ```
 
@@ -50,7 +51,11 @@ npm ci && npm run lint                # comprobación estática de web/js (eslin
 python3 -m http.server -d web 8000    # vista previa en http://localhost:8000
 ```
 
-El paso de R necesita los paquetes `targets`, `haven`, `arrow`, `dplyr`, `tidyr`, `purrr`, `readr`, `jsonlite` y `tibble` (y `nnet` para la estimación). Si la validación falla (códigos sin mapa, pesos ausentes o cifras que no reproducen las del CIS), el Parquet no se escribe.
+El paso de R necesita los paquetes `targets`, `haven`, `arrow`, `dplyr`, `tidyr`, `purrr`, `readr`, `jsonlite` y `tibble` (y `nnet` para la estimación; `testthat` para las pruebas). Si la validación falla (códigos sin mapa, pesos ausentes o cifras que no reproducen las del CIS), el Parquet no se escribe.
+
+**Versiones.** La construcción en GitHub (`.github/workflows/publicar.yml`) fija la versión de R (4.6.2) y toma los paquetes de una instantánea por fecha de Posit Package Manager (`packagemanager.posit.co/cran/__linux__/noble/AAAA-MM-DD`), así que dos construcciones con el mismo código dan el mismo resultado hasta que se adelante la fecha a mano. Para reproducir ese entorno en local, la misma dirección sirve como repositorio: `options(repos = c(CRAN = "https://packagemanager.posit.co/cran/AAAA-MM-DD"))` antes de `install.packages()`. Si se prefiere un fichero de bloqueo, `renv::init(bare = TRUE); renv::snapshot(type = "explicit")` desde la raíz genera `renv.lock` con las versiones instaladas en el entorno propio (hoy no se versiona ninguno). Las versiones comprobadas del flujo de Python están en `requirements.txt`.
+
+**Pruebas unitarias.** `Rscript tests/testthat.R` comprueba las funciones de armonización que no dependen de los .sav: tipos de no respuesta, agrupación de ocupación e ideología, celdas del recuerdo, objetivos electorales y el raking (márgenes, conservación de sexo/edad/estudios, cota del factor de ajuste). Se ejecutan en CI antes de la armonización.
 
 ## Ficheros de `inventario/`
 

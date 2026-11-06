@@ -189,8 +189,18 @@ async function datosDispersion(cfg) {
   const cand = X.res.glev.filter(id => id !== 'NP' && !NR.has(id)).sort((a, z) => nOf(z) - nOf(a));
   return { grupo, k, X, Y, nOf, cand, defecto: cand.filter(id => !NO_ELECTORADO.has(id)).slice(0, 10) };
 }
+// peso ponderado de un grupo en la ventana (su parte de la suma de pesos de todos los grupos), para el tamaño de los puntos
+function pesoGrupo(D, gid) {
+  const g = D.res.glev.indexOf(gid);
+  let s = 0, t = 0;
+  for (const i of D.idxs) D.res.filas[i].grupos.forEach((gr, h) => { const w = gr.base ?? gr.sw?.[D.I.id] ?? 0; t += w; if (h === g) s += w; });
+  return t ? s / t : 0;
+}
 async function vistaDispersion(host, cfg) {
   const { grupo, X, Y, nOf, cand, defecto } = await datosDispersion(cfg);
+  // tamaño de los puntos: por defecto, el peso ponderado del grupo (lo que pesa en el electorado); opcional, las entrevistas
+  const porN = cfg.tam === 'n';
+  const tam = gid => porN ? nOf(gid) : pesoGrupo(X, gid);
   const puntos0 = cfg.gcats && cfg.gcats.length ? cfg.gcats.filter(id => cand.includes(id)) : defecto;
   const pts = puntos0.slice(0, MAX_SERIES).map(gid => ({ gid, label: etiquetaGrupo(grupo, gid), x: X.valores[gid], y: Y.valores[gid] }))
     .filter(p => p.x && p.y && p.x.v != null && p.y.v != null);
@@ -206,7 +216,7 @@ async function vistaDispersion(host, cfg) {
   const ext = (k2) => { const vs = [...pts, total].flatMap(p => p[k2].v == null ? [] : banda ? [p[k2].lo, p[k2].hi] : [p[k2].v]); const a = d3.min(vs), b = d3.max(vs), pad = (b - a) * .1 || 1; return [a - pad, b + pad]; };
   const x = d3.scaleLinear().domain(ext('x')).nice().range([m.l, W - m.r]);
   const y = d3.scaleLinear().domain(ext('y')).nice().range([H - m.b, m.t]);
-  const r = d3.scaleSqrt().domain([0, d3.max(pts, p => nOf(p.gid))]).range([3, 16]);
+  const r = d3.scaleSqrt().domain([0, d3.max(pts, p => tam(p.gid))]).range([3, 16]);
   const axis = g => { g.selectAll('text').attr('fill', PAL.ink3).attr('font-size', 11); g.selectAll('.tick line').attr('stroke', PAL.line); g.select('.domain').remove(); };
   svg.append('g').attr('transform', `translate(0,${H - m.b})`).call(d3.axisBottom(x).ticks(Math.max(3, Math.round(W / 90))).tickSize(-(H - m.t - m.b)).tickFormat(v => X.I.media ? fmt1(v) : fmtInt(v))).call(axis);
   svg.append('g').attr('transform', `translate(${m.l},0)`).call(d3.axisLeft(y).ticks(6).tickSize(-(W - m.l - m.r)).tickFormat(v => Y.I.media ? fmt1(v) : fmtInt(v))).call(axis);
@@ -218,14 +228,14 @@ async function vistaDispersion(host, cfg) {
   });
   // puntos primero; luego etiquetas que no pisen puntos ni otras etiquetas; las que no caben van a una leyenda inferior
   const cajas = [];
-  const orden = pts.slice().sort((a, z) => nOf(z.gid) - nOf(a.gid));
+  const orden = pts.slice().sort((a, z) => tam(z.gid) - tam(a.gid));
   if (total.x.v != null && total.y.v != null) {
     const tx = x(total.x.v), ty = y(total.y.v);
     svg.append('circle').attr('cx', tx).attr('cy', ty).attr('r', 6).attr('fill', 'none').attr('stroke', PAL.ink2).attr('stroke-width', 1.5);
     cajas.push([tx - 7, ty - 7, tx + 7, ty + 7]);
   }
   orden.forEach(p => {
-    const cx = x(p.x.v), cy = y(p.y.v), rr = r(nOf(p.gid));
+    const cx = x(p.x.v), cy = y(p.y.v), rr = r(tam(p.gid));
     p._c = [cx, cy, rr];
     svg.append('circle').attr('cx', cx).attr('cy', cy).attr('r', rr).attr('fill', col[p.gid]).attr('fill-opacity', .85).attr('stroke', PAL.surface).attr('stroke-width', 2);
     cajas.push([cx - rr, cy - rr, cx + rr, cy + rr]);
@@ -249,7 +259,7 @@ async function vistaDispersion(host, cfg) {
     const [cx, cy, rr] = p._c;
     svg.append('circle').attr('class', 'hit').attr('cx', cx).attr('cy', cy).attr('r', Math.max(12, rr + 4)).attr('fill', 'transparent')
       .on('pointermove', ev => showTip(`<b>${esc(p.label)}</b><div class="r"><span>${esc(X.I.corto)}</span><span>${fmtV(p.x.v, X.I.media)}</span></div><div class="r"><span>${esc(Y.I.corto)}</span><span>${fmtV(p.y.v, Y.I.media)}</span></div>` +
-        `<div class="tnote">Márgenes al 95 %: ${fmtV(p.x.lo, X.I.media)} a ${fmtV(p.x.hi, X.I.media)}; ${fmtV(p.y.lo, Y.I.media)} a ${fmtV(p.y.hi, Y.I.media)}. Base: ${fmtInt(nOf(p.gid))} entrevistas.</div>`, ev))
+        `<div class="tnote">Márgenes al 95 %: ${fmtV(p.x.lo, X.I.media)} a ${fmtV(p.x.hi, X.I.media)}; ${fmtV(p.y.lo, Y.I.media)} a ${fmtV(p.y.hi, Y.I.media)}. Base: ${fmtInt(nOf(p.gid))} entrevistas; ${fmt1(100 * pesoGrupo(X, p.gid))} % de la muestra ponderada.</div>`, ev))
       .on('pointerleave', hideTip);
   });
   if (sinEtiqueta.length) {
@@ -266,11 +276,11 @@ async function vistaDispersion(host, cfg) {
   const per = periodoTxt(X.res, X.idxs);
   return {
     titulo: `${CRUCE_DE[grupo] || 'Grupos'}: ${X.I.corto.toLowerCase()} y ${Y.I.corto.toLowerCase()}`,
-    meta: `Cada punto es un grupo; tamaño según entrevistas. ${per}${cfg.filtro ? '. Solo ' + etiqueta(cfg.filtro.col, cfg.filtro.val) : ''}`,
+    meta: `Cada punto es un grupo; tamaño según ${porN ? 'el número de entrevistas' : 'el peso del grupo en la muestra ponderada'}. ${per}${cfg.filtro ? '. Solo ' + etiqueta(cfg.filtro.col, cfg.filtro.val) : ''}`,
     notas: ['La relación entre los dos ejes es descriptiva: compara grupos, no personas, y no implica causalidad.',
       ...(omit > 0 ? [`${omit} ${omit === 1 ? 'grupo no llega' : 'grupos no llegan'} a ${MIN_N} entrevistas y no se muestra${omit === 1 ? '' : 'n'}.`] : [])],
-    tabla: { cab: [CRUCE_DE[grupo] || 'Grupo', X.I.corto, Y.I.corto, 'Base (n)'], filas: [...pts, total].map(p => [p.label, fmtV(p.x.v, X.I.media), fmtV(p.y.v, Y.I.media), fmtInt(p.gid === '__total' ? Math.min(p.x.n, p.y.n) : nOf(p.gid))]) },
-    csv: { cab: ['grupo', 'x', 'x_inf', 'x_sup', 'y', 'y_inf', 'y_sup', 'n_base'], filas: [...pts, total].map(p => [p.label, p.x.v, p.x.lo, p.x.hi, p.y.v, p.y.lo, p.y.hi, p.gid === '__total' ? Math.min(p.x.n, p.y.n) : nOf(p.gid)]) },
+    tabla: { cab: [CRUCE_DE[grupo] || 'Grupo', X.I.corto, Y.I.corto, 'Base (n)', '% muestra pond.'], filas: [...pts, total].map(p => [p.label, fmtV(p.x.v, X.I.media), fmtV(p.y.v, Y.I.media), fmtInt(p.gid === '__total' ? Math.min(p.x.n, p.y.n) : nOf(p.gid)), p.gid === '__total' ? '100,0' : fmt1(100 * pesoGrupo(X, p.gid))]) },
+    csv: { cab: ['grupo', 'x', 'x_inf', 'x_sup', 'y', 'y_inf', 'y_sup', 'n_base', 'pct_muestra_ponderada'], filas: [...pts, total].map(p => [p.label, p.x.v, p.x.lo, p.x.hi, p.y.v, p.y.lo, p.y.hi, p.gid === '__total' ? Math.min(p.x.n, p.y.n) : nOf(p.gid), p.gid === '__total' ? 100 : 100 * pesoGrupo(X, p.gid)]) },
   };
 }
 
@@ -284,6 +294,8 @@ async function geometria() {
   GEO = topojson.feature(topo, topo.objects.autonomous_regions).features.filter(f => f.id !== '20');
   return GEO;
 }
+// entrevistas de un grupo en cada barómetro de la ventana (del más antiguo al más reciente)
+const nPorEstudio = (D, gid, sep = ' · ') => { const g = D.res.glev.indexOf(gid); return D.idxs.slice().sort((a, b) => a - b).map(i => fmtInt(D.res.filas[i].grupos[g]?.n || 0)).join(sep); };
 async function vistaMapa(host, cfg) {
   const ind = cfg.ind || { preg: 'prob_esp', cat: vivienda() };
   const I0 = indicadorInfo(ind);
@@ -294,41 +306,58 @@ async function vistaMapa(host, cfg) {
   Object.entries(D.valores).forEach(([nom, p]) => { if (CCAA_INE[nom]) val[CCAA_INE[nom]] = { ...p, nom }; });
   const vs = Object.values(val).filter(p => p.v != null).map(p => p.v);
   if (!vs.length) return { vacio: 'Ninguna comunidad llega a 50 entrevistas. Acumula más barómetros.' };
-  const R = rampa().slice(1, 6);
+  // Tramos con cortes redondeados (ticks), no de igual amplitud sobre el rango observado: con 17 comunidades y márgenes
+  // de varios puntos, el rango observado es en parte ruido y una escala pegada a él exagera los contrastes.
   const dom = d3.extent(vs);
-  const q = d3.scaleQuantize().domain(dom).range(R).nice();
-  const cortes = q.thresholds();
+  const ticks = d3.ticks(dom[0], dom[1], 4).filter(t => t > dom[0] && t < dom[1]).slice(0, 5);
+  const cortes = ticks.length ? ticks : [(dom[0] + dom[1]) / 2];
+  const ramp = rampa();   // siete tonos (--s0 a --s6); se usan de --s1 a --s6, repartidos según el número de tramos
+  const R = d3.range(cortes.length + 1).map(i => ramp[1 + Math.round(i * 5 / cortes.length)]);
+  const q = d3.scaleThreshold().domain(cortes).range(R);
+  // «no se distingue del total»: el intervalo al 95 % de la comunidad incluye el valor de España
+  const indist = p => D.total.v != null && p.lo != null && p.lo <= D.total.v && D.total.v <= p.hi;
   const W = Math.max(300, Math.round(host.clientWidth || 600));
   const H = Math.round(W * 0.66) + 40;
   const svg = svgBase(host, W, H, 'Mapa por comunidades');
+  const pid = 'tr' + Math.random().toString(36).slice(2, 8);
+  svg.append('defs').append('pattern').attr('id', pid).attr('patternUnits', 'userSpaceOnUse').attr('width', 6).attr('height', 6).attr('patternTransform', 'rotate(45)')
+    .append('line').attr('x1', 0).attr('y1', 0).attr('x2', 0).attr('y2', 6).attr('stroke', PAL.surface).attr('stroke-width', 2).attr('stroke-opacity', .75);
   const proj = d3.geoConicConformalSpain().fitExtent([[6, 6], [W - 6, H - 46]], { type: 'FeatureCollection', features: feats });
   const path = d3.geoPath(proj);
   feats.forEach(f => {
     const p = val[f.id];
-    const fill = p && p.v != null ? q(p.v) : PAL.line;
-    svg.append('path').attr('d', path(f)).attr('fill', fill).attr('stroke', PAL.surface).attr('stroke-width', 1)
-      .attr('class', 'hit').style('cursor', 'default')
-      .on('pointermove', ev => showTip(`<b>${esc(p ? p.nom : f.properties.name)}</b>` + (p && p.v != null
-        ? `<div class="r"><span>${esc(D.I.corto)}</span><span>${fmtV(p.v, D.I.media)}</span></div><div class="tnote">Margen al 95 %: ${fmtV(p.lo, D.I.media)} a ${fmtV(p.hi, D.I.media)}. Base: ${fmtInt(p.n)} entrevistas.</div>`
+    const con = p && p.v != null;
+    const fill = con ? q(p.v) : PAL.line;
+    const g = svg.append('g');
+    g.append('path').attr('d', path(f)).attr('fill', fill).attr('stroke', PAL.surface).attr('stroke-width', 1);
+    if (con && indist(p)) g.append('path').attr('d', path(f)).attr('fill', `url(#${pid})`).attr('stroke', 'none');
+    g.append('path').attr('d', path(f)).attr('fill', 'transparent').attr('class', 'hit').style('cursor', 'default')
+      .on('pointermove', ev => showTip(`<b>${esc(p ? p.nom : f.properties.name)}</b>` + (con
+        ? `<div class="r"><span>${esc(D.I.corto)}</span><span>${fmtV(p.v, D.I.media)}</span></div><div class="tnote">Margen al 95 %: ${fmtV(p.lo, D.I.media)} a ${fmtV(p.hi, D.I.media)}. Base: ${fmtInt(p.n)} entrevistas (${nPorEstudio(D, p.nom)}).${indist(p) ? ' Tramado: el intervalo incluye el total de España.' : ''}</div>`
         : `<div class="tnote">Menos de ${MIN_N} entrevistas en el periodo.</div>`), ev))
       .on('pointerleave', hideTip);
   });
   try { svg.append('path').attr('d', proj.getCompositionBorders()).attr('fill', 'none').attr('stroke', PAL.line2); } catch (e) { /* sin recuadro */ }
-  // leyenda
-  const lw = Math.min(64, (W - 140) / R.length), ly = H - 30;
+  // leyenda: tramos con sus cortes, tramado y gris
+  const lw = Math.min(64, (W - 220) / R.length), ly = H - 30;
   R.forEach((c, i) => svg.append('rect').attr('x', 8 + i * lw).attr('y', ly).attr('width', lw - 2).attr('height', 10).attr('fill', c));
-  [dom[0], ...cortes, dom[1]].forEach((t, i) => { if (i === 0 || i === R.length) return; svg.append('text').attr('x', 8 + i * lw - 1).attr('y', ly + 23).attr('text-anchor', 'middle').attr('font-size', 10.5).attr('fill', PAL.ink2).text(D.I.media ? fmt1(t) : fmt1(t)); });
-  svg.append('rect').attr('x', 8 + R.length * lw + 14).attr('y', ly).attr('width', 18).attr('height', 10).attr('fill', PAL.line);
-  svg.append('text').attr('x', 8 + R.length * lw + 36).attr('y', ly + 9).attr('font-size', 10.5).attr('fill', PAL.ink2).text(`n < ${MIN_N}`);
-  svg.selectAll('text, rect').attr('pointer-events', 'none');
+  cortes.forEach((t, i) => svg.append('text').attr('x', 8 + (i + 1) * lw - 1).attr('y', ly + 23).attr('text-anchor', 'middle').attr('font-size', 10.5).attr('fill', PAL.ink2).text(Number.isInteger(t) ? fmtInt(t) : fmt1(t)));
+  let lx = 8 + R.length * lw + 14;
+  svg.append('rect').attr('x', lx).attr('y', ly).attr('width', 18).attr('height', 10).attr('fill', R[Math.floor(R.length / 2)]);
+  svg.append('rect').attr('x', lx).attr('y', ly).attr('width', 18).attr('height', 10).attr('fill', `url(#${pid})`);
+  svg.append('text').attr('x', lx + 22).attr('y', ly + 9).attr('font-size', 10.5).attr('fill', PAL.ink2).text('≈ total de España');
+  lx += 22 + 96;
+  svg.append('rect').attr('x', lx).attr('y', ly).attr('width', 18).attr('height', 10).attr('fill', PAL.line);
+  svg.append('text').attr('x', lx + 22).attr('y', ly + 9).attr('font-size', 10.5).attr('fill', PAL.ink2).text(`n < ${MIN_N}`);
+  svg.selectAll('text, rect, path:not(.hit)').attr('pointer-events', 'none');
   const filas = Object.values(val).sort((a, z) => (z.v ?? -1) - (a.v ?? -1));
   return {
     titulo: `${D.I.label.replace(/ \(%\)$/, '')}, por comunidad autónoma`,
     meta: `${D.I.media ? 'Media de 1 a 10' : '% de entrevistados'}. ${periodoTxt(D.res, D.idxs)}${cfg.filtro ? '. Solo ' + etiqueta(cfg.filtro.col, cfg.filtro.val) : ''}`,
-    notas: [`Total de España: ${fmtV(D.total.v, D.I.media)}. Los barómetros no están diseñados para dar resultados por comunidad${k > 1 ? `: se acumulan hasta ${k} barómetros para ganar muestra, y` : ':'} las comunidades pequeñas tienen márgenes amplios (ver tabla).`,
+    notas: [`Total de España: ${fmtV(D.total.v, D.I.media)}. Los barómetros no están diseñados para dar resultados por comunidad${k > 1 ? `: se acumulan hasta ${k} barómetros para ganar muestra, y` : ':'} las comunidades pequeñas tienen márgenes amplios (ver tabla). Las comunidades tramadas no se distinguen del total de España: su intervalo al 95 % lo incluye.`,
       'Geometrías: es-atlas, a partir del Instituto Geográfico Nacional.'],
-    tabla: { cab: ['Comunidad', D.I.corto, 'Margen inferior', 'Margen superior', 'Base (n)'], filas: filas.map(p => [p.nom, fmtV(p.v, D.I.media), fmtV(p.lo, D.I.media), fmtV(p.hi, D.I.media), fmtInt(p.n || 0)]) },
-    csv: { cab: ['comunidad', 'valor', 'margen_inferior', 'margen_superior', 'n_base'], filas: filas.map(p => [p.nom, p.v, p.lo, p.hi, p.n]) },
+    tabla: { cab: ['Comunidad', D.I.corto, 'Margen inferior', 'Margen superior', 'Base (n)', 'Entrevistas por barómetro', '≈ total'], filas: filas.map(p => [p.nom, fmtV(p.v, D.I.media), fmtV(p.lo, D.I.media), fmtV(p.hi, D.I.media), fmtInt(p.n || 0), nPorEstudio(D, p.nom), p.v != null && indist(p) ? 'sí' : '']) },
+    csv: { cab: ['comunidad', 'valor', 'margen_inferior', 'margen_superior', 'n_base', 'n_por_barometro', 'incluye_total_espana'], filas: filas.map(p => [p.nom, p.v, p.lo, p.hi, p.n, nPorEstudio(D, p.nom, ' '), p.v != null && indist(p)]) },
   };
 }
 

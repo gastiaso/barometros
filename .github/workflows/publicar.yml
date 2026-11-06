@@ -102,8 +102,8 @@ jobs:
       - name: Versión de los ficheros de la web
         run: |
           v="${GITHUB_SHA::8}"
-          sed -i -E "s#(src=\"js/[^\"?]+\.js)\"#\1?v=$v\"#g; s#(href=\"css/[^\"?]+\.css)\"#\1?v=$v\"#g" web/index.html
-          grep -c "?v=$v" web/index.html
+          sed -i -E "s#(src=\"js/[^\"?]+\.js)\"#\1?v=$v\"#g; s#(href=\"css/[^\"?]+\.css)\"#\1?v=$v\"#g" web/index.html web/embed.html
+          grep -c "?v=$v" web/index.html web/embed.html
 
       - uses: actions/upload-pages-artifact@v3
         if: github.event_name != 'pull_request'

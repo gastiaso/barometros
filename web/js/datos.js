@@ -415,3 +415,16 @@ function colores(lista, cfg, dim = 'cat') {
   });
   return out;
 }
+
+// paneles de partida; las categorías indicadas por etiqueta se traducen a identificadores
+function resolver(lista) {
+  const porEtq = (concepto, et) => Object.entries(LAB[concepto] || {}).find(([, e]) => e === et)?.[0];
+  return lista.map(p => {
+    const { catsEtq, cat1Etq, yEtq, indEtq, ...r } = p;
+    if (catsEtq) r.cats = catsEtq.map(e => porEtq(preg(p.preg).cols[0], e)).filter(Boolean);
+    if (cat1Etq) r.cat1 = porEtq(preg(p.preg).cols[0], cat1Etq);
+    if (yEtq) r.y = { preg: yEtq[0], cat: porEtq(preg(yEtq[0]).cols[0], yEtq[1]) };
+    if (indEtq) r.ind = { preg: indEtq[0], cat: porEtq(preg(indEtq[0]).cols[0], indEtq[1]) };
+    return r;
+  });
+}

@@ -48,6 +48,14 @@ function lineasTexto(txt, maxPx, px = 12, n = 2) {
   return lineas;
 }
 const fecha = m => new Date(Date.UTC(+m.slice(0, 4), +m.slice(5, 7) - 1, 1));
+/* Modo daltónico: paleta categórica segura (Okabe-Ito y afines, en estilos.css) y un trazo distinto por serie en las líneas.
+   Los colores de partido se mantienen (son convención), por eso el trazo. El conmutador está en app.js. */
+const TRAZOS_CVD = [null, '7 3', '2 2.5', '9 3 2 3', '1 3', '12 4', '4 2 1 2', '14 3 2 3'];
+const modoCVD = () => document.documentElement.dataset.cvd === '1';
+/* Un panel sin su identificador de sesión (lo que se guarda y se comparte) y la codificación de los enlaces #p= */
+const limpio = p => { const { id, ...r } = p; return r; };
+const b64e = s => btoa(unescape(encodeURIComponent(s))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+const b64d = s => decodeURIComponent(escape(atob(s.replace(/-/g, '+').replace(/_/g, '/'))));
 
 /* ================= catálogo ================= */
 const PREG = [

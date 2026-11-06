@@ -13,7 +13,7 @@ una muestra del resto y lo que se ve en la tabla. En modo veda comprueba que la 
 Uso: python scripts/08_prueba_web.py <raíz del proyecto>   (después de scripts/07_web.R)
 Sale con código 1 si algo no cuadra.
 """
-import asyncio, csv, functools, gzip, http.server, os, socketserver, sys, threading
+import asyncio, base64, csv, functools, gzip, http.server, os, socketserver, sys, threading
 
 from playwright.async_api import async_playwright
 
@@ -26,6 +26,10 @@ TOL_R = 0.001
 class Silencioso(http.server.SimpleHTTPRequestHandler):
     def log_message(self, *args):
         pass
+
+
+def b64e(s):   # la misma codificación que los enlaces #p= y embed.html?p= (web/js/comun.js)
+    return base64.urlsafe_b64encode(s.encode("utf-8")).decode().rstrip("=")
 
 
 def servir():
@@ -194,6 +198,19 @@ async def main():
                 fallos.append(f"el descompresor alternativo no coincide en {a['indicador']}")
         if not await pf.evaluate("!!window.fflate"):
             fallos.append("sin DecompressionStream no se ha cargado el descompresor alternativo")
+        # embed.html: un panel suelto (enlace con nombre y panel codificado) se pinta sin errores
+        pe = await nav.new_page()
+        errores_embed = []
+        pe.on("pageerror", lambda e: errores_embed.append(str(e)))
+        for consulta in ("?preset=vivienda&i=0", "?p=" + b64e('{"tipo":"transferencias","preg":"intencion_voto_r","acum":3}'), "?p=" + b64e('{"preg":"eco_esp"}')):
+            await pe.goto(url.replace("index.html", "embed.html") + consulta)
+            try:
+                await pe.wait_for_function("document.querySelector('.panel h2')?.textContent", timeout=60000)
+            except Exception:                            # noqa: BLE001
+                fallos.append(f"embed.html{consulta}: el panel no se pinta")
+            if await pe.evaluate("!!document.querySelector('.panel .chart .empty')") and not veda:
+                fallos.append(f"embed.html{consulta}: panel vacío: " + await pe.evaluate("document.querySelector('.panel .chart .empty').textContent"))
+        fallos += [f"error de JavaScript en embed.html: {e}" for e in errores_embed]
         fallos += [f"error de JavaScript: {e}" for e in errores_js]
         await nav.close()
     srv.shutdown()

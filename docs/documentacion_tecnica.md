@@ -27,9 +27,9 @@ scripts/10_referencias_notas.py referencias de validación desde las notas de es
 scripts/11_sensibilidad_recuerdo.R sensibilidad de la reponderación por recuerdo a la variante «solo votantes» (inventario/sensibilidad_recuerdo.csv)
 estimacion/                     estimación de voto: rejilla de supuestos (rejilla.R), modelos de referencia con remuestreo
                                 (modelos.R), estimación publicada por el CIS (estimacion_cis.csv) y resumen (resumen_rejilla.py)
-web/                            la web: index.html, css/ y js/ (d3 autoalojado, sin dependencias externas): comun.js (utilidades y catálogo), datos.js
+web/                            la web: index.html, embed.html (un panel para iframe), css/ y js/ (d3 autoalojado, sin dependencias externas): comun.js (utilidades y catálogo), datos.js
                                 (columnas y agregación), grafico.js (series, barras, comparar), paneles.js, vistas.js (transferencias, dispersión,
-                                mapa, calor, nube), guia.js, estimacion.js, editor.js y app.js (estado, nota, «Qué cambia», arranque)
+                                mapa, calor, nube), guia.js, estimacion.js, editor.js, app.js (estado, nota, «Qué cambia», arranque) y embed.js (arranque de embed.html)
 web/fonts/                      fuente de rótulos autoalojada (Roboto Condensed variable, subconjunto latino, OFL 1.1; ver abajo cómo regenerarla)
 .github/workflows/publicar.yml  construcción y publicación en GitHub Pages
 .github/workflows/version.yml   versión de los datos (release con Parquet, metadatos e inventario) al etiquetar vAAAA-MM
@@ -176,6 +176,8 @@ R19 y R22 coinciden con una reordenación del cuestionario en octubre de 2023, s
 9. **No respuesta armonizada por tipo, no por código:** NS (no sabe, «no sabe todavía»), NC (no contesta), NR (no recuerda) y NP (no procede: el entrevistado no recibió la pregunta). NP queda fuera de la base de los porcentajes; NS, NC y NR cuentan en ella, como en las publicaciones del CIS.
 
 ## Web
+
+**Panel insertable.** `web/embed.html` pinta un solo panel con el mismo motor que el explorador, para ponerlo en otra página con `<iframe>`: `embed.html?p=<panel codificado>` (el botón «Insertar» de cada panel copia el código completo) o `embed.html?preset=<nombre>&i=<n>`; `&tema=claro|oscuro` fuerza el tema. Sin editor ni paneles guardados; «Configurar», «Duplicar» y «Quitar» no aparecen y las notas van plegadas. Avisa de su altura a la página contenedora con `postMessage({ bab: 'altura', altura })`, para quien quiera ajustar el iframe: `addEventListener('message', e => { if (e.data?.bab === 'altura') iframe.style.height = e.data.altura + 'px'; })`. Lleva `noindex`; la prueba de la web lo pinta con tres paneles.
 
 - **Cálculo en el navegador.** Cada vista descarga solo las columnas que necesita (unos cientos de KB) y agrega los microdatos con la ponderación del estudio. No hay servidor.
 - **Paneles configurables.** Ocho tipos de gráfico: evolución mensual (líneas, con media móvil de 3 barómetros opcional), un barómetro (barras apiladas al 100 % por grupo), comparación de dos barómetros (con significación), mapa de calor meses × respuestas, transferencias de voto (recuerdo → respuesta actual), dispersión de grupos (dos indicadores, cada punto un electorado o un grupo de perfil), mapa por comunidades y «cada punto, una entrevista» (nube en canvas de todas las entrevistas, sin ponderar y con la muestra igualada por barómetro, coloreada según dos problemas; lleva su propio banner de 1584 × 396). Cruce por una variable de perfil, filtro por otra, periodo, exclusión de NS/NC de la base y margen de error. Hasta 12 respuestas o grupos por panel. Tabla, CSV y PNG por panel; enlace compartible con la configuración.

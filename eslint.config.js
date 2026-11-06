@@ -17,6 +17,7 @@ export default [
         XMLSerializer: 'readonly', TextDecoder: 'readonly', btoa: 'readonly', atob: 'readonly', escape: 'readonly', unescape: 'readonly',
         performance: 'readonly', Intl: 'readonly', Float64Array: 'readonly', Float32Array: 'readonly', Uint8Array: 'readonly',
         Uint16Array: 'readonly', Uint32Array: 'readonly', Int32Array: 'readonly', Map: 'readonly', Set: 'readonly', Promise: 'readonly',
+        URLSearchParams: 'readonly', ResizeObserver: 'readonly', requestIdleCallback: 'readonly',
       },
     },
     rules: {

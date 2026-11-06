@@ -39,7 +39,7 @@ function panelGuia(cfg) {
 
 /* Copia el panel al principio del explorador, como «Nuevo panel», y cambia de pestaña */
 function abrirEnExplorador(cfg) {
-  const { id, ...resto } = cfg;
+  const { id, guia, ...resto } = cfg;
   PANELES.unshift({ ...structuredClone(resto), id: nuevoId() });
   guardar();
   GRID_LISTO = false;
@@ -64,7 +64,7 @@ function iniciarGuia() {
   let n = 0;
   document.querySelectorAll('#view-que .qe-graf[data-paso]').forEach(host => {
     (pasos[host.dataset.paso] || []).forEach(c => {
-      const cfg = { ...c, id: 'g' + (++n) };
+      const cfg = { ...c, id: 'g' + (++n), guia: true };   // guia: las rupturas se rotulan con su etiqueta corta
       const el = panelGuia(cfg);
       host.appendChild(el);
       GUIA.cfg.set(el, cfg);

@@ -475,6 +475,10 @@ function rupturas(cfg) {
     .filter(r => ids.has(r.ruptura_id) && (r.tipo === 'C' || r.tipo === 'B') && !/descartada/.test(r.estado))
     .flatMap(r => mesesRuptura(r).map(m => ({ ...r, m })));
 }
+/* Cómo se nombra una ruptura: en la guía, la etiqueta corta («ponderación por estudios»); en el explorador, el código
+   (R10), que es el que figura en la nota metodológica y en los CSV. En tooltips y notas, ambos. */
+const nombreRuptura = (r, cfg) => (cfg && cfg.guia && r.etiqueta_corta ? r.etiqueta_corta : r.ruptura_id);
+const tituloRuptura = r => `${r.ruptura_id}${r.etiqueta_corta ? ' · ' + r.etiqueta_corta : ''}`;
 function notasEstudio(cfg, mes) {
   return conceptosDe(cfg).flatMap(c => (META.conceptos[c]?.estudios || []).filter(x => x.mes === mes && x.nivel === 'B' && x.nota).map(x => x.nota));
 }
@@ -584,18 +588,18 @@ function dibujar(host, res, cfg) {
     // zona sensible solo en la franja superior: en el área del gráfico la ruptura sale en el tooltip del mes
     g.append('rect').attr('x', mk.x - 7).attr('y', m.t - 20).attr('width', 14).attr('height', 22).attr('fill', 'transparent')
       .style('cursor', 'help')
-      .on('pointermove', ev => { ev.stopPropagation(); showTip(`<b>${esc(mesLargo(mk.mes))}</b>` + mk.rs.map(r => `<div class="tnote"><b>${esc(r.ruptura_id)}, tipo ${esc(r.tipo)}</b><br>${esc(breveRuptura(r.descripcion))}</div>`).join(''), ev); })
+      .on('pointermove', ev => { ev.stopPropagation(); showTip(`<b>${esc(mesLargo(mk.mes))}</b>` + mk.rs.map(r => `<div class="tnote"><b>${esc(tituloRuptura(r))}, tipo ${esc(r.tipo)}</b><br>${esc(breveRuptura(r.descripcion))}</div>`).join(''), ev); })
       .on('pointerleave', hideTip);
   });
-  // etiquetas de las rupturas C, agrupadas cuando caen a menos de 34 px
-  const grupos = [];
+  // etiquetas de las rupturas C, agrupadas cuando caen a menos de 34 px (en la guía, con etiqueta corta, a 140 px)
+  const grupos = [], dist = cfg.guia ? 140 : 34;
   marcas.filter(mk => mk.esC).sort((a, z) => a.x - z.x).forEach(mk => {
     const ult = grupos[grupos.length - 1];
-    if (ult && mk.x - ult[ult.length - 1].x < 34) ult.push(mk); else grupos.push([mk]);
+    if (ult && mk.x - ult[ult.length - 1].x < dist) ult.push(mk); else grupos.push([mk]);
   });
   grupos.forEach(gr => {
     const xm = d3.mean(gr, d => d.x);
-    const txt = gr.flatMap(d => d.rs.filter(r => r.tipo === 'C').map(r => r.ruptura_id)).join(' ');
+    const txt = gr.flatMap(d => d.rs.filter(r => r.tipo === 'C').map(r => nombreRuptura(r, cfg))).join(cfg.guia ? ' · ' : ' ');
     const anchor = xm > W - m.r - 30 ? 'end' : xm < m.l + 30 ? 'start' : 'middle';
     svg.append('text').attr('x', xm).attr('y', m.t - 9).attr('text-anchor', anchor).attr('font-family', PAL.fontD).attr('font-size', 10.5)
       .attr('font-weight', 600).attr('fill', PAL.acc).text(txt);
@@ -666,7 +670,7 @@ function dibujar(host, res, cfg) {
       }).join('');
       const n = !cfg.cruce && !media ? ser[0].pts[i].n : null;
       const prov = cfg.movil && ser.some(s => s.pts[i].prov) ? '<div class="tnote">Media provisional: sin barómetro posterior (o anterior) en el tramo, resume este y los dos más próximos.</div>' : '';
-      const notas = prov + rup.filter(r => r.m === mes).map(r => `<div class="tnote"><b>${esc(r.ruptura_id)}, tipo ${esc(r.tipo)}</b><br>${esc(breveRuptura(r.descripcion))}</div>`).join('') +
+      const notas = prov + rup.filter(r => r.m === mes).map(r => `<div class="tnote"><b>${esc(tituloRuptura(r))}, tipo ${esc(r.tipo)}</b><br>${esc(breveRuptura(r.descripcion))}</div>`).join('') +
         notasEstudio(cfg, mes).map(t => `<div class="tnote">${esc(t)}</div>`).join('');
       showTip(`<b>${esc(mesLargo(mes))}</b>${rows}<div class="tnote">Estudio ${esc(res.filas[i].e.estudio)}${n ? `, base ${fmtInt(n)} entrevistas` : ''}. Variación en puntos respecto al barómetro anterior${cRupt.length ? '; «s. c.»: sin comparación por ruptura C' : ''}.</div>${notas}`, ev);
     })
@@ -953,7 +957,7 @@ async function renderPanel(el, cfg) {
     const vistas = new Set();
     const ns = cfg.sinRupturas && out.rup.length ? ['<p class="note">Líneas de ruptura ocultas en el gráfico. Las variaciones mensuales siguen sin calcularse a través de una ruptura C.</p>'] : [];
     ns.push(...out.rup.filter(r => !vistas.has(r.ruptura_id) && vistas.add(r.ruptura_id))
-      .map(r => `<p class="note"><span class="rid">${esc(r.ruptura_id)}</span> (${esc(mesCorto(r.m))}, tipo ${esc(r.tipo)}): ${esc(breveRuptura(r.descripcion))}</p>`));
+      .map(r => `<p class="note"><span class="rid">${esc(r.ruptura_id)}</span>${r.etiqueta_corta ? ' ' + esc(r.etiqueta_corta) : ''} (${esc(mesCorto(r.m))}, tipo ${esc(r.tipo)}): ${esc(breveRuptura(r.descripcion))}</p>`));
     if (cfg.recuerdo) ns.unshift(`<p class="note">${esc(NOTA_RECUERDO)}</p>`);
     if (out.barras) notasEstudio(cfg, res.filas[0].e.mes).forEach(t => ns.push(`<p class="note">${esc(t)}</p>`));
     if (out.omitidos) ns.push(`<p class="note">${out.omitidos} ${out.barras ? (out.omitidos === 1 ? 'barra omitida' : 'barras omitidas') : (out.omitidos === 1 ? 'punto omitido' : 'puntos omitidos')} por tener menos de ${MIN_N} entrevistas.</p>`);
@@ -1123,7 +1127,7 @@ const limpio = p => { const { id, ...r } = p; return r; };
 function guardar() {
   try { localStorage.setItem(CLAVE, JSON.stringify(PANELES.map(limpio))); } catch (e) { /* sin almacenamiento */ }
   // tras un cambio manda lo guardado: un enlace #p= en la dirección lo taparía al recargar
-  if (location.hash.startsWith('#p=')) history.replaceState(null, '', location.pathname + '#series');
+  if (location.hash.startsWith('#p=') || presetDeHash()) history.replaceState(null, '', location.pathname + '#series');
 }
 const b64e = s => btoa(unescape(encodeURIComponent(s))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 const b64d = s => decodeURIComponent(escape(atob(s.replace(/-/g, '+').replace(/_/g, '/'))));
@@ -1421,7 +1425,7 @@ function pintarMetodologia() {
   $('#m-cobertura').textContent = `Cobertura: ${EST.length} barómetros mensuales, de ${mesLargo(primero.mes)} a ${mesLargo(ultimo.mes)}, con ${fmtInt(nTot)} entrevistas en total.`;
   document.querySelectorAll('.cita-ult').forEach(x => { x.textContent = `${mesLargo(ultimo.mes)} (estudio ${ultimo.estudio})`; });
   const tipos = { C: 'C', B: 'B', tecnica: 'Técnica', 'tecnica-critica': 'Técnica', hueco: 'Hueco', descartada: 'Descartada' };
-  $('#m-rupt-tabla').innerHTML = `<table><thead><tr><th>Ruptura</th><th>Mes</th><th>Tipo</th><th>Afecta a</th><th>Qué cambia</th><th>Estado</th></tr></thead><tbody>${META.rupturas.map(r => `<tr id="r-${esc(r.ruptura_id)}"><td>${esc(r.ruptura_id)}</td><td>${esc(r.mes)}</td><td><span class="tipo ${esc(r.tipo)}">${esc(tipos[r.tipo] || r.tipo)}</span></td><td>${esc(r.conceptos_afectados.replace(/,\s*/g, ', '))}</td><td>${esc(r.descripcion)}</td><td>${esc(r.estado)}</td></tr>`).join('')}</tbody></table>`;
+  $('#m-rupt-tabla').innerHTML = `<table><thead><tr><th>Ruptura</th><th>Mes</th><th>Tipo</th><th>Afecta a</th><th>Qué cambia</th><th>Estado</th></tr></thead><tbody>${META.rupturas.map(r => `<tr id="r-${esc(r.ruptura_id)}"><td>${esc(r.ruptura_id)}${r.etiqueta_corta ? `<br><small>${esc(r.etiqueta_corta)}</small>` : ''}</td><td>${esc(r.mes)}</td><td><span class="tipo ${esc(r.tipo)}">${esc(tipos[r.tipo] || r.tipo)}</span></td><td>${esc(r.conceptos_afectados.replace(/,\s*/g, ', '))}</td><td>${esc(r.descripcion)}</td><td>${esc(r.estado)}</td></tr>`).join('')}</tbody></table>`;
   const titulo = id => PREG.find(p => p.id === id)?.t || (META.conceptos[id]?.etiqueta) || id;
   $('#m-preg-fichas').innerHTML = Object.entries(META.enunciados || {}).sort((a, z) => titulo(a[0]).localeCompare(titulo(z[0]), 'es')).map(([id, vs]) => `<div class="ficha"><h4>${esc(titulo(id))}</h4>${vs.map(v => `<p class="per">Versión ${esc(v.version)}: ${esc(mesCorto(v.desde))} a ${esc(mesCorto(v.hasta))}</p><p>${esc(v.enunciado.replace(/\s+\.$/, ''))}</p>`).join('')}</div>`).join('');
   $('#m-est-tabla').innerHTML = `<table><thead><tr><th>Mes</th><th>Estudio</th><th>Trabajo de campo</th><th>Entrevistas</th><th>Efecto de diseño</th></tr></thead><tbody>${META.estudios.map(e => `<tr><td>${esc(mesCorto(e.mes))}</td><td>${esc(e.estudio)}</td><td>${esc(e.fecha_campo_inicio)} a ${esc(e.fecha_campo_fin)}</td><td class="n">${fmtInt(+e.n)}</td><td class="n">${fmt2(+e.deff)}</td></tr>`).join('')}</tbody></table>`;
@@ -1600,7 +1604,18 @@ $('.tabs').addEventListener('keydown', ev => {
   if (j == null) return;
   ev.preventDefault(); bs[j].focus(); pestana(bs[j].dataset.tab);
 });
-addEventListener('popstate', () => { const t = vistaDeHash() || 'que'; if (META) pestana(t, false); else mostrarVista(t); });
+/* Carga una selección con nombre (#vivienda…) y abre las series; con historial, deja el nombre en la dirección */
+function aplicarPreset(nombre, historial = true) {
+  if (!PRESETS[nombre] || !META) return false;
+  PANELES = resolver(PRESETS[nombre]).map(p => ({ ...p, id: nuevoId() }));
+  if (historial) history.pushState(null, '', '#' + nombre);
+  GRID_LISTO = false;
+  pestana('series', false);
+  scrollTo(0, 0);
+  return true;
+}
+addEventListener('popstate', () => { if (presetDeHash() && aplicarPreset(presetDeHash(), false)) return; const t = vistaDeHash() || 'que'; if (META) pestana(t, false); else mostrarVista(t); });
+document.querySelectorAll('[data-preset]').forEach(a => a.addEventListener('click', ev => { ev.preventDefault(); aplicarPreset(a.dataset.preset); }));
 document.querySelectorAll('[data-goto]').forEach(a => a.addEventListener('click', ev => { ev.preventDefault(); pestana(a.dataset.goto); scrollTo(0, 0); }));
 $('#b-add').addEventListener('click', () => abrirEditor(null));
 $('#b-reset').addEventListener('click', () => {

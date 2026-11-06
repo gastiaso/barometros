@@ -27,6 +27,7 @@ estimacion/                     estimación de voto: rejilla de supuestos (rejil
                                 (modelos.R), estimación publicada por el CIS (estimacion_cis.csv) y resumen (resumen_rejilla.py)
 web/                            la web: index.html, css/, js/app.js, js/vistas.js, js/guia.js, js/estimacion.js (d3 autoalojado, sin dependencias externas)
 .github/workflows/publicar.yml  construcción y publicación en GitHub Pages
+.github/workflows/version.yml   versión de los datos (release con Parquet, metadatos e inventario) al etiquetar vAAAA-MM
 ```
 
 **Reparto de lenguajes.** Python (`scripts/`) lee la documentación del CIS y produce el inventario y las tablas de revisión. R (`_targets.R`, `R/`) aplica esas tablas a los microdatos. Las decisiones de armonización viven en CSV editables (`inventario/`), no en el código.

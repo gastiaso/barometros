@@ -111,7 +111,7 @@ El detalle técnico está en [`docs/documentacion_tecnica.md`](docs/documentacio
 
 ## Actualización
 
-Cuando el CIS publica un barómetro nuevo, se añade su ZIP a `datos/raw/`, se revisa el inventario y se relanza el flujo. La validación impide publicar si la armonización no reproduce las cifras del CIS. Los cambios de método y de datos quedan anotados en [`CHANGELOG.md`](CHANGELOG.md); cómo proponer correcciones, en [`CONTRIBUTING.md`](CONTRIBUTING.md). 
+Cuando el CIS publica un barómetro nuevo, se añade su ZIP a `datos/raw/`, se revisa el inventario y se relanza el flujo. La validación impide publicar si la armonización no reproduce las cifras del CIS. Una etiqueta `vAAAA-MM` sobre el commit publicado crea una versión de los datos con los ficheros adjuntos (`.github/workflows/version.yml`). Los cambios de método y de datos quedan anotados en [`CHANGELOG.md`](CHANGELOG.md); cómo proponer correcciones, en [`CONTRIBUTING.md`](CONTRIBUTING.md). 
 
 ## Limitaciones
 
@@ -126,7 +126,7 @@ Las conclusiones metodológicas son provisionales y se revisan a medida que se a
 
 > Astiaso Llamazares, G. (2026). *Barómetro a barómetro: series armonizadas de los barómetros del CIS, 2021-2026* [software y datos]. https://gastiaso.github.io/barometros/. CC BY 4.0. Origen de los datos: Centro de Investigaciones Sociológicas (CIS), barómetros mensuales (microdatos).
 
-Añade el último barómetro incluido (aparece arriba en la web) y la fecha de consulta.
+Añade el último barómetro incluido (aparece arriba en la web) y la fecha de consulta. Para citar una versión concreta de los datos, las [versiones publicadas](https://github.com/gastiaso/barometros/releases) (`vAAAA-MM`, el último barómetro incorporado) llevan adjuntos el Parquet, los metadatos y el inventario tal como se construyeron desde ese commit, con sus sumas SHA-256.
 
 GitHub ofrece la cita en otros formatos (APA, BibTeX) desde el botón *Cite this repository*.
 

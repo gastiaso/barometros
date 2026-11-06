@@ -1,0 +1,68 @@
+# Publica una versión de los datos armonizados como «release» de GitHub, con el Parquet y los metadatos adjuntos.
+# Se lanza al crear una etiqueta vAAAA-MM (el último barómetro incorporado; por ejemplo, v2026-10):
+#   git tag v2026-10 && git push origin v2026-10
+# Reconstruye los datos desde los ZIP del CIS con el mismo entorno fijado que publicar.yml, así que lo adjunto
+# es reproducible a partir del commit etiquetado. La versión en Zenodo, si se quiere un DOI, se sube a mano
+# desde los adjuntos de la release.
+name: Versión de los datos
+
+on:
+  push:
+    tags: ["v20[0-9][0-9]-[0-9][0-9]*"]
+
+permissions:
+  contents: write
+
+jobs:
+  version:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Extraer los .sav de los ZIP del CIS
+        run: python scripts/00_extraer.py .
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: "4.6.2"
+          use-public-rspm: true
+      - name: Repositorio de paquetes de R fijado por fecha
+        run: echo 'options(repos = c(CRAN = "https://packagemanager.posit.co/cran/__linux__/noble/2026-11-06"))' >> ~/.Rprofile
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          packages: |
+            any::targets
+            any::haven
+            any::arrow
+            any::dplyr
+            any::tidyr
+            any::purrr
+            any::readr
+            any::jsonlite
+            any::tibble
+            any::testthat
+
+      - name: Pruebas unitarias de R (testthat)
+        run: Rscript tests/testthat.R
+
+      - name: Armonizar y validar (targets)
+        run: Rscript -e 'targets::tar_make()'
+
+      - name: Adjuntos de la versión
+        run: |
+          mkdir -p version
+          cp datos/publicacion/microdatos.parquet "version/barometros_armonizados_${GITHUB_REF_NAME}.parquet"
+          cp datos/publicacion/metadatos.json "version/metadatos_${GITHUB_REF_NAME}.json"
+          zip -q -r "version/inventario_${GITHUB_REF_NAME}.zip" inventario -x "inventario/revision.xlsx"
+          sha256sum version/* > "version/SHA256SUMS_${GITHUB_REF_NAME}.txt"
+          ls -l version
+
+      - name: Crear la release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          notas="Microdatos armonizados de los barómetros del CIS (${GITHUB_REF_NAME}): una fila por entrevista, con la ponderación de cada estudio y el peso reponderado por recuerdo; metadatos (categorías, rupturas, nivel de comparabilidad por estudio) e inventario de revisión. Construido desde el commit ${GITHUB_SHA} con el entorno fijado en .github/workflows/version.yml. Cambios: ver CHANGELOG.md."
+          gh release create "${GITHUB_REF_NAME}" version/* --title "Datos ${GITHUB_REF_NAME}" --notes "$notas"

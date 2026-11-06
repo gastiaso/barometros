@@ -118,7 +118,7 @@ Cuando el CIS publica un barómetro nuevo, se añade su ZIP a `datos/raw/`, se r
 - Las series solo son comparables dentro de cada tramo sin rupturas de tipo C. La web lo respeta, pero la descarga completa no impide comparar lo que no se debe.
 - El recuerdo de voto deriva con el tiempo: la reponderación corrige el sesgo de la muestra, pero también arrastra ese desgaste.
 - En las preguntas de problemas, cuántos cita cada persona ha subido con los años sin cambio de enunciado (R30): las series que suman las tres menciones tienen una deriva mecánica al alza; la primera mención es la serie comparable.
-- Algunas rupturas documentadas por el CIS, como el cambio de la población de referencia de marzo de 2025, aún no están verificadas en los datos.
+- Algunas rupturas documentadas por el CIS están verificadas solo a grandes rasgos: el cambio de la población de referencia de marzo de 2025 (R24) se ve en los márgenes de edad del peso (menos de un punto), pero no se ha medido su efecto serie a serie.
 
 Las conclusiones metodológicas son provisionales y se revisan a medida que se amplía la validación.
 

@@ -186,7 +186,7 @@ R19 y R22 coinciden con una reordenación del cuestionario en octubre de 2023, s
 
 ## Pendiente
 
-- R24 (cambio de la población de referencia de la ponderación, mar-2025): sin verificar en los datos.
+- R24 (cambio de la población de referencia de la ponderación, mar-2025): verificado en los datos. Los márgenes de sexo × edad que fija el peso son idénticos de jun-2024 a feb-2025 y cambian en mar-2025 a valores nuevos que se mantienen (65 y más: de 25,72 % a 26,02 %; 35-44: de 17,1-17,3 % a 16,4 %); el salto es menor de un punto y no se distingue en comunidad, tamaño de municipio ni estudios. Efecto inferior a dos décimas en los porcentajes nacionales; queda como ruptura técnica, sin corte.
 - `referencias_cis.csv` cubre ene-2021, oct-2021, oct-2022, oct-2023, mar-2025, mar-2026 y oct-2026 (185 cifras, con las nuevas variables de perfil solo en oct-2026), más la serie de ideología: 181 al redondeo y 4 con una décima de tolerancia (el avance usa una o dos entrevistas más que el fichero). Faltan referencias para problemas, preferencia como presidente, simpatía, cercanía y recuerdo.
 - Si el CIS corrige el fichero de 3582, retirar la reconstrucción de `ESTUDIOS`.
 - Las 76 comprobaciones de códigos sin lista en el libro de códigos se apoyan solo en el .sav.

@@ -1,5 +1,8 @@
 /* Barómetro a barómetro. Identidad: hormigón y rotulación condensada (misma familia visual que el Atlas de
    vivienda y salarios), sin esquinas redondeadas. Paneles en rejilla, editor en diálogo, nota metodológica. */
+/* Fuente de rótulos autoalojada (Roboto Condensed variable, subconjunto latino; OFL 1.1, web/fonts/LICENSE-roboto-condensed.txt):
+   la misma en todos los sistemas, en vez de la condensada que tenga cada uno */
+@font-face{font-family:'Roboto Condensed BaB';src:url(../fonts/roboto-condensed-wght.woff2?v=1) format('woff2');font-weight:100 900;font-style:normal;font-display:swap}
 :root{
   --bg:#eceae6; --surface:#f7f6f3; --ink:#1c1d1f; --ink2:#4f5257; --ink3:#65686d;
   --line:#dcdad5; --line2:#c4c1bb; --sel:#111214; --chip:#e4e2dd; --chip-on:#1c1d1f; --chip-on-ink:#f7f6f3;
@@ -7,7 +10,7 @@
   --c1:#d64a33; --c2:#1794b5; --c3:#a93772; --c4:#bc9121; --c5:#284e99; --c6:#6f7d1a; --c7:#8c64b7; --c8:#177c52;
   --c9:#e8899a; --c10:#3f8fd0; --c11:#b0652a; --c12:#6a5bd8;
   --s0:#f3e9ff; --s1:#decaf6; --s2:#c6a7ec; --s3:#ab82d9; --s4:#8c5cbd; --s5:#6b3e96; --s6:#49256b;
-  --font-d:Bahnschrift,'DIN Alternate','DIN 2014','D-DIN','Roboto Condensed','Arial Narrow',sans-serif;
+  --font-d:'Roboto Condensed BaB',Bahnschrift,'DIN Alternate','DIN 2014','D-DIN','Roboto Condensed','Arial Narrow',sans-serif;
   --font-b:system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
   color-scheme:light;
 }

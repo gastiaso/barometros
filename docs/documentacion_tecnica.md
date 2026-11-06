@@ -26,6 +26,7 @@ scripts/09_vista_previa.py      imagen para redes (web/img/vista-previa.png): ca
 estimacion/                     estimación de voto: rejilla de supuestos (rejilla.R), modelos de referencia con remuestreo
                                 (modelos.R), estimación publicada por el CIS (estimacion_cis.csv) y resumen (resumen_rejilla.py)
 web/                            la web: index.html, css/, js/app.js, js/vistas.js, js/guia.js, js/estimacion.js (d3 autoalojado, sin dependencias externas)
+web/fonts/                      fuente de rótulos autoalojada (Roboto Condensed variable, subconjunto latino, OFL 1.1; ver abajo cómo regenerarla)
 .github/workflows/publicar.yml  construcción y publicación en GitHub Pages
 .github/workflows/version.yml   versión de los datos (release con Parquet, metadatos e inventario) al etiquetar vAAAA-MM
 ```
@@ -55,6 +56,8 @@ python3 -m http.server -d web 8000    # vista previa en http://localhost:8000
 El paso de R necesita los paquetes `targets`, `haven`, `arrow`, `dplyr`, `tidyr`, `purrr`, `readr`, `jsonlite` y `tibble` (y `nnet` para la estimación; `testthat` para las pruebas). Si la validación falla (códigos sin mapa, pesos ausentes o cifras que no reproducen las del CIS), el Parquet no se escribe.
 
 **Versiones.** La construcción en GitHub (`.github/workflows/publicar.yml`) fija la versión de R (4.6.2) y toma los paquetes de una instantánea por fecha de Posit Package Manager (`packagemanager.posit.co/cran/__linux__/noble/AAAA-MM-DD`), así que dos construcciones con el mismo código dan el mismo resultado hasta que se adelante la fecha a mano. Para reproducir ese entorno en local, la misma dirección sirve como repositorio: `options(repos = c(CRAN = "https://packagemanager.posit.co/cran/AAAA-MM-DD"))` antes de `install.packages()`. Si se prefiere un fichero de bloqueo, `renv::init(bare = TRUE); renv::snapshot(type = "explicit")` desde la raíz genera `renv.lock` con las versiones instaladas en el entorno propio (hoy no se versiona ninguno). Las versiones comprobadas del flujo de Python están en `requirements.txt`.
+
+**Fuente de rótulos.** `web/fonts/roboto-condensed-wght.woff2` es Roboto Condensed (variable, eje de peso 100-900) reducida a los caracteres del español (latín básico y suplemento, comillas, guiones, puntos suspensivos, euro, menos). Se genera desde el paquete `@fontsource-variable/roboto-condensed` con fonttools: `pyftsubset roboto-condensed-latin-wght-normal.woff2 --flavor=woff2 --unicodes="U+0020-007E,U+00A0-00FF,U+0152-0153,U+2013-2014,U+2018-201A,U+201C-201E,U+2022,U+2026,U+20AC,U+2212" --layout-features="kern,liga,tnum,pnum,lnum"`. Los rótulos de los SVG usan la fuente del cuerpo (la del sistema) y su anchura se mide en un canvas (`anchoTexto`, `recortarAncho`, `lineasTexto` en `web/js/app.js`) en lugar de estimarla con píxeles por carácter.
 
 **Pruebas unitarias.** `Rscript tests/testthat.R` comprueba las funciones de armonización que no dependen de los .sav: tipos de no respuesta, agrupación de ocupación e ideología, celdas del recuerdo, objetivos electorales y el raking (márgenes, conservación de sexo/edad/estudios, cota del factor de ajuste). Se ejecutan en CI antes de la armonización.
 

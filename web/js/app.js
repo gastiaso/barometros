@@ -15,6 +15,37 @@ const fmt2 = v => v == null || !isFinite(v) ? '—' : v.toLocaleString('es-ES', 
 const fmtInt = v => v.toLocaleString('es-ES');
 const mesLargo = m => { const [a, b] = m.split('-'); return `${MESES[+b - 1]} ${a}`; };
 const mesCorto = m => { const [a, b] = m.split('-'); return `${MESES_C[+b - 1]} ${a}`; };
+/* Medida de texto con la fuente del cuerpo, la de los rótulos de los SVG, en un canvas: sustituye a las constantes de
+   «píxeles por carácter», que dependían de la fuente de cada sistema. La familia se lee una vez de la hoja de estilos. */
+const MEDIDOR = document.createElement('canvas').getContext('2d');
+let FUENTE_TEXTO = '';
+function anchoTexto(txt, px = 12) {
+  if (!FUENTE_TEXTO) FUENTE_TEXTO = (document.body && getComputedStyle(document.body).fontFamily) || 'sans-serif';
+  MEDIDOR.font = `${px}px ${FUENTE_TEXTO}`;
+  return MEDIDOR.measureText(String(txt)).width;
+}
+/* Recorta un texto, con puntos suspensivos, para que quepa en maxPx píxeles */
+function recortarAncho(txt, maxPx, px = 12) {
+  txt = String(txt);
+  if (anchoTexto(txt, px) <= maxPx) return txt;
+  let lo = 1, hi = txt.length - 1;
+  while (lo < hi) { const mid = (lo + hi + 1) >> 1; if (anchoTexto(txt.slice(0, mid) + '…', px) <= maxPx) lo = mid; else hi = mid - 1; }
+  return txt.slice(0, lo).replace(/[\s,;:]+$/, '') + '…';
+}
+/* Parte un texto en hasta n líneas que quepan en maxPx (por palabras); la última se recorta con puntos suspensivos */
+function lineasTexto(txt, maxPx, px = 12, n = 2) {
+  const palabras = String(txt).split(/\s+/), lineas = [];
+  let actual = '';
+  for (const w of palabras) {
+    const prueba = actual ? `${actual} ${w}` : w;
+    if (!actual || anchoTexto(prueba, px) <= maxPx) { actual = prueba; continue; }
+    lineas.push(actual); actual = w;
+    if (lineas.length === n - 1) break;
+  }
+  const resto = palabras.slice(lineas.join(' ').split(/\s+/).filter(Boolean).length).join(' ');
+  if (lineas.length < n) lineas.push(recortarAncho(resto || actual, maxPx, px));
+  return lineas;
+}
 const fecha = m => new Date(Date.UTC(+m.slice(0, 4), +m.slice(5, 7) - 1, 1));
 
 /* ================= catálogo ================= */
@@ -561,7 +592,7 @@ function dibujar(host, res, cfg) {
   const W = Math.max(300, Math.round(host.clientWidth || 600));
   const H = Math.round(Math.max(270, Math.min(440, W * 0.6)));
   const perRow = Math.max(1, Math.min(ser.length, Math.floor(W / (W < 520 ? 150 : 190))));
-  const colW = (W - 16) / perRow, maxL = Math.floor((colW - 26) / 6.4);
+  const colW = (W - 16) / perRow;
   const legendRows = ser.length > 1 ? Math.ceil(ser.length / perRow) : 0;
   const m = { l: 40, r: 50, t: 22 + legendRows * 18, b: 28 };
   host.innerHTML = '';
@@ -666,7 +697,7 @@ function dibujar(host, res, cfg) {
     if (trazo(i)) svg.append('line').attr('x1', gx).attr('x2', gx + 22).attr('y1', gy + 6.5).attr('y2', gy + 6.5).attr('stroke', col[s.id]).attr('stroke-width', 2.5).attr('stroke-dasharray', trazo(i));
     else svg.append('rect').attr('x', gx).attr('y', gy + 5).attr('width', 14).attr('height', 3).attr('fill', col[s.id]);
     svg.append('text').attr('x', gx + (trazo(i) ? 28 : 20)).attr('y', gy + 10).attr('fill', PAL.ink2).attr('font-size', 11.5)
-      .text(s.label.length > maxL ? s.label.slice(0, maxL - 1) + '…' : s.label).append('title').text(s.label);
+      .text(recortarAncho(s.label, colW - (trazo(i) ? 34 : 26), 11.5)).append('title').text(s.label);
   });
   svg.selectAll('path, circle, text, line').attr('pointer-events', 'none');
   // cursor
@@ -729,7 +760,7 @@ function dibujarBarras(host, res, cfg) {
   const W = Math.max(300, Math.round(host.clientWidth || 600));
   const H = Math.round(Math.max(300, Math.min(460, W * 0.52)));
   const perRow = Math.max(1, Math.min(ser.length, Math.floor(W / (W < 520 ? 150 : 170))));
-  const colW = (W - 16) / perRow, maxL = Math.floor((colW - 24) / 6.4);
+  const colW = (W - 16) / perRow;
   const legendRows = sinCruce ? 0 : Math.ceil(ser.length / perRow);
   const m = { l: 40, r: 12, t: 14 + legendRows * 18, b: sinCruce ? 46 : 30 };
   host.innerHTML = '';
@@ -748,9 +779,8 @@ function dibujarBarras(host, res, cfg) {
     .call(d3.axisLeft(y).ticks(Math.max(3, Math.round((H - m.t - m.b) / 55))).tickSize(-(W - m.l - m.r)).tickFormat(v => media ? fmt1(v) : fmtInt(v)))
     .call(g => { axis(g); g.selectAll('.tick line').attr('stroke', PAL.line); g.select('.domain').remove(); });
   const nomEje = sinCruce ? B.nomCat : B.nomGrupo;
-  const maxC = Math.max(4, Math.floor(x0.bandwidth() / 6.2));
   svg.append('g').attr('transform', `translate(0,${H - m.b})`)
-    .call(d3.axisBottom(x0).tickSizeOuter(0).tickFormat(id => { const t = nomEje(id); return t.length > maxC ? t.slice(0, maxC - 1) + '…' : t; }))
+    .call(d3.axisBottom(x0).tickSizeOuter(0).tickFormat(id => recortarAncho(nomEje(id), Math.max(24, x0.bandwidth() - 4), 11)))
     .call(axis).call(g => g.selectAll('.tick').append('title').text(id => nomEje(id)));
   const etiquetas = bw >= 20;
   B.celdas.forEach(c => {
@@ -776,7 +806,7 @@ function dibujarBarras(host, res, cfg) {
     const gx = 8 + (i % perRow) * colW, gy = 2 + Math.floor(i / perRow) * 18;
     svg.append('rect').attr('x', gx).attr('y', gy + 2).attr('width', 10).attr('height', 10).attr('fill', col[s.id]);
     svg.append('text').attr('x', gx + 16).attr('y', gy + 11).attr('fill', PAL.ink2).attr('font-size', 11.5)
-      .text(s.label.length > maxL ? s.label.slice(0, maxL - 1) + '…' : s.label).append('title').text(s.label);
+      .text(recortarAncho(s.label, colW - 22, 11.5)).append('title').text(s.label);
   });
   svg.selectAll('text, line, rect:not(.hit)').attr('pointer-events', 'none');
   const omitidos = B.celdas.filter(c => c.omit).length;
@@ -809,10 +839,9 @@ function dibujarApiladas(host, res, cfg, resTot) {
   ser.push({ id: '__resto', label: 'Resto de respuestas' });
   const W = Math.max(300, Math.round(host.clientWidth || 600));
   const perRow = Math.max(1, Math.min(ser.length, Math.floor(W / (W < 520 ? 150 : 170))));
-  const colW = (W - 16) / perRow, maxL = Math.floor((colW - 24) / 6.4);
+  const colW = (W - 16) / perRow;
   const legendRows = Math.ceil(ser.length / perRow);
-  const labW = Math.min(170, Math.max(70, d3.max(filas, f => f.label.length) * 6.6 + 10));
-  const maxEtq = Math.max(6, Math.floor((labW - 12) / 6.6));   // la etiqueta del grupo no se sale por la izquierda
+  const labW = Math.min(170, Math.max(70, d3.max(filas, f => anchoTexto(f.label, 12)) + 14));   // etiquetas de grupo, medidas
   const rowH = 30, sep = cfg.cruce ? 10 : 0;
   const m = { l: labW, r: 26, t: 10 + legendRows * 18 + 6, b: 26 };
   const H = m.t + filas.length * rowH + sep + m.b;
@@ -830,7 +859,7 @@ function dibujarApiladas(host, res, cfg, resTot) {
     const y0 = yRow(i) + (rowH - barH) / 2;
     svg.append('text').attr('x', m.l - 8).attr('y', y0 + barH / 2 + 4).attr('text-anchor', 'end').attr('font-size', 12)
       .attr('font-weight', f.gid === '__total' ? 600 : 400).attr('fill', PAL.ink2)
-      .text(f.label.length > maxEtq ? f.label.slice(0, maxEtq - 1) + '…' : f.label).append('title').text(f.label);
+      .text(recortarAncho(f.label, labW - 12, 12)).append('title').text(f.label);
     if (!f.ok) { svg.append('text').attr('x', m.l + 4).attr('y', y0 + barH / 2 + 4).attr('font-size', 11).attr('fill', PAL.ink3).text(`n < ${MIN_N}: sin dato`); return; }
     let acc = 0;
     f.segs.forEach(d => {
@@ -854,7 +883,7 @@ function dibujarApiladas(host, res, cfg, resTot) {
     const gx = 8 + (i % perRow) * colW, gy = 2 + Math.floor(i / perRow) * 18;
     svg.append('rect').attr('x', gx).attr('y', gy + 2).attr('width', 10).attr('height', 10).attr('fill', col[s.id]);
     svg.append('text').attr('x', gx + 16).attr('y', gy + 11).attr('fill', PAL.ink2).attr('font-size', 11.5)
-      .text(s.label.length > maxL ? s.label.slice(0, maxL - 1) + '…' : s.label).append('title').text(s.label);
+      .text(recortarAncho(s.label, colW - 22, 11.5)).append('title').text(s.label);
   });
   svg.selectAll('text, line, rect:not(.hit)').attr('pointer-events', 'none');
   B.apiladas = filas;

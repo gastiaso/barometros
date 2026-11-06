@@ -76,7 +76,6 @@ function svgBase(host, W, H, titulo) {
     .attr('role', 'img').attr('aria-label', titulo);
 }
 const textoSobre = col => lumin(col) > .35 ? '#1c1d1f' : '#ffffff';
-const recortar = (t, n) => (t.length > n ? t.slice(0, n - 1) + '…' : t);
 function vivienda() {
   const c = META.conceptos.prob_esp_1?.categorias || [];
   return (c.find(x => x.etiqueta === 'La vivienda') || c[0] || {}).id;
@@ -116,7 +115,7 @@ async function vistaTransferencias(host, cfg) {
   const R = rampa();
   const color = d3.scaleSequentialSqrt(d3.interpolateRgbBasis(R)).domain([0, 100]);
   const W = Math.max(320, Math.round(host.clientWidth || 600));
-  const labW = Math.min(150, Math.max(80, d3.max(rows, r => etiquetaGrupo('recuerdo_voto', r).length) * 6.6 + 12));
+  const labW = Math.min(150, Math.max(80, d3.max(rows, r => anchoTexto(etiquetaGrupo('recuerdo_voto', r), 12)) + 14));
   const nW = 58, headH = 44;
   const ncol = cols.length + 1;
   const cellW = Math.max(26, (W - labW - nW - 8) / ncol), cellH = 28;
@@ -130,10 +129,10 @@ async function vistaTransferencias(host, cfg) {
     const xx = labW + j * cellW + cellW / 2;
     const words = colLab(cid).split(/\s+/);
     const l1 = [], l2 = [];
-    for (const w of words) { if (!l2.length && (!l1.length || [...l1, w].join(' ').length * 6 <= cellW - 2)) l1.push(w); else l2.push(w); }
+    for (const w of words) { if (!l2.length && (!l1.length || anchoTexto([...l1, w].join(' '), 11) <= cellW - 2)) l1.push(w); else l2.push(w); }
     const t = svg.append('text').attr('x', xx).attr('y', headH - 22).attr('text-anchor', 'middle').attr('font-size', 11).attr('fill', PAL.ink2);
-    t.append('tspan').attr('x', xx).text(recortar(l1.join(' '), Math.max(3, Math.floor(cellW / 6))));
-    if (l2.length) t.append('tspan').attr('x', xx).attr('dy', 13).text(recortar(l2.join(' '), Math.max(3, Math.floor(cellW / 6))));
+    t.append('tspan').attr('x', xx).text(recortarAncho(l1.join(' '), cellW - 2, 11));
+    if (l2.length) t.append('tspan').attr('x', xx).attr('dy', 13).text(recortarAncho(l2.join(' '), cellW - 2, 11));
     t.append('title').text(colLab(cid));
   });
   svg.append('text').attr('x', labW + ncol * cellW + 6).attr('y', headH - 9).attr('font-size', 11).attr('fill', PAL.ink3).text('Base (n)');
@@ -142,7 +141,7 @@ async function vistaTransferencias(host, cfg) {
     const y = headH + i * cellH;
     const nomR = etiquetaGrupo('recuerdo_voto', r.gid);
     svg.append('text').attr('x', labW - 8).attr('y', y + cellH / 2 + 4).attr('text-anchor', 'end').attr('font-size', 12).attr('fill', PAL.ink2)
-      .text(recortar(nomR, 22)).append('title').text(nomR);
+      .text(recortarAncho(nomR, labW - 12, 12)).append('title').text(nomR);
     svg.append('text').attr('x', labW + ncol * cellW + 6).attr('y', y + cellH / 2 + 4).attr('font-size', 11).attr('fill', PAL.ink3).text(fmtInt(r.n));
     if (!r.ok) { svg.append('text').attr('x', labW + 6).attr('y', y + cellH / 2 + 4).attr('font-size', 11).attr('fill', PAL.ink3).text(`Menos de ${MIN_N} entrevistas`); return; }
     [...r.vals.map((d, j) => ({ ...d, cid: cols[j] })), { v: r.resto, cid: '__resto' }].forEach((d, j) => {
@@ -372,7 +371,7 @@ async function vistaCalor(host, cfg) {
   const filasIds = (cfg.cats && cfg.cats.length ? cfg.cats.filter(id => res.ids.includes(id)) : cands.slice().sort((a, z) => (media(z) ?? 0) - (media(a) ?? 0)).slice(0, 15)).slice(0, 20);
   const meses = res.filas.map(f => f.e.mes);
   const W = Math.max(300, Math.round(host.clientWidth || 600));
-  const labW = Math.min(W < 520 ? 150 : 250, Math.max(90, d3.max(filasIds, id => etiqueta(conc, id).length) * 6.2 + 10));
+  const labW = Math.min(W < 520 ? 150 : 250, Math.max(90, d3.max(filasIds, id => anchoTexto(etiqueta(conc, id), 11.5)) + 14));
   const cellW = Math.max(7, (W - labW - 12) / meses.length), cellH = 20;
   const Wt = Math.round(labW + cellW * meses.length + 12);
   const H = 22 + filasIds.length * cellH + 40;
@@ -385,7 +384,7 @@ async function vistaCalor(host, cfg) {
   meses.forEach((mes, j) => { if (mes.endsWith('-01') || j === 0) svg.append('text').attr('x', labW + j * cellW).attr('y', 14).attr('font-size', 11).attr('fill', PAL.ink3).text(mes.slice(0, 4)); });
   filasIds.forEach((id, i) => {
     const y = 22 + i * cellH, nom = etiqueta(conc, id);
-    svg.append('text').attr('x', labW - 8).attr('y', y + cellH / 2 + 4).attr('text-anchor', 'end').attr('font-size', 11.5).attr('fill', PAL.ink2).text(recortar(nom, Math.floor((labW - 10) / 6.8))).append('title').text(nom);
+    svg.append('text').attr('x', labW - 8).attr('y', y + cellH / 2 + 4).attr('text-anchor', 'end').attr('font-size', 11.5).attr('fill', PAL.ink2).text(recortarAncho(nom, labW - 12, 11.5)).append('title').text(nom);
     res.filas.forEach((f, j) => {
       const p = puntoDe(res, f, 0, id);
       const fill = p.v == null ? PAL.chip || PAL.line : color(p.v);
@@ -450,8 +449,7 @@ async function vistaComparar(host, cfg) {
   const col = colores(ids.map(id => ({ id })), cfg, 'cat');
   const W = Math.max(300, Math.round(host.clientWidth || 600));
   const angosto = W < 520;   // móvil: etiquetas más cortas, leyenda desde el borde y menos marcas en el eje
-  const labW = Math.min(angosto ? Math.round(W * .42) : Math.round(Math.min(300, W * .36)), Math.max(80, d3.max(ids, id => nom(id).length) * 6.4 + 14));
-  const maxCh = Math.max(8, Math.floor((labW - 14) / 6.3));
+  const labW = Math.min(angosto ? Math.round(W * .42) : Math.round(Math.min(300, W * .36)), Math.max(80, d3.max(ids, id => anchoTexto(nom(id), 12)) + 18));
   const rowH = 30, difW = angosto ? 70 : 78;
   const H = 34 + filas.length * rowH + 28;
   const svg = svgBase(host, W, H, 'Comparación de dos barómetros');
@@ -461,17 +459,21 @@ async function vistaComparar(host, cfg) {
     .call(g => { g.selectAll('text').attr('fill', PAL.ink3).attr('font-size', 11); g.selectAll('.tick line').attr('stroke', PAL.line); g.select('.domain').remove(); });
   // leyenda: si no cabe con los meses en largo, en corto
   const leyX = angosto ? 8 : labW;
-  const cabe = (a, b) => 16 + a.length * 6.5 + 26 + b.length * 6.5 <= W - difW - leyX;
+  const cabe = (a, b) => 16 + anchoTexto(a, 11.5) + 26 + anchoTexto(b, 11.5) <= W - difW - leyX;
   const [mA, mB] = cabe(mesLargo(fA.e.mes), mesLargo(fB.e.mes)) ? [mesLargo(fA.e.mes), mesLargo(fB.e.mes)] : [mesCorto(fA.e.mes), mesCorto(fB.e.mes)];
   svg.append('circle').attr('cx', leyX + 6).attr('cy', 12).attr('r', 5).attr('fill', PAL.surface).attr('stroke', PAL.ink2).attr('stroke-width', 1.5);
   svg.append('text').attr('x', leyX + 16).attr('y', 16).attr('font-size', 11.5).attr('fill', PAL.ink2).text(mA);
-  const lx = leyX + 32 + mA.length * 6.5;
+  const lx = leyX + 32 + anchoTexto(mA, 11.5);
   svg.append('circle').attr('cx', lx).attr('cy', 12).attr('r', 5).attr('fill', PAL.ink2);
   svg.append('text').attr('x', lx + 10).attr('y', 16).attr('font-size', 11.5).attr('fill', PAL.ink2).text(mB);
   svg.append('text').attr('x', W - 6).attr('y', 16).attr('text-anchor', 'end').attr('font-size', 11).attr('fill', PAL.ink3).text(media ? 'Diferencia' : 'Puntos');
   filas.forEach((f, i) => {
     const y = 34 + i * rowH + rowH / 2;
-    svg.append('text').attr('x', labW - 10).attr('y', y + 4).attr('text-anchor', 'end').attr('font-size', 12).attr('fill', PAL.ink2).text(recortar(nom(f.id), maxCh)).append('title').text(nom(f.id));
+    // etiqueta en una línea si cabe; si no, en dos (11 px), y solo entonces con puntos suspensivos
+    const ls = anchoTexto(nom(f.id), 12) <= labW - 14 ? [nom(f.id)] : lineasTexto(nom(f.id), labW - 14, 11, 2);
+    const te = svg.append('text').attr('x', labW - 10).attr('y', y + (ls.length > 1 ? -2 : 4)).attr('text-anchor', 'end').attr('font-size', ls.length > 1 ? 11 : 12).attr('fill', PAL.ink2);
+    ls.forEach((l, k) => te.append('tspan').attr('x', labW - 10).attr('dy', k ? 12 : 0).text(l));
+    te.append('title').text(nom(f.id));
     if (f.pa.v != null && f.pb.v != null) svg.append('line').attr('x1', x(f.pa.v)).attr('x2', x(f.pb.v)).attr('y1', y).attr('y2', y).attr('stroke', PAL.line2).attr('stroke-width', 3);
     if (cfg.banda) [f.pa, f.pb].forEach((p, j) => { if (p.v != null) svg.append('line').attr('x1', x(p.lo)).attr('x2', x(p.hi)).attr('y1', y + (j ? 6 : -6)).attr('y2', y + (j ? 6 : -6)).attr('stroke', j ? col[f.id] : PAL.ink3); });
     if (f.pa.v != null) svg.append('circle').attr('cx', x(f.pa.v)).attr('cy', y).attr('r', 5).attr('fill', PAL.surface).attr('stroke', PAL.ink2).attr('stroke-width', 1.5);

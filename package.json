@@ -3,6 +3,6 @@
   "private": true,
   "type": "module",
   "description": "Comprobación estática de web/js (eslint). La web no tiene dependencias: d3 va autoalojado en web/js/vendor.",
-  "scripts": { "lint": "mkdir -p .lint && cat web/js/vistas.js web/js/guia.js web/js/estimacion.js web/js/app.js > .lint/web.js && eslint .lint/web.js" },
+  "scripts": { "lint": "mkdir -p .lint && cat web/js/comun.js web/js/datos.js web/js/grafico.js web/js/paneles.js web/js/vistas.js web/js/guia.js web/js/estimacion.js web/js/editor.js web/js/app.js web/js/embed.js > .lint/web.js && eslint .lint/web.js" },
   "devDependencies": { "eslint": "^9.0.0" }
 }

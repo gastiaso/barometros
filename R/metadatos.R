@@ -122,6 +122,7 @@ construir_metadatos <- function(d, canon, insumos, lecturas) {
     estudios = dplyr::select(est, estudio, mes, titulo, n, deff = deff_kish, fecha_campo_inicio, fecha_campo_fin) |>
       dplyr::mutate(n = as.integer(n), deff = as.numeric(deff)) |>
       dplyr::left_join(dplyr::transmute(deff_recuerdo(d), estudio = as.character(estudio), deff_recuerdo), by = "estudio") |>
+      dplyr::left_join(dplyr::transmute(deff_estudios(d), estudio = as.character(estudio), deff_estudios), by = "estudio") |>
       dplyr::left_join(dplyr::transmute(menciones_problemas(d), estudio = as.character(estudio), menciones_esp, menciones_per), by = "estudio"),
     correcciones = correcciones,
     conceptos = conceptos,

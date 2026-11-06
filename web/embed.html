@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Barómetro a barómetro: panel</title>
+<!-- Un solo panel para insertar en otra página con <iframe>. Dirección: embed.html?p=<panel codificado>
+     (el código lo da el botón «Insertar» de cada panel) o embed.html?preset=<nombre>&i=<n> (el panel n de un enlace
+     con nombre). Opcional: &tema=claro|oscuro. El panel avisa a la página que lo contiene de su altura con
+     postMessage({ bab: 'altura', altura }) cada vez que cambia, para quien quiera ajustar el iframe. -->
+<link rel="preload" href="fonts/roboto-condensed-wght.woff2?v=1" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="css/estilos.css">
+<style>
+  body{padding:8px 10px 10px}
+  .wrap{max-width:none}
+  #grid{display:block}
+  .panel{border:0;padding:0}
+  .panel .acts [data-a="edit"],.panel .acts [data-a="dup"],.panel .acts [data-a="del"],.panel .acts [data-a="insertar"]{display:none}
+  .ver{margin:6px 0 0;font-size:11.5px;color:var(--ink3)}
+  .ver a{color:var(--acc)}
+  .panel .notas{display:none}
+  .panel.con-notas .notas{display:block}
+  .ver button{margin-left:10px}
+  .empty{color:var(--ink3);padding:24px 0}
+</style>
+<script>try{const q=new URLSearchParams(location.search).get('tema');if(q==='claro')document.documentElement.dataset.theme='light';if(q==='oscuro')document.documentElement.dataset.theme='dark';}catch(e){}</script>
+</head>
+<body>
+<div class="wrap">
+  <div id="grid"></div>
+  <p class="ver" id="ver"></p>
+</div>
+<script src="js/vendor/d3.min.js"></script>
+<script src="js/vendor/topojson-client.min.js"></script>
+<script src="js/vendor/d3-composite-projections.min.js"></script>
+<script src="js/comun.js"></script>
+<script src="js/datos.js"></script>
+<script src="js/grafico.js"></script>
+<script src="js/paneles.js"></script>
+<script src="js/vistas.js"></script>
+<script src="js/embed.js"></script>
+</body>
+</html>

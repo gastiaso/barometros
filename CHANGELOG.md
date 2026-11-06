@@ -4,6 +4,22 @@ Registro de los cambios que afectan a los datos publicados (Parquet, columnas de
 
 ## Sin publicar
 
+## v2026-10 (6 de noviembre de 2026): primera versión etiquetada de los datos
+
+Primera release de los datos (`.github/workflows/version.yml`): Parquet, metadatos, inventario y sumas SHA-256 construidos desde este commit con el entorno fijado. Incluye los niveles 3 y 4 de la auditoría y el peso homogéneo con nivel de estudios, además de lo publicado desde el 24 de octubre. Los datos llegan hasta el barómetro de octubre de 2026 (estudio 3582).
+
+Peso homogéneo con nivel de estudios (PR #18):
+
+- **Nueva columna `peso_estudios`** en el Parquet y en la web: para los barómetros anteriores a noviembre de 2023, el peso del CIS ajustado por raking al nivel de estudios dentro de cada grupo de sexo y edad, con la estructura educativa de noviembre-diciembre de 2023 (`inventario/margenes_estudios.csv`, generado por `scripts/13_margenes_estudios.R`; sustituible por el INE); desde noviembre de 2023, el peso del CIS. Opción «Peso homogéneo con nivel de estudios desde 2021» en el editor de cada panel: con ella R10 deja de cortar las series y queda como ruptura B con nota. `inventario/deff_estudios.csv` y `deff_estudios` en `metadatos.json`. `rastrillar()` admite una cota propia (`cota`); para este peso, [0,2, 10]. Nota metodológica, documentación y README. Las cifras con el peso del CIS y con el peso reponderado por recuerdo no cambian.
+
+Nivel 4 de la auditoría (PR #17):
+
+- **Validación con las notas de estimación del CIS**: `scripts/10_referencias_notas.py` extrae la intención directa recodificada («voto directo en la encuesta») de las 64 notas y la añade a `inventario/referencias_cis.csv` (1.077 cifras nuevas; 1.262 en total). 22 cifras de diez barómetros no cuadran con el fichero publicado (de 0,05 a 0,23 puntos; las mayores, PP y VOX en junio de 2026): quedan con tolerancia y motivo en `inventario/referencias_excepciones.csv` y anotadas en la documentación. `R/validar.R` y la prueba de la web admiten indicadores que suman categorías (`A+B`).
+- **Web**: «Qué cambia en el último barómetro» arranca cerrado también en pantallas de menos de 800 px de alto (antes, solo en el móvil); la preferencia de abierto/cerrado se sigue recordando.
+- **Tarjeta mensual** (`scripts/12_tarjeta.py`, en cada publicación): imagen de 1200 × 675 con los cambios significativos del último barómetro (los mismos que el resumen de la web) y un texto de hasta 280 caracteres, en `img/tarjeta.png` e `img/tarjeta.txt` de la web publicada.
+- **Panel insertable** (`web/embed.html`): botón «Insertar» en cada panel que copia el código de un `iframe`; el panel se pinta solo, con tabla, CSV y PNG, enlaza a la web y avisa de su altura por `postMessage`. `embed.html?preset=<nombre>&i=<n>` para los paneles de los enlaces con nombre.
+- **Sensibilidad de la reponderación por recuerdo**: `scripts/11_sensibilidad_recuerdo.R` recalcula la variante «solo votantes» (la anterior a octubre de 2026) para los 64 barómetros; la intención directa de cada partido se mueve menos de 0,25 puntos, «No votaría» hasta 1,5. Tabla en `inventario/sensibilidad_recuerdo.csv`; no se publica un segundo peso.
+
 Nivel 3 de la auditoría (PR #15):
 
 - **Recuerdo y participación de septiembre de 2023 (3420, postelectoral)**: se toman del módulo postelectoral (RECUERDO1, PARTICIPACIONG1, RECUVOTOG1R), que preguntan por las generales del 23J, en vez de las preguntas habituales, que ese mes seguían refiriéndose a 2019. R09 (cambio de referencia del recuerdo) pasa de octubre a septiembre de 2023; la reponderación por recuerdo de ese barómetro se ajusta al 23J (efecto de diseño 1,47 en vez de 1,73). Cambian `recuerdo_voto`, `recuerdo_votantes_r`, `participacion_g` y `peso_recuerdo` del estudio 3420 en el Parquet; el resto de estudios no cambia. Ese mes el voto por correo queda como categoría aparte de la participación. La rejilla de «Construye tu estimación» de septiembre de 2023 (`estimacion/rejilla.csv.gz`) está recalculada con los nuevos pesos: con la corrección por recuerdo, ese mes el PP sube unos 3 puntos y Sumar y VOX bajan unos 2 (M3: PP 34,6 % y PSOE 32,2 % en vez de 31,3 % y 30,9 %); las combinaciones sin corrección no cambian. Nuevo `inventario/variables_manuales.csv` para imponer una variable a un concepto en un estudio (`02_crosswalk.py`).
@@ -14,7 +30,7 @@ Nivel 3 de la auditoría (PR #15):
 - **Nota metodológica**: catálogo de categorías de problemas por barómetro (26 de 97 no están en todos los estudios), desde `inventario/mapa_problemas.csv`.
 - **Portada**: «Qué cambia» en el último barómetro (intención, problemas, economía e ideología) con enlace al resumen completo.
 - **Web**: el índice de la nota metodológica y las anclas internas abren su pestaña (antes devolvían a la portada); las pestañas se reparten en varias líneas; fuente de rótulos autoalojada (Roboto Condensed variable, subconjunto latino, OFL) en lugar de la condensada de cada sistema; la anchura de las etiquetas de los SVG se mide en canvas (`anchoTexto`) en vez de estimarse por carácter, y en «Comparar» las etiquetas largas van en dos líneas; los atajos M1-M4 de la estimación muestran su descripción; en pantallas bajas la lista de respuestas del editor no tiene desplazamiento propio.
-- **Repositorio**: pruebas unitarias de R (`tests/testthat/`, también en CI); entorno de construcción fijado (R 4.6.2 e instantánea por fecha de Posit Package Manager); flujo `version.yml` que publica una release con el Parquet, los metadatos y el inventario al etiquetar `vAAAA-MM`.
+- **Repositorio**: `web/js/app.js` repartido en `comun.js`, `datos.js`, `grafico.js`, `paneles.js`, `editor.js` y `app.js` sin cambio funcional (PR #16); pruebas unitarias de R (`tests/testthat/`, también en CI); entorno de construcción fijado (R 4.6.2 e instantánea por fecha de Posit Package Manager); flujo `version.yml` que publica una release con el Parquet, los metadatos y el inventario al etiquetar `vAAAA-MM`.
 
 Nivel 2 de la auditoría (PR #13):
 

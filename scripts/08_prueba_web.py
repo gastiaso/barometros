@@ -1,6 +1,6 @@
 """Comprueba que la web calcula lo mismo que R y que el CIS.
 
-Abre la web en Chromium (Playwright), recalcula con el código del navegador (calcular() de web/js/app.js, sobre las
+Abre la web en Chromium (Playwright), recalcula con el código del navegador (calcular() de web/js/datos.js, sobre las
 columnas de web/datos) cada cifra de inventario/referencias_cis.csv y la compara con:
   - el valor calculado en R (inventario/validacion_cifras_cis.csv), con una tolerancia de 0,001 (la web guarda los
     pesos en coma flotante de 32 bits);
@@ -13,7 +13,7 @@ una muestra del resto y lo que se ve en la tabla. En modo veda comprueba que la 
 Uso: python scripts/08_prueba_web.py <raíz del proyecto>   (después de scripts/07_web.R)
 Sale con código 1 si algo no cuadra.
 """
-import asyncio, csv, functools, gzip, http.server, os, socketserver, sys, threading
+import asyncio, base64, csv, functools, gzip, http.server, os, socketserver, sys, threading
 
 from playwright.async_api import async_playwright
 
@@ -26,6 +26,10 @@ TOL_R = 0.001
 class Silencioso(http.server.SimpleHTTPRequestHandler):
     def log_message(self, *args):
         pass
+
+
+def b64e(s):   # la misma codificación que los enlaces #p= y embed.html?p= (web/js/comun.js)
+    return base64.urlsafe_b64encode(s.encode("utf-8")).decode().rstrip("=")
 
 
 def servir():
@@ -47,9 +51,32 @@ CALCULAR = """async (refs) => {
     else if (tipo === 'media') { spec = { preg: col }; id = col; }
     else { spec = { preg: col }; id = cat; }
     const res = await calcular({ ...spec, desde: est.mes, hasta: est.mes });
-    out.push({ ...r, web: res.filas[0].grupos[0].vals[id] ?? 0 });
+    // varias categorías unidas con «+» se suman, como en R/validar.R
+    const vals = res.filas[0].grupos[0].vals;
+    out.push({ ...r, web: tipo === 'media' ? (vals[id] ?? 0) : id.split('+').reduce((a, k) => a + (vals[k] ?? 0), 0) });
   }
   return out;
+}"""
+
+# peso homogéneo con estudios: igual al peso del CIS desde nov-2023, distinto antes, y R10 deja de ser un corte
+ESTUDIOS = """async () => {
+  const errores = [];
+  if (!META.columnas.peso_estudios) return ['falta la columna peso_estudios'];
+  const preg = META.columnas.intencion_voto_r ? 'intencion_voto_r' : 'eco_esp';
+  const a = await calcular({ preg, desde: '2023-01', hasta: '2024-03' });
+  const b = await calcular({ preg, desde: '2023-01', hasta: '2024-03', pesoEstudios: true });
+  const ids = Object.keys(a.filas[0].grupos[0].vals);
+  let distintos = 0;
+  a.filas.forEach((f, i) => {
+    const g = b.filas[i].grupos[0];
+    const dif = Math.max(...ids.map(k => Math.abs((f.grupos[0].vals[k] ?? 0) - (g.vals[k] ?? 0))));
+    if (f.e.mes >= '2023-11' && (dif > 1e-9 || Math.abs(f.e.deff - b.filas[i].e.deff) > 1e-3)) errores.push(`peso homogéneo distinto del peso del CIS en ${f.e.mes}`);
+    if (f.e.mes < '2023-11') { if (dif > 1e-6) distintos++; if (b.filas[i].e.deff <= f.e.deff) errores.push(`el peso homogéneo no eleva el efecto de diseño en ${f.e.mes}`); }
+  });
+  if (!distintos) errores.push('el peso homogéneo no cambia nada antes de nov-2023');
+  const r10 = rupturas({ preg, pesoEstudios: true }).filter(r => r.ruptura_id === 'R10');
+  if (r10.some(r => r.tipo !== 'B')) errores.push('con el peso homogéneo R10 sigue siendo un corte C');
+  return errores;
 }"""
 
 BLOQUES = """async () => {
@@ -173,6 +200,7 @@ async def main():
             if abs(web - cis) > tol:
                 fallos.append(f"web ≠ CIS en {clave}: web {web:.4f}, CIS {cis}")
         fallos += await pg.evaluate(BLOQUES)
+        fallos += await pg.evaluate(ESTUDIOS)
         fallos += await pg.evaluate(REGRESION)
         casos = casos_estimacion()
         veda = await pg.evaluate("META.veda")
@@ -192,6 +220,19 @@ async def main():
                 fallos.append(f"el descompresor alternativo no coincide en {a['indicador']}")
         if not await pf.evaluate("!!window.fflate"):
             fallos.append("sin DecompressionStream no se ha cargado el descompresor alternativo")
+        # embed.html: un panel suelto (enlace con nombre y panel codificado) se pinta sin errores
+        pe = await nav.new_page()
+        errores_embed = []
+        pe.on("pageerror", lambda e: errores_embed.append(str(e)))
+        for consulta in ("?preset=vivienda&i=0", "?p=" + b64e('{"tipo":"transferencias","preg":"intencion_voto_r","acum":3}'), "?p=" + b64e('{"preg":"eco_esp"}')):
+            await pe.goto(url.replace("index.html", "embed.html") + consulta)
+            try:
+                await pe.wait_for_function("document.querySelector('.panel h2')?.textContent", timeout=60000)
+            except Exception:                            # noqa: BLE001
+                fallos.append(f"embed.html{consulta}: el panel no se pinta")
+            if await pe.evaluate("!!document.querySelector('.panel .chart .empty')") and not veda:
+                fallos.append(f"embed.html{consulta}: panel vacío: " + await pe.evaluate("document.querySelector('.panel .chart .empty').textContent"))
+        fallos += [f"error de JavaScript en embed.html: {e}" for e in errores_embed]
         fallos += [f"error de JavaScript: {e}" for e in errores_js]
         await nav.close()
     srv.shutdown()

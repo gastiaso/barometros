@@ -1614,7 +1614,11 @@ function mostrarVista(t) {
   VISTAS_WEB.forEach(v => { const el = $('#view-' + v); if (el) el.hidden = v !== t; });
 }
 /* La pestaña va en la dirección (#que, #series, #est, #meth, #datos): el botón atrás vuelve a la anterior */
-const vistaDeHash = () => { const h = location.hash.slice(1); return h.startsWith('p=') || PRESETS[h] ? 'series' : h.startsWith('est=') ? 'est' : VISTAS_WEB.includes(h) ? h : null; };
+/* Un ancla interna (#m-rupt del índice de la nota, #r-R10 de la tabla de rupturas) pertenece a la pestaña que la contiene */
+const vistaDeAncla = h => { const el = h && !VISTAS_WEB.includes(h) ? document.getElementById(h) : null; const v = el && el.closest('[id^="view-"]'); return v ? v.id.slice(5) : null; };
+const vistaDeHash = () => { const h = location.hash.slice(1); return h.startsWith('p=') || PRESETS[h] ? 'series' : h.startsWith('est=') ? 'est' : VISTAS_WEB.includes(h) ? h : vistaDeAncla(h); };
+/* Tras mostrar la pestaña, lleva la vista al ancla de la dirección (el navegador no puede hacerlo mientras está oculta) */
+const irAlAncla = () => { const el = document.getElementById(location.hash.slice(1)); if (el && !VISTAS_WEB.includes(el.id)) el.scrollIntoView(); };
 function pestana(t, historial = true) {
   if (historial && vistaDeHash() !== t) history.pushState(null, '', '#' + t);
   mostrarVista(t);
@@ -1636,6 +1640,7 @@ async function iniciar() {
   if (typeof iniciarGuia === 'function') iniciarGuia();
   pintarMetodologia();
   pestana(VISTAS_WEB.find(v => $('#view-' + v) && !$('#view-' + v).hidden) || ($('#view-que') ? 'que' : 'series'), false);
+  irAlAncla();
 }
 
 document.querySelectorAll('#tema button').forEach(b => b.addEventListener('click', () => tema(b.dataset.v)));
@@ -1659,7 +1664,7 @@ function aplicarPreset(nombre, historial = true) {
   scrollTo(0, 0);
   return true;
 }
-addEventListener('popstate', () => { if (presetDeHash() && aplicarPreset(presetDeHash(), false)) return; const t = vistaDeHash() || 'que'; if (META) pestana(t, false); else mostrarVista(t); });
+addEventListener('popstate', () => { if (presetDeHash() && aplicarPreset(presetDeHash(), false)) return; const t = vistaDeHash() || 'que'; if (META) pestana(t, false); else mostrarVista(t); irAlAncla(); });
 document.querySelectorAll('[data-preset]').forEach(a => a.addEventListener('click', ev => { ev.preventDefault(); aplicarPreset(a.dataset.preset); }));
 document.querySelectorAll('[data-goto]').forEach(a => a.addEventListener('click', ev => { ev.preventDefault(); pestana(a.dataset.goto); scrollTo(0, 0); }));
 $('#b-add').addEventListener('click', () => abrirEditor(null));

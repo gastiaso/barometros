@@ -4,6 +4,10 @@ Registro de los cambios que afectan a los datos publicados (Parquet, columnas de
 
 ## Sin publicar
 
+## v2026-10 (6 de noviembre de 2026): primera versión etiquetada de los datos
+
+Primera release de los datos (`.github/workflows/version.yml`): Parquet, metadatos, inventario y sumas SHA-256 construidos desde este commit con el entorno fijado. Incluye los niveles 3 y 4 de la auditoría y el peso homogéneo con nivel de estudios, además de lo publicado desde el 24 de octubre. Los datos llegan hasta el barómetro de octubre de 2026 (estudio 3582).
+
 Peso homogéneo con nivel de estudios (PR #18):
 
 - **Nueva columna `peso_estudios`** en el Parquet y en la web: para los barómetros anteriores a noviembre de 2023, el peso del CIS ajustado por raking al nivel de estudios dentro de cada grupo de sexo y edad, con la estructura educativa de noviembre-diciembre de 2023 (`inventario/margenes_estudios.csv`, generado por `scripts/13_margenes_estudios.R`; sustituible por el INE); desde noviembre de 2023, el peso del CIS. Opción «Peso homogéneo con nivel de estudios desde 2021» en el editor de cada panel: con ella R10 deja de cortar las series y queda como ruptura B con nota. `inventario/deff_estudios.csv` y `deff_estudios` en `metadatos.json`. `rastrillar()` admite una cota propia (`cota`); para este peso, [0,2, 10]. Nota metodológica, documentación y README. Las cifras con el peso del CIS y con el peso reponderado por recuerdo no cambian.

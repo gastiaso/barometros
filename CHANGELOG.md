@@ -4,6 +4,10 @@ Registro de los cambios que afectan a los datos publicados (Parquet, columnas de
 
 ## Sin publicar
 
+Peso homogéneo con nivel de estudios (PR #18):
+
+- **Nueva columna `peso_estudios`** en el Parquet y en la web: para los barómetros anteriores a noviembre de 2023, el peso del CIS ajustado por raking al nivel de estudios dentro de cada grupo de sexo y edad, con la estructura educativa de noviembre-diciembre de 2023 (`inventario/margenes_estudios.csv`, generado por `scripts/13_margenes_estudios.R`; sustituible por el INE); desde noviembre de 2023, el peso del CIS. Opción «Peso homogéneo con nivel de estudios desde 2021» en el editor de cada panel: con ella R10 deja de cortar las series y queda como ruptura B con nota. `inventario/deff_estudios.csv` y `deff_estudios` en `metadatos.json`. `rastrillar()` admite una cota propia (`cota`); para este peso, [0,2, 10]. Nota metodológica, documentación y README. Las cifras con el peso del CIS y con el peso reponderado por recuerdo no cambian.
+
 Nivel 4 de la auditoría (PR #17):
 
 - **Validación con las notas de estimación del CIS**: `scripts/10_referencias_notas.py` extrae la intención directa recodificada («voto directo en la encuesta») de las 64 notas y la añade a `inventario/referencias_cis.csv` (1.077 cifras nuevas; 1.262 en total). 22 cifras de diez barómetros no cuadran con el fichero publicado (de 0,05 a 0,23 puntos; las mayores, PP y VOX en junio de 2026): quedan con tolerancia y motivo en `inventario/referencias_excepciones.csv` y anotadas en la documentación. `R/validar.R` y la prueba de la web admiten indicadores que suman categorías (`A+B`).

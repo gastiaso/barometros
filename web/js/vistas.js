@@ -45,7 +45,7 @@ function indicadorInfo(ind) {
 const fmtV = (v, media) => v == null ? '—' : media ? fmt2(v) : fmt1(v) + ' %';
 async function porGrupos(ind, grupo, cfg, mes, k) {
   const I = indicadorInfo(ind);
-  const spec = { preg: ind.preg, cruce: grupo, filtro: cfg.filtro || null, exNR: cfg.exNR, recuerdo: cfg.recuerdo };
+  const spec = { preg: ind.preg, cruce: grupo, filtro: cfg.filtro || null, exNR: cfg.exNR, recuerdo: cfg.recuerdo, pesoEstudios: cfg.pesoEstudios };
   const [{ res, idxs }, tot] = await Promise.all([calcularPeriodo(spec, mes, k), calcularPeriodo({ ...spec, cruce: null }, mes, k)]);
   return conVentana({ I, spec, res, tot: tot.res }, idxs);
 }
@@ -90,7 +90,7 @@ async function vistaTransferencias(host, cfg) {
   const P = preg(pregId);
   if (!disponible(P) || !META.columnas.recuerdo_voto) throw new Error('Serie no disponible.');
   const k = cfg.acum || 3;
-  const spec = { preg: pregId, cruce: 'recuerdo_voto', filtro: cfg.filtro || null, exNR: cfg.exNR };
+  const spec = { preg: pregId, cruce: 'recuerdo_voto', filtro: cfg.filtro || null, exNR: cfg.exNR, pesoEstudios: cfg.pesoEstudios };
   const { res, idxs } = await calcularPeriodo(spec, cfg.mes, k);
   if (!idxs.length) return { vacio: 'No hay barómetros con estas preguntas en el periodo elegido.' };
   const tot = await calcularPeriodo({ ...spec, cruce: null }, cfg.mes, k);
@@ -241,7 +241,7 @@ async function vistaDispersion(host, cfg) {
   });
   const choca = b => cajas.some(c => !(b[2] < c[0] || b[0] > c[2] || b[3] < c[1] || b[1] > c[3])) || b[0] < m.l || b[2] > W - m.r || b[1] < m.t - 4 || b[3] > H - m.b;
   const colocar = (label, cx, cy, rr, peso) => {
-    const w = label.length * (peso ? 6.6 : 6) + 2;
+    const w = anchoTexto(label, 11.5) * (peso ? 1.06 : 1) + 2;
     const ops = [[cx + rr + 4, cy + 4, 'start'], [cx - rr - 4, cy + 4, 'end'], [cx, cy - rr - 5, 'middle'], [cx, cy + rr + 13, 'middle'],
       [cx + rr + 2, cy - rr - 2, 'start'], [cx - rr - 2, cy - rr - 2, 'end'], [cx + rr + 2, cy + rr + 11, 'start'], [cx - rr - 2, cy + rr + 11, 'end']];
     const caja = ([tx, ty, a]) => { const x0 = a === 'start' ? tx : a === 'end' ? tx - w : tx - w / 2; return [x0, ty - 10, x0 + w, ty + 2]; };

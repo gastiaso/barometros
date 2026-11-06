@@ -7,7 +7,7 @@ let SEQ = 0;
 const nuevoId = () => 'p' + (++SEQ);
 
 function tituloPanel(cfg, res) {
-  return tituloBase(cfg, res) + (cfg.recuerdo ? ' (con reponderación por recuerdo)' : '');
+  return tituloBase(cfg, res) + (cfg.recuerdo ? ' (con reponderación por recuerdo)' : pesoEstudios(cfg) ? ' (peso homogéneo con estudios)' : '');
 }
 function tituloBase(cfg, res) {
   const P = preg(cfg.preg);
@@ -33,7 +33,7 @@ function metaPanel(cfg, res) {
   const fil = cfg.filtro ? `. Solo ${etiqueta(cfg.filtro.col, cfg.filtro.val)}` : '';
   const exn = cfg.exNR && res.unidad !== 'media' ? '. Sin NS/NC en la base' : '';
   const mov = cfg.movil && cfg.tipo !== 'barras' ? '. Media móvil centrada de 3 barómetros: cada punto resume ese barómetro, el anterior y el siguiente (el último, los dos anteriores)' : '';
-  const rec = cfg.recuerdo ? '. Pesos ajustados al recuerdo de voto (estimación propia)' : '';
+  const rec = cfg.recuerdo ? '. Pesos ajustados al recuerdo de voto (estimación propia)' : pesoEstudios(cfg) ? '. Peso homogéneo: ajustado al nivel de estudios también antes de nov-2023 (estimación propia)' : '';
   return `${ud}. ${per}${fil}${exn}${mov}${rec}${textoMenciones(P, f)}${textoBloques(cfg)}${avisoVoto(cfg)}`;
 }
 /* Las series que suman cualquiera de las tres menciones dependen de cuántas cita cada persona, que varía entre barómetros
@@ -115,9 +115,10 @@ async function renderPanel(el, cfg) {
       const out = await VISTAS[cfg.tipo](host, cfg);
       if (out.vacio) { host.innerHTML = `<p class="empty">${esc(out.vacio)}</p>`; notas.innerHTML = ''; tabla.innerHTML = ''; el._res = null; if (!h2.textContent) h2.textContent = TIPOS.find(t => t[0] === cfg.tipo)[1]; return; }
       const rec = cfg.recuerdo && cfg.tipo !== 'transferencias';
-      h2.textContent = out.titulo + (rec ? ' (con reponderación por recuerdo)' : '');
-      meta.textContent = out.meta + (rec ? '. Pesos ajustados al recuerdo de voto (estimación propia)' : '') + textoBloques(cfg) + avisoVoto(cfg);
-      notas.innerHTML = [...(rec ? [NOTA_RECUERDO] : []), ...out.notas].map(t => `<p class="note">${esc(t)}</p>`).join('');
+      const hom = !rec && pesoEstudios(cfg) && cfg.tipo !== 'puntos';
+      h2.textContent = out.titulo + (rec ? ' (con reponderación por recuerdo)' : hom ? ' (peso homogéneo con estudios)' : '');
+      meta.textContent = out.meta + (rec ? '. Pesos ajustados al recuerdo de voto (estimación propia)' : hom ? '. Peso homogéneo: ajustado al nivel de estudios también antes de nov-2023 (estimación propia)' : '') + textoBloques(cfg) + avisoVoto(cfg);
+      notas.innerHTML = [...(rec ? [NOTA_RECUERDO] : hom ? [NOTA_ESTUDIOS] : []), ...out.notas].map(t => `<p class="note">${esc(t)}</p>`).join('');
       tabla.innerHTML = `<table><thead><tr>${out.tabla.cab.map(c => `<th>${esc(c)}</th>`).join('')}</tr></thead><tbody>${out.tabla.filas.map(f => `<tr>${f.map(v => `<td>${esc(v)}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
       el._res = { generico: out, cfg };
     } catch (e) {
@@ -154,6 +155,7 @@ async function renderPanel(el, cfg) {
     ns.push(...out.rup.filter(r => !vistas.has(r.ruptura_id) && vistas.add(r.ruptura_id))
       .map(r => `<p class="note"><span class="rid">${esc(r.ruptura_id)}</span>${r.etiqueta_corta ? ' ' + esc(r.etiqueta_corta) : ''} (${esc(mesCorto(r.m))}, tipo ${esc(r.tipo)}): ${esc(breveRuptura(r.descripcion))}</p>`));
     if (cfg.recuerdo) ns.unshift(`<p class="note">${esc(NOTA_RECUERDO)}</p>`);
+    else if (pesoEstudios(cfg)) ns.unshift(`<p class="note">${esc(NOTA_ESTUDIOS)}</p>`);
     if (out.barras) notasEstudio(cfg, res.filas[0].e.mes).forEach(t => ns.push(`<p class="note">${esc(t)}</p>`));
     if (out.omitidos) ns.push(`<p class="note">${out.omitidos} ${out.barras ? (out.omitidos === 1 ? 'barra omitida' : 'barras omitidas') : (out.omitidos === 1 ? 'punto omitido' : 'puntos omitidos')} por tener menos de ${MIN_N} entrevistas.</p>`);
     notas.innerHTML = ns.join('');

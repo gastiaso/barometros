@@ -85,7 +85,6 @@ const PARTIDO_CANDIDATO = {
 };
 const DEFECTO = [
   { preg: 'intencion_voto_r' },
-  { preg: 'intencion_voto_r', recuerdo: true },
   { preg: 'voto_simpatia' },
   { tipo: 'barras', preg: 'intencion_voto_r', cruce: 'edad_g', ancho: true, cats: ['PSOE', 'PP', 'VOX', 'SUMAR', 'PODEMOS', 'SALF', 'NO_VOTARIA', 'NS'] },
   { tipo: 'transferencias', preg: 'intencion_voto_r', acum: 3, ancho: true },
@@ -96,6 +95,7 @@ const DEFECTO = [
   { tipo: 'calor', preg: 'prob_esp', ancho: true },
   { preg: 'prob_per' },
   { tipo: 'comparar', preg: 'intencion_voto_r' },
+  { preg: 'intencion_voto_r', recuerdo: true },
   { preg: 'eco_esp' },
 ];
 // En el móvil, menos paneles y sin los que necesitan todo el ancho (transferencias, dispersión, mapa, calor)
@@ -610,7 +610,7 @@ function dibujar(host, res, cfg) {
             d = cruza ? `<span class="d" title="Ruptura de serie entre ambos meses">s. c.</span>` : `<span class="d">${dv >= 0 ? '+' : '−'}${media ? fmt2(Math.abs(dv)) : fmt1(Math.abs(dv))}</span>`;
           }
         }
-        const v = p.v != null ? (media ? fmt2(p.v) : fmt1(p.v) + ' %') : p.omit ? 'n < 50' : 's. d.';
+        const v = p.v != null ? (media ? fmt2(p.v) : fmt1(p.v) + ' %') : p.omit ? 'n < 50' : 'sin dato';
         return `<div class="r"><span><i class="sw" style="background:${col[s.id]}"></i>${esc(s.label)}</span><span>${v}${d}</span></div>`;
       }).join('');
       const n = !cfg.cruce && !media ? ser[0].pts[i].n : null;
@@ -811,7 +811,7 @@ function metaPanel(cfg, res) {
   const per = !f.length ? '' : cfg.tipo === 'barras' ? `${mesLargo(f[0].e.mes)} (estudio ${f[0].e.estudio})` : `${mesCorto(f[0].e.mes)} a ${mesCorto(f[f.length - 1].e.mes)}`;
   const fil = cfg.filtro ? `. Solo ${etiqueta(cfg.filtro.col, cfg.filtro.val)}` : '';
   const exn = cfg.exNR && res.unidad !== 'media' ? '. Sin NS/NC en la base' : '';
-  const mov = cfg.movil && cfg.tipo !== 'barras' ? '. Media móvil de 3 barómetros' : '';
+  const mov = cfg.movil && cfg.tipo !== 'barras' ? '. Media móvil de 3 barómetros: cada punto resume ese barómetro y los dos anteriores' : '';
   const rec = cfg.recuerdo ? '. Pesos ajustados al recuerdo de voto (estimación propia)' : '';
   return `${ud}. ${per}${fil}${exn}${mov}${rec}${textoBloques(cfg)}${avisoVoto(cfg)}`;
 }
@@ -889,7 +889,7 @@ async function renderPanel(el, cfg) {
     const barras = cfg.tipo === 'barras';
     const mesB = barras ? (cfg.mes && ESTI[cfg.mes] != null ? cfg.mes : EST[EST.length - 1].mes) : null;
     const res = await calcular(barras ? { ...cfg, desde: mesB, hasta: mesB } : cfg);
-    const apilar = barras && res.P.tipo === 'cat';
+    const apilar = barras && res.P.tipo === 'cat' && (cfg.apilar ? cfg.apilar === 'apiladas' : !!cfg.cruce && datosBarras(res, cfg).cats.length >= 5);
     const resTot = apilar && cfg.cruce ? await calcular({ ...cfg, cruce: null, desde: mesB, hasta: mesB }) : null;
     const out = !barras ? dibujar(host, res, cfg) : apilar ? dibujarApiladas(host, res, cfg, resTot) : dibujarBarras(host, res, cfg);
     res.cat1 = out.cat1;
@@ -1151,7 +1151,7 @@ async function pintarEditor() {
   const optFiltro = `<option value="">Sin filtro</option>` + FILTROS.filter(([k]) => META.columnas[k]).map(([k, t]) => `<option value="${k}"${b.filtro && k === b.filtro.col ? ' selected' : ''}>${esc(t)}</option>`).join('');
   const valFiltro = b.filtro ? nivelesDe(b.filtro.col).filter(id => id !== 'NP').map(id => `<option value="${esc(id)}"${id === b.filtro.val ? ' selected' : ''}>${esc(etiqueta(b.filtro.col, id))}</option>`).join('') : '';
   const fPreg = `<div class="fld full"><label for="f-preg">Pregunta</label><select id="f-preg">${optPreg}</select></div>`;
-  const fCruce = `<div class="fld"><label for="f-cruce">Cruzar por</label><select id="f-cruce">${optCruce}</select><span class="hint">${tipo === 'barras' ? 'Cada barra es un grupo y suma 100 %; las respuestas no marcadas van a «Resto». En problemas y medias, barras agrupadas.' : 'Cada línea es un grupo y se elige una sola respuesta.'}</span></div>`;
+  const fCruce = `<div class="fld"><label for="f-cruce">Cruzar por</label><select id="f-cruce">${optCruce}</select><span class="hint">${tipo === 'barras' ? 'Con cruce, un grupo de barras por categoría; apiladas al 100 % si hay cinco o más respuestas (las no marcadas van a «Resto»). En problemas y medias, siempre agrupadas.' : 'Cada línea es un grupo y se elige una sola respuesta.'}</span></div>`;
   const fFiltro = `<div class="fld"><label for="f-filtro">Filtrar por</label><div class="row"><select id="f-filtro">${optFiltro}</select><select id="f-fval" ${b.filtro ? '' : 'hidden'} aria-label="Valor del filtro">${valFiltro}</select></div></div>`;
   const fPeriodo = `<div class="fld"><label for="f-desde">Desde</label><select id="f-desde">${opcionesMes(b.desde || EST[0].mes)}</select></div><div class="fld"><label for="f-hasta">Hasta</label><select id="f-hasta">${opcionesMes(b.hasta || ultMes)}</select></div>`;
   const fMes = (id, lab, val) => `<div class="fld"><label for="${id}">${lab}</label><select id="${id}">${opcionesMes(val || ultMes)}</select></div>`;
@@ -1159,14 +1159,15 @@ async function pintarEditor() {
   const chk = (id, lab, v) => `<label class="row"><input type="checkbox" id="${id}"${v ? ' checked' : ''}> ${lab}</label>`;
   const opExNR = chk('f-exnr', 'Excluir de la base «no sabe», «no contesta» y «no recuerda»', b.exNR);
   const opBanda = chk('f-banda', tipo === 'dispersion' ? 'Mostrar el margen de error en los dos ejes' : 'Mostrar el margen de error', b.banda ?? (tipo === 'lineas' && !b.cruce));
-  const opMovil = chk('f-movil', 'Media móvil de 3 barómetros (suaviza los cruces con poca muestra)', b.movil);
+  const opMovil = chk('f-movil', 'Media móvil de 3 barómetros: cada punto resume ese barómetro y los dos anteriores (suaviza los cruces con poca muestra)', b.movil);
   const opRec = META.columnas.peso_recuerdo ? chk('f-recuerdo', 'Reponderar por recuerdo de voto (estimación propia: no coincide con el CIS)', b.recuerdo) : '';
   const opAncho = chk('f-ancho', 'Panel a todo el ancho', b.ancho);
+  const fApilar = tipo === 'barras' && preg(b.preg)?.tipo === 'cat' ? `<div class="fld"><label for="f-apilar">Disposición</label><select id="f-apilar">${[['', 'Automática: apiladas con cruce y cinco o más respuestas'], ['agrupadas', 'Barras agrupadas'], ['apiladas', 'Barras apiladas al 100 %']].map(([k, t]) => `<option value="${k}"${(b.apilar || '') === k ? ' selected' : ''}>${t}</option>`).join('')}</select></div>` : '<div class="fld"></div>';
   const lista = `<div class="fld full" id="f-cats"><span class="lab">Respuestas</span><p class="hint">Calculando…</p></div>`;
   const fEje = `<div class="fld"><label for="f-eje">En vertical</label><select id="f-eje"><option value="edad"${b.eje !== 'ideologia' ? ' selected' : ''}>Edad</option><option value="ideologia"${b.eje === 'ideologia' ? ' selected' : ''}>Autoubicación ideológica (1 a 10)</option></select><span class="hint">En horizontal, el mes; cada punto cae al azar dentro del suyo.</span></div>`;
   const secciones = {
     lineas: () => fPreg + fCruce + fFiltro + fPeriodo + lista + `<div class="fld full"><span class="lab">Opciones</span>${opExNR}${opBanda}${opMovil}${opRec}${opAncho}</div>`,
-    barras: () => fPreg + fCruce + fFiltro + fMes('f-mes', 'Barómetro', b.mes) + '<div class="fld"></div>' + lista + `<div class="fld full"><span class="lab">Opciones</span>${opExNR}${opBanda}${opRec}${opAncho}</div>`,
+    barras: () => fPreg + fCruce + fFiltro + fMes('f-mes', 'Barómetro', b.mes) + fApilar + lista + `<div class="fld full"><span class="lab">Opciones</span>${opExNR}${opBanda}${opRec}${opAncho}</div>`,
     comparar: () => fPreg + fFiltro + '<div class="fld"></div>' + fMes('f-mesA', 'Barómetro inicial', mesInicialComparar(b)) + fMes('f-mesB', 'Barómetro final', b.mesB) + lista + `<div class="fld full"><span class="lab">Opciones</span>${opExNR}${opBanda}${opRec}${opAncho}</div>`,
     calor: () => fPreg + fFiltro + '<div class="fld"></div>' + fPeriodo + lista + `<div class="fld full"><span class="lab">Opciones</span>${opExNR}${opRec}${opAncho}</div>`,
     transferencias: () => fPreg + fFiltro + '<div class="fld"></div>' + fMes('f-mes', 'Último barómetro', b.mes) + fAcum + lista + `<div class="fld full"><span class="lab">Opciones</span>${opExNR}${opAncho}</div>`,
@@ -1187,6 +1188,7 @@ async function pintarEditor() {
     if ($('#f-mes')) b.mes = val('f-mes') === ultMes ? null : val('f-mes');
     if ($('#f-mesA')) { b.mesA = val('f-mesA'); b.mesB = val('f-mesB') === ultMes ? null : val('f-mesB'); }
     if ($('#f-acum')) b.acum = +val('f-acum');
+    if ($('#f-apilar')) b.apilar = val('f-apilar') || null;
     if ($('#f-grupo')) b.grupo = val('f-grupo');
     if ($('#f-eje')) b.eje = val('f-eje');
     if ($('#f-catA')) b.cats = [val('f-catA'), val('f-catB')];

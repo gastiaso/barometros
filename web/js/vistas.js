@@ -461,7 +461,7 @@ async function vistaComparar(host, cfg) {
     titulo: `${P.t}: ${mesCorto(fA.e.mes)} frente a ${mesCorto(fB.e.mes)}`,
     meta: `${media ? 'Media de 1 a 10' : P.tipo === 'multi' ? '% de entrevistados (hasta tres menciones)' : '% de entrevistados'}. Estudios ${fA.e.estudio} y ${fB.e.estudio}${cfg.filtro ? '. Solo ' + etiqueta(cfg.filtro.col, cfg.filtro.val) : ''}`,
     notas: comparable ? ['En negrita, las diferencias significativas al 95 % (con el efecto de diseño de cada estudio); «n. s.», no significativa.']
-      : cortes.map(r => `No comparable: ${r.ruptura_id} (${mesCorto(r.m)}, tipo C) entre ambos meses. ${breveRuptura(r.descripcion)}.`),
+      : ['«s. c.»: sin comparación, porque entre los dos meses hay una ruptura de tipo C.', ...cortes.map(r => `No comparable: ${r.ruptura_id} (${mesCorto(r.m)}, tipo C) entre ambos meses. ${breveRuptura(r.descripcion)}.`)],
     tabla: { cab: ['Respuesta', mesCorto(fA.e.mes), mesCorto(fB.e.mes), 'Diferencia'], filas: filas.map(f => [nom(f.id), fmtV(f.pa.v, media), fmtV(f.pb.v, media), f.dif == null ? '—' : (media ? fmt2(f.dif) : fmt1(f.dif)) + (f.sig ? '' : ' (n. s.)')]) },
     csv: { cab: ['respuesta', 'mes_a', 'valor_a', 'mes_b', 'valor_b', 'diferencia', 'significativa'], filas: filas.map(f => [nom(f.id), fA.e.mes, f.pa.v, fB.e.mes, f.pb.v, f.dif, f.sig]) },
   };
@@ -574,16 +574,17 @@ function pintarPuntos(cv, D, c, W, H, escala, opc = {}) {
   // leyenda, con salto de línea si no cabe
   ctx.font = fuente(400, fs); ctx.textBaseline = 'middle';
   const cab = opc.banner ? (c.pregId === 'prob_per' ? 'Entre los problemas que más le afectan, menciona:' : 'Entre los principales problemas de España, menciona:') : 'Menciona:';
-  const items = [[cab, null], [nombres[1], 1], [nombres[2], 2], [nombres[3], 3], [nombres[0], 0]];
+  const items = [[cab, null], [nombres[1], 1], [nombres[2], 2], [nombres[3], 3], [nombres[0], 0], ['Sin ponderar · muestra igualada por mes · no es una estimación', 'nota']];
   const x0 = opc.banner ? W * 0.025 : 6, sep = fs * 1.4, lh = fs * 1.5;
   let lx = x0, ly = top + lh / 2;
   items.forEach(([txt, k]) => {
-    ctx.font = fuente(k === 1 || k === 2 ? 500 : 400, fs);
-    const w = ctx.measureText(txt).width + (k == null ? 0 : fs * 0.9);
+    const nota = k === 'nota', punto = k != null && !nota;
+    ctx.font = fuente(k === 1 || k === 2 ? 500 : 400, nota ? fs * 0.9 : fs);
+    const w = ctx.measureText(txt).width + (punto ? fs * 0.9 : 0);
     if (lx + w > W - 6 && lx > x0) { lx = x0; ly += lh; }
-    if (k != null) { ctx.fillStyle = colores[k]; ctx.beginPath(); ctx.arc(lx + fs * 0.32, ly, fs * 0.32, 0, 2 * Math.PI); ctx.fill(); lx += fs * 0.9; }
-    ctx.fillStyle = k == null || k === 0 ? PAL.ink2 : PAL.ink; ctx.fillText(txt, lx, ly);
-    lx += w - (k == null ? 0 : fs * 0.9) + sep;
+    if (punto) { ctx.fillStyle = colores[k]; ctx.beginPath(); ctx.arc(lx + fs * 0.32, ly, fs * 0.32, 0, 2 * Math.PI); ctx.fill(); lx += fs * 0.9; }
+    ctx.fillStyle = nota ? PAL.ink3 : k == null || k === 0 ? PAL.ink2 : PAL.ink; ctx.fillText(txt, lx, ly);
+    lx += w - (punto ? fs * 0.9 : 0) + sep;
   });
   top = ly + lh / 2 + fs * 0.5;
   // área de datos

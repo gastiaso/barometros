@@ -31,8 +31,8 @@ El Centro de Investigaciones Sociológicas (CIS) publica cada barómetro por sep
 
 - **Parte de los microdatos**, no de los informes. Cualquier cruce se calcula con la ponderación de cada estudio.
 - **Las rupturas de serie están documentadas y se ven.** Se han revisado cuestionarios, libros de códigos y fichas técnicas de los 64 estudios. Los cambios que rompen la comparabilidad (un enunciado nuevo, la ponderación por nivel educativo de noviembre de 2023, el nuevo bloque de intención de voto…) se marcan en el gráfico, y no se calculan variaciones a través de ellos.
-- **Está validada contra el CIS.** El pipeline reproduce 185 cifras publicadas por el CIS en ocho barómetros (de enero de 2021 a octubre de 2026): 181 al redondeo y 4 con una décima de tolerancia, porque el avance de resultados usa una o dos entrevistas más que el fichero. Cubren intención de voto recodificada, voto + simpatía, valoración de líderes y de una ministra, situación económica, ideología y variables de perfil; no hay cifras de referencia para problemas, preferencia como presidente, simpatía, cercanía ni recuerdo. La web recalcula esas cifras en el navegador antes de publicarse. Si alguna deja de cuadrar, la web no se publica.
-- **El margen de error es honesto.** Usa el efecto de diseño de cada estudio y nunca muestra un dato con menos de 50 entrevistas.
+- **Está contrastada con cifras publicadas por el CIS.** El pipeline reproduce 185 cifras de ocho barómetros (de enero de 2021 a octubre de 2026): 181 al redondeo y 4 con una décima de tolerancia, porque el avance de resultados usa una o dos entrevistas más que el fichero. Cubren intención de voto recodificada, voto + simpatía, valoración de líderes y de una ministra, situación económica, ideología y variables de perfil; no hay cifras de referencia para problemas, preferencia como presidente, simpatía, cercanía ni recuerdo, y la cobertura por barómetro es desigual (de 1 a 55 cifras; los otros 56 barómetros solo se validan de forma indirecta, por compartir reglas y código). La web recalcula esas cifras en el navegador antes de publicarse. Si alguna deja de cuadrar, la web no se publica.
+- **El margen de error es más realista que el de la ficha técnica.** Incorpora el efecto de diseño de la ponderación de cada estudio (Kish), que la ficha del CIS no recoge; no incorpora el de la estratificación ni el de los conglomerados del muestreo. Nunca muestra un dato con menos de 50 entrevistas.
 - **No usa servidor de cálculo.** El navegador descarga solo las columnas que necesita y hace las cuentas. Sin cookies ni analítica; GitHub Pages, que aloja la web, puede registrar qué ficheros se descargan.
 
 > **No es una estimación de voto.** Las series de voto son respuestas directas, no la «estimación» que el CIS calcula con su propio modelo. La reponderación por recuerdo es una estimación propia y no coincide con las tablas del CIS.
@@ -92,7 +92,7 @@ El detalle técnico está en [`docs/documentacion_tecnica.md`](docs/documentacio
 
 ## Actualización
 
-Cuando el CIS publica un barómetro nuevo, se añade su ZIP a `datos/raw/`, se revisa el inventario y se relanza el flujo. La validación impide publicar si la armonización no reproduce las cifras del CIS. 
+Cuando el CIS publica un barómetro nuevo, se añade su ZIP a `datos/raw/`, se revisa el inventario y se relanza el flujo. La validación impide publicar si la armonización no reproduce las cifras del CIS. Los cambios de método y de datos quedan anotados en [`CHANGELOG.md`](CHANGELOG.md); cómo proponer correcciones, en [`CONTRIBUTING.md`](CONTRIBUTING.md). 
 
 ## Limitaciones
 

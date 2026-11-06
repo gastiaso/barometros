@@ -27,7 +27,7 @@ web/                            la web: index.html, css/, js/app.js, js/vistas.j
 
 **Reparto de lenguajes.** Python (`scripts/`) lee la documentación del CIS y produce el inventario y las tablas de revisión. R (`_targets.R`, `R/`) aplica esas tablas a los microdatos. Las decisiones de armonización viven en CSV editables (`inventario/`), no en el código.
 
-Para reproducir hace falta Python 3 con `pyreadstat`, `pandas` y `openpyxl`, y poppler (`pdftotext`, `pdfinfo`). Los comandos se lanzan desde la raíz del proyecto:
+Para reproducir hace falta Python 3 con los paquetes de `requirements.txt` (`pip install -r requirements.txt`; `pandas` solo lo usa `06_revision_xlsx.py`) y poppler (`pdftotext`, `pdfinfo`). Los comandos se lanzan desde la raíz del proyecto:
 
 ```
 python scripts/00_extraer.py .
@@ -45,8 +45,6 @@ python3 -m http.server -d web 8000    # vista previa en http://localhost:8000
 ```
 
 El paso de R necesita los paquetes `targets`, `haven`, `arrow`, `dplyr`, `tidyr`, `purrr`, `readr`, `jsonlite` y `tibble`. Si la validación falla (códigos sin mapa, pesos ausentes o cifras que no reproducen las del CIS), el Parquet no se escribe.
-
-`scripts/03_revision_xlsx.py` es de la versión anterior y se puede borrar.
 
 ## Ficheros de `inventario/`
 

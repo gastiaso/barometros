@@ -17,6 +17,7 @@ scripts/05_revision.py          crosswalk revisado + mapas de partidos, problema
 scripts/06_revision_xlsx.py     inventario/revision.xlsx
 scripts/lib/                    parsers del libro de códigos y del cuestionario
 _targets.R, R/                  armonización en R: .sav -> microdatos armonizados + metadatos + validación
+tests/                          pruebas unitarias de R/ (testthat; Rscript tests/testthat.R)
 datos/publicacion/              microdatos.parquet y metadatos.json (generados)
 scripts/07_web.R                datos de la web: una columna comprimida por pregunta (web/datos/, generado)
 scripts/08_prueba_web.py        prueba en Chromium: la web recalcula las referencias del CIS y debe dar lo mismo que R
@@ -24,8 +25,10 @@ scripts/07_estimacion.R         datos de «Construye tu estimación» (web/datos
 scripts/09_vista_previa.py      imagen para redes (web/img/vista-previa.png): captura de los paneles por defecto
 estimacion/                     estimación de voto: rejilla de supuestos (rejilla.R), modelos de referencia con remuestreo
                                 (modelos.R), estimación publicada por el CIS (estimacion_cis.csv) y resumen (resumen_rejilla.py)
-web/                            la web: index.html, css/, js/app.js, js/vistas.js, js/guia.js (d3 autoalojado, sin dependencias externas)
+web/                            la web: index.html, css/, js/app.js, js/vistas.js, js/guia.js, js/estimacion.js (d3 autoalojado, sin dependencias externas)
+web/fonts/                      fuente de rótulos autoalojada (Roboto Condensed variable, subconjunto latino, OFL 1.1; ver abajo cómo regenerarla)
 .github/workflows/publicar.yml  construcción y publicación en GitHub Pages
+.github/workflows/version.yml   versión de los datos (release con Parquet, metadatos e inventario) al etiquetar vAAAA-MM
 ```
 
 **Reparto de lenguajes.** Python (`scripts/`) lee la documentación del CIS y produce el inventario y las tablas de revisión. R (`_targets.R`, `R/`) aplica esas tablas a los microdatos. Las decisiones de armonización viven en CSV editables (`inventario/`), no en el código.
@@ -50,7 +53,13 @@ npm ci && npm run lint                # comprobación estática de web/js (eslin
 python3 -m http.server -d web 8000    # vista previa en http://localhost:8000
 ```
 
-El paso de R necesita los paquetes `targets`, `haven`, `arrow`, `dplyr`, `tidyr`, `purrr`, `readr`, `jsonlite` y `tibble` (y `nnet` para la estimación). Si la validación falla (códigos sin mapa, pesos ausentes o cifras que no reproducen las del CIS), el Parquet no se escribe.
+El paso de R necesita los paquetes `targets`, `haven`, `arrow`, `dplyr`, `tidyr`, `purrr`, `readr`, `jsonlite` y `tibble` (y `nnet` para la estimación; `testthat` para las pruebas). Si la validación falla (códigos sin mapa, pesos ausentes o cifras que no reproducen las del CIS), el Parquet no se escribe.
+
+**Versiones.** La construcción en GitHub (`.github/workflows/publicar.yml`) fija la versión de R (4.6.2) y toma los paquetes de una instantánea por fecha de Posit Package Manager (`packagemanager.posit.co/cran/__linux__/noble/AAAA-MM-DD`), así que dos construcciones con el mismo código dan el mismo resultado hasta que se adelante la fecha a mano. Para reproducir ese entorno en local, la misma dirección sirve como repositorio: `options(repos = c(CRAN = "https://packagemanager.posit.co/cran/AAAA-MM-DD"))` antes de `install.packages()`. Si se prefiere un fichero de bloqueo, `renv::init(bare = TRUE); renv::snapshot(type = "explicit")` desde la raíz genera `renv.lock` con las versiones instaladas en el entorno propio (hoy no se versiona ninguno). Las versiones comprobadas del flujo de Python están en `requirements.txt`.
+
+**Fuente de rótulos.** `web/fonts/roboto-condensed-wght.woff2` es Roboto Condensed (variable, eje de peso 100-900) reducida a los caracteres del español (latín básico y suplemento, comillas, guiones, puntos suspensivos, euro, menos). Se genera desde el paquete `@fontsource-variable/roboto-condensed` con fonttools: `pyftsubset roboto-condensed-latin-wght-normal.woff2 --flavor=woff2 --unicodes="U+0020-007E,U+00A0-00FF,U+0152-0153,U+2013-2014,U+2018-201A,U+201C-201E,U+2022,U+2026,U+20AC,U+2212" --layout-features="kern,liga,tnum,pnum,lnum"`. Los rótulos de los SVG usan la fuente del cuerpo (la del sistema) y su anchura se mide en un canvas (`anchoTexto`, `recortarAncho`, `lineasTexto` en `web/js/app.js`) en lugar de estimarla con píxeles por carácter.
+
+**Pruebas unitarias.** `Rscript tests/testthat.R` comprueba las funciones de armonización que no dependen de los .sav: tipos de no respuesta, agrupación de ocupación e ideología, celdas del recuerdo, objetivos electorales y el raking (márgenes, conservación de sexo/edad/estudios, cota del factor de ajuste). Se ejecutan en CI antes de la armonización.
 
 ## Ficheros de `inventario/`
 
@@ -59,8 +68,9 @@ El paso de R necesita los paquetes `targets`, `haven`, `arrow`, `dplyr`, `tidyr`
 | Fichero | Contenido |
 |---|---|
 | `crosswalk_revisado.csv` | Concepto × estudio (2.560 filas): variable, versión del enunciado, **nivel_final** (A/B/C/AUSENTE), `revisado` (manual / auto), nota con la regla o el motivo y `nota_publica`, la que se muestra en la web |
-| `decisiones_manuales.csv` | Las 46 decisiones razonadas que se imponen a la regla automática (entrada editable de `05_revision.py`) |
-| `rupturas_candidatas.csv` | Registro de rupturas R01–R29, con evidencia, estado (confirmada / resuelta / descartada / nueva) y `etiqueta_corta` (la que rotula la guía) |
+| `decisiones_manuales.csv` | Las decisiones razonadas que se imponen a la regla automática (entrada editable de `05_revision.py`): nivel y nota de un concepto en un estudio |
+| `variables_manuales.csv` | Variable impuesta a mano a un concepto en un estudio (entrada de `02_crosswalk.py`): hoy, el módulo postelectoral de 3420 para recuerdo y participación (R09) |
+| `rupturas_candidatas.csv` | Registro de rupturas R01–R30, con evidencia, estado (confirmada / resuelta / descartada / nueva) y `etiqueta_corta` (la que rotula la guía) |
 | `eventos_electorales.csv` | Convocatorias electorales (generales, europeas, autonómicas, municipales) que la web puede marcar en el eje de las series; solo convocatorias |
 | `enunciados.csv`, `enunciados_versiones.csv` | Enunciado de cada pregunta en cada cuestionario y sus versiones con periodo |
 | `enunciados_adicionales.csv` | Enunciados para las fichas de la web que no salen de la extracción automática (intención recodificada, voto + simpatía, líderes y ministros) |
@@ -81,6 +91,8 @@ El paso de R necesita los paquetes `targets`, `haven`, `arrow`, `dplyr`, `tidyr`
 | `validacion_sin_mapa.csv` | Códigos presentes en los datos sin categoría armonizada (debe estar vacío) |
 | `validacion_anomalias_no_respuesta.csv` | Estudios con no respuesta muy por encima de la habitual del concepto |
 | `registro_etiquetas_cerradas.csv` | Variantes de etiqueta en las variables cerradas y a qué categoría se llevan |
+| `deff_recuerdo.csv` | Por estudio, efecto de diseño de los pesos reponderados por recuerdo, factores de ajuste extremos, iteraciones del raking, % de entrevistas recortadas por la cota y desvío máximo de los márgenes |
+| `menciones_problemas.csv` | Por estudio y bloque de problemas (España, personales): menciones sustantivas medias por persona y % con tres y con ninguna, ponderado (diagnóstico de R30) |
 
 **Inventario automático**
 
@@ -118,7 +130,7 @@ Cómo se ha revisado:
 | R26 | 2022-03 | Ocupación: de categorías leídas a respuesta codificada | ocupacion_r, ocupacion_g |
 | R04 | 2022-05 | Participación: de 7 a 4 opciones | participacion_g |
 | R27 | 2022-07 | Ingresos del hogar: nuevos tramos | ingresos_hogar |
-| R09 | 2023-10 | Recuerdo y participación pasan a referirse a las generales de 2023 | recuerdo, participacion_g |
+| R09 | 2023-09 | Recuerdo y participación pasan a referirse a las generales de 2023 (en 3420, postelectoral, desde su módulo postelectoral: RECUERDO1, PARTICIPACIONG1, RECUVOTOG1R) | recuerdo, participacion_g |
 | R19 | 2023-10 | Bloque de intención de voto: nuevo enunciado, precedido de la probabilidad de votar | intención (directa y recodificada), voto + simpatía; B en simpatía e intención alternativa (R28) |
 | R10 | 2023-11 | Ponderación con ajuste por nivel educativo (deff 1,1 → ~2) | todas las series |
 | R20 | 2024-01 | Nivel de estudios: de «cursados» a «terminados con titulación» | nivel_estudios, estudios y la propia ponderación |
@@ -159,7 +171,7 @@ R19 y R22 coinciden con una reordenación del cuestionario en octubre de 2023, s
 
 - **Cálculo en el navegador.** Cada vista descarga solo las columnas que necesita (unos cientos de KB) y agrega los microdatos con la ponderación del estudio. No hay servidor.
 - **Paneles configurables.** Ocho tipos de gráfico: evolución mensual (líneas, con media móvil de 3 barómetros opcional), un barómetro (barras apiladas al 100 % por grupo), comparación de dos barómetros (con significación), mapa de calor meses × respuestas, transferencias de voto (recuerdo → respuesta actual), dispersión de grupos (dos indicadores, cada punto un electorado o un grupo de perfil), mapa por comunidades y «cada punto, una entrevista» (nube en canvas de todas las entrevistas, sin ponderar y con la muestra igualada por barómetro, coloreada según dos problemas; lleva su propio banner de 1584 × 396). Cruce por una variable de perfil, filtro por otra, periodo, exclusión de NS/NC de la base y margen de error. Hasta 12 respuestas o grupos por panel. Tabla, CSV y PNG por panel; enlace compartible con la configuración.
-- **Reponderación por recuerdo de voto (opcional, desactivada por defecto).** `R/recuerdo.R` añade `peso_recuerdo`: raking de los pesos del CIS a cinco márgenes. Participación de todos los que podían votar, con la de los residentes en las generales de referencia (10N 2019 hasta sep-2023; 23J 2023 desde oct-2023); votó o no votó sale del recuerdo y, si este es NS/NC/no recuerda (≈10 % del peso), de la pregunta de participación. Reparto de los votantes que recuerdan su voto entre los partidos principales y el resto, con las cuotas sobre votantes. Sexo, grupo de edad y estudios: la distribución que da el peso del CIS. Fuera quedan quienes no tenían edad o derecho a voto y quienes no responden a ninguna de las dos preguntas (<1 % del peso). La abstención reponderada sobre el total queda en 29,6-30,1 %. Tolerancia 1e-6, máximo 200 iteraciones. Datos en `inventario/resultados_electorales.csv`; efecto de diseño resultante en `inventario/deff_recuerdo.csv` (1,4 a 3,0). Hasta oct-2026 había un solo margen de recuerdo que excluía NS/NC: la abstención sobre el total quedaba en 26,7 % de media. Es una estimación propia: no reproduce las tablas del CIS y hereda la deriva del recuerdo.
+- **Reponderación por recuerdo de voto (opcional, desactivada por defecto).** `R/recuerdo.R` añade `peso_recuerdo`: raking de los pesos del CIS a cinco márgenes. Participación de todos los que podían votar, con la de los residentes en las generales de referencia (10N 2019 hasta ago-2023; 23J 2023 desde sep-2023, en 3420 con el recuerdo del módulo postelectoral); votó o no votó sale del recuerdo y, si este es NS/NC/no recuerda (≈10 % del peso), de la pregunta de participación. Reparto de los votantes que recuerdan su voto entre los partidos principales y el resto, con las cuotas sobre votantes. Sexo, grupo de edad y estudios: la distribución que da el peso del CIS. Fuera quedan quienes no tenían edad o derecho a voto y quienes no responden a ninguna de las dos preguntas (<1 % del peso). La abstención reponderada sobre el total queda en 29,6-30,1 %. Tolerancia 1e-6, máximo 200 iteraciones. Cota de seguridad del factor de ajuste (peso reponderado / peso del CIS) en [0,2, 5]: si algún peso la supera se recorta y se vuelve a rastrillar (hasta cinco pasadas); una cota más estrecha, como 0,3-3, desharía el ajuste de la participación, que exige factores de hasta 5,0 para quien declara no haber votado. Con los barómetros publicados no recorta nada. Datos en `inventario/resultados_electorales.csv`; efecto de diseño resultante, iteraciones, porcentaje de entrevistas recortadas y desvío máximo de los márgenes en `inventario/deff_recuerdo.csv` (deff de 1,4 a 3,0; recorte y desvío, 0). Hasta oct-2026 había un solo margen de recuerdo que excluía NS/NC: la abstención sobre el total quedaba en 26,7 % de media. Es una estimación propia: no reproduce las tablas del CIS y hereda la deriva del recuerdo.
 - **Acumulación de barómetros.** Transferencias, dispersión y mapa suman varios barómetros consecutivos para ganar muestra, sin cruzar rupturas C; en la dispersión, los dos ejes usan los mismos barómetros. La media móvil de las líneas es la misma acumulación con tres barómetros: una estimación conjunta en la que cada estudio pesa según sus entrevistas. Un barómetro sin la pregunta, o en el que la respuesta no existía, no cuenta, y ese mes no tiene punto.
 - **Líderes y ministros.** La valoración de líderes (batería VALORALIDERES; P25 en ene-2021) y la de ministros (VALMINIS, trimestral; P20 en ene-2021 y P28 en abr-2021) se emparejan por nombre. Gabriel Rufián no figura en ninguna de las dos baterías: solo aparece en la preferencia como presidente (desde feb-2025). Irene Montero se valora como ministra entre ene-2021 y oct-2023 y aparece en la preferencia como presidente desde dic-2022.
 - **Navegación y exportación.** La pestaña activa va en la dirección (`#que`, `#series`, `#est`, `#meth`, `#datos`; la estimación elegida, en `#est=base.votante.reparto.alfa`) y el botón atrás funciona; las pestañas se recorren con las flechas. «Restablecer paneles» pide confirmación y «Quitar» se puede deshacer. El CSV y el PNG de cada panel llevan al pie las rupturas marcadas; en el CSV, los textos que empiezan por `=`, `+`, `-` o `@` llevan un apóstrofo delante para que la hoja de cálculo no los ejecute. La web solo carga de los metadatos las notas de los estudios B; la descarga completa los incluye todos.
@@ -178,7 +190,7 @@ R19 y R22 coinciden con una reordenación del cuestionario en octubre de 2023, s
 
 ## Pendiente
 
-- R24 (cambio de la población de referencia de la ponderación, mar-2025): sin verificar en los datos.
+- R24 (cambio de la población de referencia de la ponderación, mar-2025): verificado en los datos. Los márgenes de sexo × edad que fija el peso son idénticos de jun-2024 a feb-2025 y cambian en mar-2025 a valores nuevos que se mantienen (65 y más: de 25,72 % a 26,02 %; 35-44: de 17,1-17,3 % a 16,4 %); el salto es menor de un punto y no se distingue en comunidad, tamaño de municipio ni estudios. Efecto inferior a dos décimas en los porcentajes nacionales; queda como ruptura técnica, sin corte.
 - `referencias_cis.csv` cubre ene-2021, oct-2021, oct-2022, oct-2023, mar-2025, mar-2026 y oct-2026 (185 cifras, con las nuevas variables de perfil solo en oct-2026), más la serie de ideología: 181 al redondeo y 4 con una décima de tolerancia (el avance usa una o dos entrevistas más que el fichero). Faltan referencias para problemas, preferencia como presidente, simpatía, cercanía y recuerdo.
 - Si el CIS corrige el fichero de 3582, retirar la reconstrucción de `ESTUDIOS`.
 - Las 76 comprobaciones de códigos sin lista en el libro de códigos se apoyan solo en el .sav.

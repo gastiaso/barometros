@@ -1,5 +1,8 @@
 /* Barómetro a barómetro. Identidad: hormigón y rotulación condensada (misma familia visual que el Atlas de
    vivienda y salarios), sin esquinas redondeadas. Paneles en rejilla, editor en diálogo, nota metodológica. */
+/* Fuente de rótulos autoalojada (Roboto Condensed variable, subconjunto latino; OFL 1.1, web/fonts/LICENSE-roboto-condensed.txt):
+   la misma en todos los sistemas, en vez de la condensada que tenga cada uno */
+@font-face{font-family:'Roboto Condensed BaB';src:url(../fonts/roboto-condensed-wght.woff2?v=1) format('woff2');font-weight:100 900;font-style:normal;font-display:swap}
 :root{
   --bg:#eceae6; --surface:#f7f6f3; --ink:#1c1d1f; --ink2:#4f5257; --ink3:#65686d;
   --line:#dcdad5; --line2:#c4c1bb; --sel:#111214; --chip:#e4e2dd; --chip-on:#1c1d1f; --chip-on-ink:#f7f6f3;
@@ -7,7 +10,7 @@
   --c1:#d64a33; --c2:#1794b5; --c3:#a93772; --c4:#bc9121; --c5:#284e99; --c6:#6f7d1a; --c7:#8c64b7; --c8:#177c52;
   --c9:#e8899a; --c10:#3f8fd0; --c11:#b0652a; --c12:#6a5bd8;
   --s0:#f3e9ff; --s1:#decaf6; --s2:#c6a7ec; --s3:#ab82d9; --s4:#8c5cbd; --s5:#6b3e96; --s6:#49256b;
-  --font-d:Bahnschrift,'DIN Alternate','DIN 2014','D-DIN','Roboto Condensed','Arial Narrow',sans-serif;
+  --font-d:'Roboto Condensed BaB',Bahnschrift,'DIN Alternate','DIN 2014','D-DIN','Roboto Condensed','Arial Narrow',sans-serif;
   --font-b:system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
   color-scheme:light;
 }
@@ -61,7 +64,7 @@ select,input[type=search],input[type=text]{background:var(--surface);border:1px 
 .seg button{border:0;background:transparent;color:var(--ink2);padding:5px 10px;cursor:pointer}
 .seg button[aria-pressed="true"]{background:var(--chip-on);color:var(--chip-on-ink);font-weight:500}
 
-.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line2);margin-top:-6px;overflow-x:auto;overflow-y:hidden}
+.tabs{display:flex;flex-wrap:wrap;gap:4px;border-bottom:1px solid var(--line2);margin-top:-6px}
 .tabs button{background:none;border:0;border-bottom:3px solid transparent;margin-bottom:-1px;padding:8px 12px;font-family:var(--font-d);font-size:13.5px;color:var(--ink2);cursor:pointer;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap}
 .tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--acc);font-weight:600}
 .tabs .ct{display:none}
@@ -89,6 +92,12 @@ select,input[type=search],input[type=text]{background:var(--surface);border:1px 
 .qe-portada>.qe-txt>h2{font-family:var(--font-d);font-size:20px;font-weight:600;text-transform:uppercase;letter-spacing:.03em;line-height:1.2;margin:0;flex:0 0 auto}
 .qe-portada>.qe-txt>h2::before{content:none}
 .qe-portada>.qe-txt>p{margin:0;font-size:14.5px;max-width:92ch;flex:1 1 40ch}
+.qe-cambios{border:1px solid var(--line);background:var(--surface);padding:10px 14px;display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 18px}
+.qe-cambios h3{margin:0;font-family:var(--font-d);font-size:12.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink2);font-weight:600}
+.qe-cambios ul{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:2px 22px}
+.qe-cambios li{font-size:13.5px;display:flex;gap:6px;align-items:baseline}
+.qe-cambios li small,.qe-cambios h3 small{color:var(--ink3);font-weight:400;text-transform:none;letter-spacing:0;font-size:12px}
+.qe-cambios p{margin:0;font-size:13.5px}
 .qe-paso{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,3fr);gap:28px;align-items:start;border-top:1px solid var(--line2);padding:26px 0;scroll-margin-top:12px;counter-increment:paso}
 .qe-paso.solo{grid-template-columns:minmax(0,1fr)}
 .qe-txt h2{font-family:var(--font-d);font-size:20px;font-weight:600;text-transform:uppercase;letter-spacing:.03em;line-height:1.2;margin:0 0 12px}
@@ -190,7 +199,9 @@ dialog::backdrop{background:rgba(10,12,14,.45)}
 .fld .hint{font-size:12px;color:var(--ink3)}
 .fld>label.row{font-family:var(--font-b);font-size:13px;letter-spacing:0;text-transform:none;color:var(--ink);font-weight:400}
 .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.chks{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:4px 12px;max-height:240px;overflow:auto;border:1px solid var(--line);padding:8px}
+.chks{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:4px 12px;max-height:min(320px,40vh);overflow:auto;border:1px solid var(--line);padding:8px}
+/* En pantallas bajas (móvil apaisado, zoom alto) la lista de respuestas no lleva su propio desplazamiento: solo lo tiene el cuerpo del editor */
+@media (max-height:700px){.chks{max-height:none;overflow:visible}}
 .chks label{display:flex;gap:7px;align-items:flex-start;font-size:13px;line-height:1.3}
 .chks label .v{margin-left:auto;color:var(--ink3);font-size:12px}
 .chks .og{grid-column:1/-1;font-family:var(--font-d);font-size:11.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink3);font-weight:600;margin-top:4px}
@@ -232,7 +243,10 @@ dialog::backdrop{background:rgba(10,12,14,.45)}
 .est-cab{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--acc);padding:18px 22px}
 .est-cab h1{font-size:clamp(22px,2.8vw,30px);margin-bottom:10px}
 .est-cab p{margin:0 0 8px;max-width:80ch;font-size:14.5px}
-.est-atajos{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.est-atajos{display:flex;flex-wrap:wrap;gap:6px;align-items:stretch}
+.est-atajos .btn[data-atajo]{display:flex;flex-direction:column;align-items:flex-start;gap:1px;white-space:normal;text-align:left;max-width:200px;line-height:1.3}
+.est-atajos .btn[data-atajo] small{font-size:11px;color:var(--ink3)}
+.est-atajos .btn[aria-pressed="true"] small{color:inherit;opacity:.8}
 .est-atajos .btn[aria-pressed="true"]{background:var(--chip-on);color:var(--chip-on-ink);border-color:var(--chip-on)}
 .est-mandos{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 @media (max-width:900px){.est-mandos{grid-template-columns:minmax(0,1fr)}}

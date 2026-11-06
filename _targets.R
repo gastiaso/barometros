@@ -30,6 +30,7 @@ list(
   tar_target(microdatos, unir_estudios(purrr::map(lecturas, armonizar_estudio, canon = canon, insumos = insumos)) |>
                ponderar_recuerdo(readr::read_csv(f_resultados, col_types = "cccc"))),
   tar_target(f_deff_recuerdo, { f <- file.path(INV, "deff_recuerdo.csv"); readr::write_csv(deff_recuerdo(microdatos), f); f }, format = "file"),
+  tar_target(f_menciones, { f <- file.path(INV, "menciones_problemas.csv"); readr::write_csv(menciones_problemas(microdatos), f); f }, format = "file"),
   tar_target(validacion, validar(microdatos, canon, readr::read_csv(f_referencias, col_types = "cccdc"))),
   tar_target(f_validacion, escribir_validacion(validacion, INV), format = "file"),
   tar_target(f_parquet, {

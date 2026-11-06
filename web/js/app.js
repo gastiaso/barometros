@@ -15,6 +15,37 @@ const fmt2 = v => v == null || !isFinite(v) ? '—' : v.toLocaleString('es-ES', 
 const fmtInt = v => v.toLocaleString('es-ES');
 const mesLargo = m => { const [a, b] = m.split('-'); return `${MESES[+b - 1]} ${a}`; };
 const mesCorto = m => { const [a, b] = m.split('-'); return `${MESES_C[+b - 1]} ${a}`; };
+/* Medida de texto con la fuente del cuerpo, la de los rótulos de los SVG, en un canvas: sustituye a las constantes de
+   «píxeles por carácter», que dependían de la fuente de cada sistema. La familia se lee una vez de la hoja de estilos. */
+const MEDIDOR = document.createElement('canvas').getContext('2d');
+let FUENTE_TEXTO = '';
+function anchoTexto(txt, px = 12) {
+  if (!FUENTE_TEXTO) FUENTE_TEXTO = (document.body && getComputedStyle(document.body).fontFamily) || 'sans-serif';
+  MEDIDOR.font = `${px}px ${FUENTE_TEXTO}`;
+  return MEDIDOR.measureText(String(txt)).width;
+}
+/* Recorta un texto, con puntos suspensivos, para que quepa en maxPx píxeles */
+function recortarAncho(txt, maxPx, px = 12) {
+  txt = String(txt);
+  if (anchoTexto(txt, px) <= maxPx) return txt;
+  let lo = 1, hi = txt.length - 1;
+  while (lo < hi) { const mid = (lo + hi + 1) >> 1; if (anchoTexto(txt.slice(0, mid) + '…', px) <= maxPx) lo = mid; else hi = mid - 1; }
+  return txt.slice(0, lo).replace(/[\s,;:]+$/, '') + '…';
+}
+/* Parte un texto en hasta n líneas que quepan en maxPx (por palabras); la última se recorta con puntos suspensivos */
+function lineasTexto(txt, maxPx, px = 12, n = 2) {
+  const palabras = String(txt).split(/\s+/), lineas = [];
+  let actual = '';
+  for (const w of palabras) {
+    const prueba = actual ? `${actual} ${w}` : w;
+    if (!actual || anchoTexto(prueba, px) <= maxPx) { actual = prueba; continue; }
+    lineas.push(actual); actual = w;
+    if (lineas.length === n - 1) break;
+  }
+  const resto = palabras.slice(lineas.join(' ').split(/\s+/).filter(Boolean).length).join(' ');
+  if (lineas.length < n) lineas.push(recortarAncho(resto || actual, maxPx, px));
+  return lineas;
+}
 const fecha = m => new Date(Date.UTC(+m.slice(0, 4), +m.slice(5, 7) - 1, 1));
 
 /* ================= catálogo ================= */
@@ -123,7 +154,7 @@ const PRESETS = {
 };
 const esMovil = () => matchMedia('(max-width: 640px)').matches;
 const CLAVE = 'bet-paneles-v4';
-const NOTA_RECUERDO = 'Reponderado por recuerdo de voto: los pesos del CIS se ajustan para que quienes podían votar reproduzcan la participación de las últimas generales, y quienes recuerdan su voto, el resultado (2019 hasta septiembre de 2023; 2023 desde octubre). Es una estimación propia y no coincide con las tablas del CIS. El margen de error usa el efecto de diseño de los nuevos pesos, mayor que el del CIS.';
+const NOTA_RECUERDO = 'Reponderado por recuerdo de voto: los pesos del CIS se ajustan para que quienes podían votar reproduzcan la participación de las últimas generales, y quienes recuerdan su voto, el resultado (2019 hasta agosto de 2023; 2023 desde septiembre). Es una estimación propia y no coincide con las tablas del CIS. El margen de error usa el efecto de diseño de los nuevos pesos, mayor que el del CIS.';
 const DEFECTO_VEDA = [{ preg: 'prob_esp' }, { preg: 'eco_esp' }, { preg: 'ideologia' }, { preg: 'prob_per' }];
 
 /* ================= datos ================= */
@@ -561,7 +592,7 @@ function dibujar(host, res, cfg) {
   const W = Math.max(300, Math.round(host.clientWidth || 600));
   const H = Math.round(Math.max(270, Math.min(440, W * 0.6)));
   const perRow = Math.max(1, Math.min(ser.length, Math.floor(W / (W < 520 ? 150 : 190))));
-  const colW = (W - 16) / perRow, maxL = Math.floor((colW - 26) / 6.4);
+  const colW = (W - 16) / perRow;
   const legendRows = ser.length > 1 ? Math.ceil(ser.length / perRow) : 0;
   const m = { l: 40, r: 50, t: 22 + legendRows * 18, b: 28 };
   host.innerHTML = '';
@@ -666,7 +697,7 @@ function dibujar(host, res, cfg) {
     if (trazo(i)) svg.append('line').attr('x1', gx).attr('x2', gx + 22).attr('y1', gy + 6.5).attr('y2', gy + 6.5).attr('stroke', col[s.id]).attr('stroke-width', 2.5).attr('stroke-dasharray', trazo(i));
     else svg.append('rect').attr('x', gx).attr('y', gy + 5).attr('width', 14).attr('height', 3).attr('fill', col[s.id]);
     svg.append('text').attr('x', gx + (trazo(i) ? 28 : 20)).attr('y', gy + 10).attr('fill', PAL.ink2).attr('font-size', 11.5)
-      .text(s.label.length > maxL ? s.label.slice(0, maxL - 1) + '…' : s.label).append('title').text(s.label);
+      .text(recortarAncho(s.label, colW - (trazo(i) ? 34 : 26), 11.5)).append('title').text(s.label);
   });
   svg.selectAll('path, circle, text, line').attr('pointer-events', 'none');
   // cursor
@@ -729,7 +760,7 @@ function dibujarBarras(host, res, cfg) {
   const W = Math.max(300, Math.round(host.clientWidth || 600));
   const H = Math.round(Math.max(300, Math.min(460, W * 0.52)));
   const perRow = Math.max(1, Math.min(ser.length, Math.floor(W / (W < 520 ? 150 : 170))));
-  const colW = (W - 16) / perRow, maxL = Math.floor((colW - 24) / 6.4);
+  const colW = (W - 16) / perRow;
   const legendRows = sinCruce ? 0 : Math.ceil(ser.length / perRow);
   const m = { l: 40, r: 12, t: 14 + legendRows * 18, b: sinCruce ? 46 : 30 };
   host.innerHTML = '';
@@ -748,9 +779,8 @@ function dibujarBarras(host, res, cfg) {
     .call(d3.axisLeft(y).ticks(Math.max(3, Math.round((H - m.t - m.b) / 55))).tickSize(-(W - m.l - m.r)).tickFormat(v => media ? fmt1(v) : fmtInt(v)))
     .call(g => { axis(g); g.selectAll('.tick line').attr('stroke', PAL.line); g.select('.domain').remove(); });
   const nomEje = sinCruce ? B.nomCat : B.nomGrupo;
-  const maxC = Math.max(4, Math.floor(x0.bandwidth() / 6.2));
   svg.append('g').attr('transform', `translate(0,${H - m.b})`)
-    .call(d3.axisBottom(x0).tickSizeOuter(0).tickFormat(id => { const t = nomEje(id); return t.length > maxC ? t.slice(0, maxC - 1) + '…' : t; }))
+    .call(d3.axisBottom(x0).tickSizeOuter(0).tickFormat(id => recortarAncho(nomEje(id), Math.max(24, x0.bandwidth() - 4), 11)))
     .call(axis).call(g => g.selectAll('.tick').append('title').text(id => nomEje(id)));
   const etiquetas = bw >= 20;
   B.celdas.forEach(c => {
@@ -776,7 +806,7 @@ function dibujarBarras(host, res, cfg) {
     const gx = 8 + (i % perRow) * colW, gy = 2 + Math.floor(i / perRow) * 18;
     svg.append('rect').attr('x', gx).attr('y', gy + 2).attr('width', 10).attr('height', 10).attr('fill', col[s.id]);
     svg.append('text').attr('x', gx + 16).attr('y', gy + 11).attr('fill', PAL.ink2).attr('font-size', 11.5)
-      .text(s.label.length > maxL ? s.label.slice(0, maxL - 1) + '…' : s.label).append('title').text(s.label);
+      .text(recortarAncho(s.label, colW - 22, 11.5)).append('title').text(s.label);
   });
   svg.selectAll('text, line, rect:not(.hit)').attr('pointer-events', 'none');
   const omitidos = B.celdas.filter(c => c.omit).length;
@@ -809,10 +839,9 @@ function dibujarApiladas(host, res, cfg, resTot) {
   ser.push({ id: '__resto', label: 'Resto de respuestas' });
   const W = Math.max(300, Math.round(host.clientWidth || 600));
   const perRow = Math.max(1, Math.min(ser.length, Math.floor(W / (W < 520 ? 150 : 170))));
-  const colW = (W - 16) / perRow, maxL = Math.floor((colW - 24) / 6.4);
+  const colW = (W - 16) / perRow;
   const legendRows = Math.ceil(ser.length / perRow);
-  const labW = Math.min(170, Math.max(70, d3.max(filas, f => f.label.length) * 6.6 + 10));
-  const maxEtq = Math.max(6, Math.floor((labW - 12) / 6.6));   // la etiqueta del grupo no se sale por la izquierda
+  const labW = Math.min(170, Math.max(70, d3.max(filas, f => anchoTexto(f.label, 12)) + 14));   // etiquetas de grupo, medidas
   const rowH = 30, sep = cfg.cruce ? 10 : 0;
   const m = { l: labW, r: 26, t: 10 + legendRows * 18 + 6, b: 26 };
   const H = m.t + filas.length * rowH + sep + m.b;
@@ -830,7 +859,7 @@ function dibujarApiladas(host, res, cfg, resTot) {
     const y0 = yRow(i) + (rowH - barH) / 2;
     svg.append('text').attr('x', m.l - 8).attr('y', y0 + barH / 2 + 4).attr('text-anchor', 'end').attr('font-size', 12)
       .attr('font-weight', f.gid === '__total' ? 600 : 400).attr('fill', PAL.ink2)
-      .text(f.label.length > maxEtq ? f.label.slice(0, maxEtq - 1) + '…' : f.label).append('title').text(f.label);
+      .text(recortarAncho(f.label, labW - 12, 12)).append('title').text(f.label);
     if (!f.ok) { svg.append('text').attr('x', m.l + 4).attr('y', y0 + barH / 2 + 4).attr('font-size', 11).attr('fill', PAL.ink3).text(`n < ${MIN_N}: sin dato`); return; }
     let acc = 0;
     f.segs.forEach(d => {
@@ -854,7 +883,7 @@ function dibujarApiladas(host, res, cfg, resTot) {
     const gx = 8 + (i % perRow) * colW, gy = 2 + Math.floor(i / perRow) * 18;
     svg.append('rect').attr('x', gx).attr('y', gy + 2).attr('width', 10).attr('height', 10).attr('fill', col[s.id]);
     svg.append('text').attr('x', gx + 16).attr('y', gy + 11).attr('fill', PAL.ink2).attr('font-size', 11.5)
-      .text(s.label.length > maxL ? s.label.slice(0, maxL - 1) + '…' : s.label).append('title').text(s.label);
+      .text(recortarAncho(s.label, colW - 22, 11.5)).append('title').text(s.label);
   });
   svg.selectAll('text, line, rect:not(.hit)').attr('pointer-events', 'none');
   B.apiladas = filas;
@@ -894,7 +923,16 @@ function metaPanel(cfg, res) {
   const exn = cfg.exNR && res.unidad !== 'media' ? '. Sin NS/NC en la base' : '';
   const mov = cfg.movil && cfg.tipo !== 'barras' ? '. Media móvil centrada de 3 barómetros: cada punto resume ese barómetro, el anterior y el siguiente (el último, los dos anteriores)' : '';
   const rec = cfg.recuerdo ? '. Pesos ajustados al recuerdo de voto (estimación propia)' : '';
-  return `${ud}. ${per}${fil}${exn}${mov}${rec}${textoBloques(cfg)}${avisoVoto(cfg)}`;
+  return `${ud}. ${per}${fil}${exn}${mov}${rec}${textoMenciones(P, f)}${textoBloques(cfg)}${avisoVoto(cfg)}`;
+}
+/* Las series que suman cualquiera de las tres menciones dependen de cuántas cita cada persona, que varía entre barómetros
+   (R30): se dice cuántas de media en el primer y el último barómetro del panel */
+function textoMenciones(P, f) {
+  if (P.tipo !== 'multi' || f.length < 2) return '';
+  const k = P.cols[0].startsWith('prob_esp') ? 'menciones_esp' : 'menciones_per';
+  const a = f[0].e.info?.[k], b = f[f.length - 1].e.info?.[k];
+  if (a == null || b == null) return '';
+  return `. Menciones por persona: ${fmt2(+a)} de media en ${mesCorto(f[0].e.mes)} y ${fmt2(+b)} en ${mesCorto(f[f.length - 1].e.mes)} (R30)`;
 }
 
 function panelEl(cfg) {
@@ -1461,7 +1499,18 @@ function pintarMetodologia() {
   $('#m-rupt-tabla').innerHTML = `<table><thead><tr><th>Ruptura</th><th>Mes</th><th>Tipo</th><th>Afecta a</th><th>Qué cambia</th><th>Estado</th></tr></thead><tbody>${META.rupturas.map(r => `<tr id="r-${esc(r.ruptura_id)}"><td>${esc(r.ruptura_id)}${r.etiqueta_corta ? `<br><small>${esc(r.etiqueta_corta)}</small>` : ''}</td><td>${esc(r.mes)}</td><td><span class="tipo ${esc(r.tipo)}">${esc(tipos[r.tipo] || r.tipo)}</span></td><td>${esc(r.conceptos_afectados.replace(/,\s*/g, ', '))}</td><td>${esc(r.descripcion)}</td><td>${esc(r.estado)}</td></tr>`).join('')}</tbody></table>`;
   const titulo = id => PREG.find(p => p.id === id)?.t || (META.conceptos[id]?.etiqueta) || id;
   $('#m-preg-fichas').innerHTML = Object.entries(META.enunciados || {}).sort((a, z) => titulo(a[0]).localeCompare(titulo(z[0]), 'es')).map(([id, vs]) => `<div class="ficha"><h4>${esc(titulo(id))}</h4>${vs.map(v => `<p class="per">Versión ${esc(v.version)}: ${esc(mesCorto(v.desde))} a ${esc(mesCorto(v.hasta))}</p><p>${esc(v.enunciado.replace(/\s+\.$/, ''))}</p>`).join('')}</div>`).join('');
-  $('#m-est-tabla').innerHTML = `<table><thead><tr><th>Mes</th><th>Estudio</th><th>Trabajo de campo</th><th>Entrevistas</th><th>Efecto de diseño</th></tr></thead><tbody>${META.estudios.map(e => `<tr><td>${esc(mesCorto(e.mes))}</td><td>${esc(e.estudio)}</td><td>${esc(e.fecha_campo_inicio)} a ${esc(e.fecha_campo_fin)}</td><td class="n">${fmtInt(+e.n)}</td><td class="n">${fmt2(+e.deff)}</td></tr>`).join('')}</tbody></table>`;
+  // catálogo de categorías de problemas por barómetro, si los metadatos lo traen
+  const cat = META.catalogo_problemas || [];
+  if (cat.length) {
+    const nTot = EST.length;
+    const parciales = cat.filter(c => +c.n_esp < nTot || +c.n_per < nTot);
+    const fila = c => `<tr><td>${esc(c.id)}</td><td>${esc(c.etiqueta)}</td><td>${esc(mesCorto(c.desde))} a ${esc(mesCorto(c.hasta))}</td><td class="n">${esc(c.n_esp)} / ${esc(c.n_per)}</td><td>${c.huecos ? esc(c.huecos.split(' ').map(mesCorto).join(', ')) : '—'}</td></tr>`;
+    $('#m-prob-catalogo').innerHTML = `<details class="resumen" open><summary>Categorías que no están en todos los barómetros (${parciales.length} de ${cat.length})</summary><div class="tablaw"><table><thead><tr><th>Id</th><th>Categoría</th><th>Barómetros</th><th>En cuántos (España / personales)</th><th>Falta en</th></tr></thead><tbody>${parciales.map(fila).join('')}</tbody></table></div></details>
+      <details class="resumen"><summary>Todas las categorías (${cat.length})</summary><div class="tablaw"><table><thead><tr><th>Id</th><th>Categoría</th><th>Barómetros</th><th>En cuántos (España / personales)</th><th>Falta en</th></tr></thead><tbody>${cat.map(fila).join('')}</tbody></table></div></details>`;
+  }
+  // menciones medias por persona en las preguntas de problemas (R30), si los metadatos las traen
+  const conMenc = META.estudios.some(e => e.menciones_esp != null);
+  $('#m-est-tabla').innerHTML = `<table><thead><tr><th>Mes</th><th>Estudio</th><th>Trabajo de campo</th><th>Entrevistas</th><th>Efecto de diseño</th>${conMenc ? '<th>Menciones: España</th><th>Menciones: personales</th>' : ''}</tr></thead><tbody>${META.estudios.map(e => `<tr><td>${esc(mesCorto(e.mes))}</td><td>${esc(e.estudio)}</td><td>${esc(e.fecha_campo_inicio)} a ${esc(e.fecha_campo_fin)}</td><td class="n">${fmtInt(+e.n)}</td><td class="n">${fmt2(+e.deff)}</td>${conMenc ? `<td class="n">${fmt2(e.menciones_esp == null ? null : +e.menciones_esp)}</td><td class="n">${fmt2(e.menciones_per == null ? null : +e.menciones_per)}</td>` : ''}</tr>`).join('')}</tbody></table>`;
 }
 
 /* ================= qué cambia en el último barómetro ================= */
@@ -1614,7 +1663,11 @@ function mostrarVista(t) {
   VISTAS_WEB.forEach(v => { const el = $('#view-' + v); if (el) el.hidden = v !== t; });
 }
 /* La pestaña va en la dirección (#que, #series, #est, #meth, #datos): el botón atrás vuelve a la anterior */
-const vistaDeHash = () => { const h = location.hash.slice(1); return h.startsWith('p=') || PRESETS[h] ? 'series' : h.startsWith('est=') ? 'est' : VISTAS_WEB.includes(h) ? h : null; };
+/* Un ancla interna (#m-rupt del índice de la nota, #r-R10 de la tabla de rupturas) pertenece a la pestaña que la contiene */
+const vistaDeAncla = h => { const el = h && !VISTAS_WEB.includes(h) ? document.getElementById(h) : null; const v = el && el.closest('[id^="view-"]'); return v ? v.id.slice(5) : null; };
+const vistaDeHash = () => { const h = location.hash.slice(1); return h.startsWith('p=') || PRESETS[h] ? 'series' : h.startsWith('est=') ? 'est' : VISTAS_WEB.includes(h) ? h : vistaDeAncla(h); };
+/* Tras mostrar la pestaña, lleva la vista al ancla de la dirección (el navegador no puede hacerlo mientras está oculta) */
+const irAlAncla = () => { const el = document.getElementById(location.hash.slice(1)); if (el && !VISTAS_WEB.includes(el.id)) el.scrollIntoView(); };
 function pestana(t, historial = true) {
   if (historial && vistaDeHash() !== t) history.pushState(null, '', '#' + t);
   mostrarVista(t);
@@ -1636,6 +1689,7 @@ async function iniciar() {
   if (typeof iniciarGuia === 'function') iniciarGuia();
   pintarMetodologia();
   pestana(VISTAS_WEB.find(v => $('#view-' + v) && !$('#view-' + v).hidden) || ($('#view-que') ? 'que' : 'series'), false);
+  irAlAncla();
 }
 
 document.querySelectorAll('#tema button').forEach(b => b.addEventListener('click', () => tema(b.dataset.v)));
@@ -1659,7 +1713,7 @@ function aplicarPreset(nombre, historial = true) {
   scrollTo(0, 0);
   return true;
 }
-addEventListener('popstate', () => { if (presetDeHash() && aplicarPreset(presetDeHash(), false)) return; const t = vistaDeHash() || 'que'; if (META) pestana(t, false); else mostrarVista(t); });
+addEventListener('popstate', () => { if (presetDeHash() && aplicarPreset(presetDeHash(), false)) return; const t = vistaDeHash() || 'que'; if (META) pestana(t, false); else mostrarVista(t); irAlAncla(); });
 document.querySelectorAll('[data-preset]').forEach(a => a.addEventListener('click', ev => { ev.preventDefault(); aplicarPreset(a.dataset.preset); }));
 document.querySelectorAll('[data-goto]').forEach(a => a.addEventListener('click', ev => { ev.preventDefault(); pestana(a.dataset.goto); scrollTo(0, 0); }));
 $('#b-add').addEventListener('click', () => abrirEditor(null));

@@ -139,6 +139,14 @@ cw_rows, lider_rows, lista_rows = [], [], []
 prev = {}                       # concepto -> info del último estudio con el concepto
 modal_name = {c[0]: c[4][0] for c in CONCEPTOS}
 
+# Variable impuesta a mano para un concepto en un estudio (inventario/variables_manuales.csv): cuando el emparejamiento
+# automático acierta con el nombre pero no con el sentido. Caso: en 3420 (postelectoral del 23J) RECUERDO sigue
+# preguntando por 2019 y el módulo postelectoral (RECUERDO1, PARTICIPACIONG1, RECUVOTOG1R) pregunta por las últimas
+# generales, que es lo que mide el concepto.
+ruta_vm = os.path.join(OUT, "variables_manuales.csv")
+VARIABLES_MANUALES = {(r["concepto"], r["estudio"]): r["variable"]
+                      for r in csv.DictReader(open(ruta_vm, encoding="utf-8"))} if os.path.exists(ruta_vm) else {}
+
 for e in estudios:
     c = e["estudio"]
     p = sav_of[c]
@@ -151,10 +159,16 @@ for e in estudios:
     matched = {}
     for cid, bloque, tipo, desc, cands, rx, occ in CONCEPTOS:
         var, metodo = "", ""
+        manual = VARIABLES_MANUALES.get((cid, c))
+        if manual:
+            if manual not in names:
+                sys.exit(f"variables_manuales.csv: {manual} no está en el .sav de {c} ({cid})")
+            var, metodo = manual, "manual"
         for cand in cands:
+            if var:
+                break
             if cand in names:
                 var, metodo = cand, "nombre"
-                break
         if not var and rx:
             hits = [v for v in names if re.search(rx, norm(labs[v]))]
             if len(hits) > occ:

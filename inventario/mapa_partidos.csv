@@ -13879,60 +13879,44 @@ estudio,mes,concepto,variable,codigo,etiqueta,partido_armonizado,es_no_respuesta
 3420,2023-09,cercania,CERCANIA,9997,Ninguno,NINGUNO,False
 3420,2023-09,cercania,CERCANIA,9998,N.S.,NS,True
 3420,2023-09,cercania,CERCANIA,9999,N.C.,NC,True
-3420,2023-09,recuerdo_voto,RECUERDO,1,PSOE,PSOE,False
-3420,2023-09,recuerdo_voto,RECUERDO,2,PP,PP,False
-3420,2023-09,recuerdo_voto,RECUERDO,3,VOX,VOX,False
-3420,2023-09,recuerdo_voto,RECUERDO,4,UP,UNIDAS_PODEMOS,False
-3420,2023-09,recuerdo_voto,RECUERDO,903,En Comú Podem,EN_COMU_PODEM,False
-3420,2023-09,recuerdo_voto,RECUERDO,1202,En Común-UP,EN_COMUN_UP,False
-3420,2023-09,recuerdo_voto,RECUERDO,5,C's,CS,False
-3420,2023-09,recuerdo_voto,RECUERDO,7,Más País,MAS_PAIS,False
-3420,2023-09,recuerdo_voto,RECUERDO,901,ERC,ERC,False
-3420,2023-09,recuerdo_voto,RECUERDO,902,JxCat,JUNTS,False
-3420,2023-09,recuerdo_voto,RECUERDO,904,CUP,CUP,False
-3420,2023-09,recuerdo_voto,RECUERDO,1601,EAJ-PNV,PNV,False
-3420,2023-09,recuerdo_voto,RECUERDO,1602,EH Bildu,EH_BILDU,False
-3420,2023-09,recuerdo_voto,RECUERDO,1501,Na+,NA_SUMA,False
-3420,2023-09,recuerdo_voto,RECUERDO,501,CCa-NC,CCA_NC,False
-3420,2023-09,recuerdo_voto,RECUERDO,1001,Més Compromís,MES_COMPROMIS,False
-3420,2023-09,recuerdo_voto,RECUERDO,1201,BNG,BNG,False
-3420,2023-09,recuerdo_voto,RECUERDO,601,PRC,PRC,False
-3420,2023-09,recuerdo_voto,RECUERDO,202,Teruel Existe,TERUEL_EXISTE,False
-3420,2023-09,recuerdo_voto,RECUERDO,6,PACMA,PACMA,False
-3420,2023-09,recuerdo_voto,RECUERDO,8995,Otros partidos,OTRO,False
-3420,2023-09,recuerdo_voto,RECUERDO,8996,En blanco,BLANCO,False
-3420,2023-09,recuerdo_voto,RECUERDO,9977,Nulo,NULO,False
-3420,2023-09,recuerdo_voto,RECUERDO,9995,No tenía edad,NO_TENIA_EDAD,False
-3420,2023-09,recuerdo_voto,RECUERDO,9997,No votó,NO_VOTO,False
-3420,2023-09,recuerdo_voto,RECUERDO,9996,No tenía derecho a voto,SIN_DERECHO_VOTO,False
-3420,2023-09,recuerdo_voto,RECUERDO,9998,No recuerda,NR,True
-3420,2023-09,recuerdo_voto,RECUERDO,9999,N.C.,NC,True
-3420,2023-09,recuerdo_votantes_r,RECUVOTOGR,1,PSOE,PSOE,False
-3420,2023-09,recuerdo_votantes_r,RECUVOTOGR,2,PP,PP,False
-3420,2023-09,recuerdo_votantes_r,RECUVOTOGR,3,VOX,VOX,False
-3420,2023-09,recuerdo_votantes_r,RECUVOTOGR,4,Unidas Podemos,UNIDAS_PODEMOS,False
-3420,2023-09,recuerdo_votantes_r,RECUVOTOGR,903,En Comú Podem,EN_COMU_PODEM,False
-3420,2023-09,recuerdo_votantes_r,RECUVOTOGR,1202,En Común-Unidas Podemos,EN_COMUN_UP,False
-3420,2023-09,recuerdo_votantes_r,RECUVOTOGR,5,Ciudadanos,CS,False
-3420,2023-09,recuerdo_votantes_r,RECUVOTOGR,7,Más País,MAS_PAIS,False
-3420,2023-09,recuerdo_votantes_r,RECUVOTOGR,901,ERC,ERC,False
-3420,2023-09,recuerdo_votantes_r,RECUVOTOGR,902,JxCat,JUNTS,False
-3420,2023-09,recuerdo_votantes_r,RECUVOTOGR,904,CUP,CUP,False
-3420,2023-09,recuerdo_votantes_r,RECUVOTOGR,1601,EAJ-PNV,PNV,False
-3420,2023-09,recuerdo_votantes_r,RECUVOTOGR,1602,EH Bildu,EH_BILDU,False
-3420,2023-09,recuerdo_votantes_r,RECUVOTOGR,1501,Na+,NA_SUMA,False
-3420,2023-09,recuerdo_votantes_r,RECUVOTOGR,501,CCa-NC,CCA_NC,False
-3420,2023-09,recuerdo_votantes_r,RECUVOTOGR,1001,Més Compromís,MES_COMPROMIS,False
-3420,2023-09,recuerdo_votantes_r,RECUVOTOGR,1201,BNG,BNG,False
-3420,2023-09,recuerdo_votantes_r,RECUVOTOGR,601,PRC,PRC,False
-3420,2023-09,recuerdo_votantes_r,RECUVOTOGR,202,Teruel Existe,TERUEL_EXISTE,False
-3420,2023-09,recuerdo_votantes_r,RECUVOTOGR,6,PACMA,PACMA,False
-3420,2023-09,recuerdo_votantes_r,RECUVOTOGR,8995,Otros partidos,OTRO,False
-3420,2023-09,recuerdo_votantes_r,RECUVOTOGR,8996,En blanco,BLANCO,False
-3420,2023-09,recuerdo_votantes_r,RECUVOTOGR,9977,Voto nulo,NULO,False
-3420,2023-09,recuerdo_votantes_r,RECUVOTOGR,9998,No recuerda,NR,True
-3420,2023-09,recuerdo_votantes_r,RECUVOTOGR,9999,N.C.,NC,True
-3420,2023-09,recuerdo_votantes_r,RECUVOTOGR,0,N.P.,NP,True
+3420,2023-09,recuerdo_voto,RECUERDO1,2,PP,PP,False
+3420,2023-09,recuerdo_voto,RECUERDO1,1,PSOE,PSOE,False
+3420,2023-09,recuerdo_voto,RECUERDO1,3,VOX,VOX,False
+3420,2023-09,recuerdo_voto,RECUERDO1,21,Sumar,SUMAR,False
+3420,2023-09,recuerdo_voto,RECUERDO1,901,ERC,ERC,False
+3420,2023-09,recuerdo_voto,RECUERDO1,902,Junts,JUNTS,False
+3420,2023-09,recuerdo_voto,RECUERDO1,1602,EH Bildu,EH_BILDU,False
+3420,2023-09,recuerdo_voto,RECUERDO1,1601,EAJ-PNV,PNV,False
+3420,2023-09,recuerdo_voto,RECUERDO1,1201,BNG,BNG,False
+3420,2023-09,recuerdo_voto,RECUERDO1,503,CCa,CC,False
+3420,2023-09,recuerdo_voto,RECUERDO1,1501,UPN,UPN,False
+3420,2023-09,recuerdo_voto,RECUERDO1,6,PACMA,PACMA,False
+3420,2023-09,recuerdo_voto,RECUERDO1,8995,Otro partido,OTRO,False
+3420,2023-09,recuerdo_voto,RECUERDO1,8996,En blanco,BLANCO,False
+3420,2023-09,recuerdo_voto,RECUERDO1,9977,Nulo,NULO,False
+3420,2023-09,recuerdo_voto,RECUERDO1,9995,No tenía edad,NO_TENIA_EDAD,False
+3420,2023-09,recuerdo_voto,RECUERDO1,9997,No votó,NO_VOTO,False
+3420,2023-09,recuerdo_voto,RECUERDO1,9996,No tenía derecho a voto,SIN_DERECHO_VOTO,False
+3420,2023-09,recuerdo_voto,RECUERDO1,9998,No recuerda,NR,True
+3420,2023-09,recuerdo_voto,RECUERDO1,9999,N.C.,NC,True
+3420,2023-09,recuerdo_votantes_r,RECUVOTOG1R,2,PP,PP,False
+3420,2023-09,recuerdo_votantes_r,RECUVOTOG1R,1,PSOE,PSOE,False
+3420,2023-09,recuerdo_votantes_r,RECUVOTOG1R,3,VOX,VOX,False
+3420,2023-09,recuerdo_votantes_r,RECUVOTOG1R,21,Sumar,SUMAR,False
+3420,2023-09,recuerdo_votantes_r,RECUVOTOG1R,901,ERC,ERC,False
+3420,2023-09,recuerdo_votantes_r,RECUVOTOG1R,902,Junts,JUNTS,False
+3420,2023-09,recuerdo_votantes_r,RECUVOTOG1R,1602,EH Bildu,EH_BILDU,False
+3420,2023-09,recuerdo_votantes_r,RECUVOTOG1R,1601,EAJ-PNV,PNV,False
+3420,2023-09,recuerdo_votantes_r,RECUVOTOG1R,1201,BNG,BNG,False
+3420,2023-09,recuerdo_votantes_r,RECUVOTOG1R,503,CCa,CC,False
+3420,2023-09,recuerdo_votantes_r,RECUVOTOG1R,1501,UPN,UPN,False
+3420,2023-09,recuerdo_votantes_r,RECUVOTOG1R,6,PACMA,PACMA,False
+3420,2023-09,recuerdo_votantes_r,RECUVOTOG1R,8995,Otro partido,OTRO,False
+3420,2023-09,recuerdo_votantes_r,RECUVOTOG1R,8996,En blanco,BLANCO,False
+3420,2023-09,recuerdo_votantes_r,RECUVOTOG1R,9977,Voto nulo,NULO,False
+3420,2023-09,recuerdo_votantes_r,RECUVOTOG1R,9998,No recuerda,NR,True
+3420,2023-09,recuerdo_votantes_r,RECUVOTOG1R,9999,N.C.,NC,True
+3420,2023-09,recuerdo_votantes_r,RECUVOTOG1R,0,N.P.,NP,True
 3423,2023-10,intencion_voto,INTENCIONG,1,PSOE,PSOE,False
 3423,2023-10,intencion_voto,INTENCIONG,2,PP,PP,False
 3423,2023-10,intencion_voto,INTENCIONG,3,VOX,VOX,False

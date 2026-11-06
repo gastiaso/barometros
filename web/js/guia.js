@@ -49,10 +49,40 @@ function abrirEnExplorador(cfg) {
 
 const pintarGuia = el => { el._pintado = true; renderPanel(el, GUIA.cfg.get(el)); };
 
+/* Qué cambia en el último barómetro, en la portada: las mismas comparaciones que el resumen del explorador
+   (cambiosUltimo + Benjamini–Hochberg), limitadas a preguntas cuyas columnas la guía descarga de todos modos */
+const RESUMEN_GUIA = ['intencion_voto_r', 'prob_esp', 'eco_esp', 'ideologia'];
+async function pintarCambiosGuia() {
+  const box = $('#qe-cambios');
+  if (!box || box._pintado || EST.length < 2 || $('#view-que').hidden) return;
+  box._pintado = true;
+  const ult = EST[EST.length - 1], ant = EST[EST.length - 2];
+  let rs;
+  try { rs = (await Promise.all(RESUMEN.filter(s => RESUMEN_GUIA.includes(s.preg)).map(cambiosUltimo))).filter(Boolean); aplicarFDR(rs); }
+  catch (e) { return; }
+  const items = rs.filter(r => r.cambios && r.cambios.length).flatMap(r => r.cambios.slice(0, 2).map(c => ({ r, c }))).slice(0, 5);
+  const fmtv = (v, media) => media ? fmt2(v) : fmt1(v) + ' %';
+  const fmtd = (d, media) => `${d > 0 ? '+' : '−'}${media ? fmt2(Math.abs(d)) : fmt1(Math.abs(d))}`;
+  const lista = items.length
+    ? `<ul>${items.map(({ r, c }) => `<li><span class="rs-n">${esc(nombreResp(preg(r.preg), c.id))}</span><small>${esc(r.t.toLowerCase())}</small><span class="rs-v">${fmtv(c.vB, r.media)}</span><span class="rs-d ${c.d > 0 ? 'sube' : 'baja'}">${fmtd(c.d, r.media)}</span></li>`).join('')}</ul>`
+    : `<p>Sin cambios significativos frente a ${esc(mesLargo(ant.mes))} en intención de voto, problemas de España, situación económica e ideología.</p>`;
+  box.innerHTML = `<h3>Qué cambia en ${esc(mesLargo(ult.mes))} <small>frente a ${esc(mesLargo(ant.mes))}</small></h3>${lista}<p><a href="#series" data-goto="series" data-resumen="1">Todos los cambios →</a></p>`;
+  box.querySelector('[data-goto]').addEventListener('click', ev => {
+    ev.preventDefault();
+    try { localStorage.setItem('bet-resumen', 'abierto'); } catch (e) { /* */ }
+    pestana('series'); scrollTo(0, 0);
+    const r = $('#resumen'); if (r) r.open = true;
+  });
+  box.hidden = false;
+}
+
 function iniciarGuia() {
   const poner = (k, v) => document.querySelectorAll(`[data-qe="${k}"]`).forEach(x => { x.textContent = v; });
   poner('nbar', fmtInt(EST.length));
   poner('nent', fmtInt(META.filas));
+  // el resumen de la portada se calcula cuando el navegador queda libre, después de la nube de puntos
+  const tras = window.requestIdleCallback || (f => setTimeout(f, 800));
+  tras(() => { pintarCambiosGuia(); });
 
   // cada panel se pinta cuando se acerca a la pantalla: la página no descarga columnas que nadie llega a ver
   GUIA.io = new IntersectionObserver(entradas => entradas.forEach(e => {
@@ -77,5 +107,6 @@ function iniciarGuia() {
 function repintarGuia() {
   const vista = $('#view-que');
   if (!vista || vista.hidden) return;
+  pintarCambiosGuia();
   GUIA.cfg.forEach((cfg, el) => { if (el._pintado) renderPanel(el, cfg); });
 }

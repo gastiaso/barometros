@@ -29022,60 +29022,44 @@ candidatos,pref_presidente,2023-09,3420,PREFPTE,96,(NO LEER) Otro/a,otro a,False
 candidatos,pref_presidente,2023-09,3420,PREFPTE,97,(NO LEER) Ninguno/a de ellos/as,ninguno a de ellos as,False
 candidatos,pref_presidente,2023-09,3420,PREFPTE,98,N.S.,n s,True
 candidatos,pref_presidente,2023-09,3420,PREFPTE,99,N.C.,n c,True
-partidos,recuerdo_voto,2023-09,3420,RECUERDO,1,PSOE,psoe,False
-partidos,recuerdo_voto,2023-09,3420,RECUERDO,2,PP,pp,False
-partidos,recuerdo_voto,2023-09,3420,RECUERDO,3,VOX,vox,False
-partidos,recuerdo_voto,2023-09,3420,RECUERDO,4,UP,up,False
-partidos,recuerdo_voto,2023-09,3420,RECUERDO,903,En Comú Podem,en comu podem,False
-partidos,recuerdo_voto,2023-09,3420,RECUERDO,1202,En Común-UP,en comun up,False
-partidos,recuerdo_voto,2023-09,3420,RECUERDO,5,C's,c s,False
-partidos,recuerdo_voto,2023-09,3420,RECUERDO,7,Más País,mas pais,False
-partidos,recuerdo_voto,2023-09,3420,RECUERDO,901,ERC,erc,False
-partidos,recuerdo_voto,2023-09,3420,RECUERDO,902,JxCat,jxcat,False
-partidos,recuerdo_voto,2023-09,3420,RECUERDO,904,CUP,cup,False
-partidos,recuerdo_voto,2023-09,3420,RECUERDO,1601,EAJ-PNV,eaj pnv,False
-partidos,recuerdo_voto,2023-09,3420,RECUERDO,1602,EH Bildu,eh bildu,False
-partidos,recuerdo_voto,2023-09,3420,RECUERDO,1501,Na+,na+,False
-partidos,recuerdo_voto,2023-09,3420,RECUERDO,501,CCa-NC,cca nc,False
-partidos,recuerdo_voto,2023-09,3420,RECUERDO,1001,Més Compromís,mes compromis,False
-partidos,recuerdo_voto,2023-09,3420,RECUERDO,1201,BNG,bng,False
-partidos,recuerdo_voto,2023-09,3420,RECUERDO,601,PRC,prc,False
-partidos,recuerdo_voto,2023-09,3420,RECUERDO,202,Teruel Existe,teruel existe,False
-partidos,recuerdo_voto,2023-09,3420,RECUERDO,6,PACMA,pacma,False
-partidos,recuerdo_voto,2023-09,3420,RECUERDO,8995,Otros partidos,otros partidos,False
-partidos,recuerdo_voto,2023-09,3420,RECUERDO,8996,En blanco,en blanco,False
-partidos,recuerdo_voto,2023-09,3420,RECUERDO,9977,Nulo,nulo,False
-partidos,recuerdo_voto,2023-09,3420,RECUERDO,9995,No tenía edad,no tenia edad,False
-partidos,recuerdo_voto,2023-09,3420,RECUERDO,9997,No votó,no voto,False
-partidos,recuerdo_voto,2023-09,3420,RECUERDO,9996,No tenía derecho a voto,no tenia derecho a voto,False
-partidos,recuerdo_voto,2023-09,3420,RECUERDO,9998,No recuerda,no recuerda,True
-partidos,recuerdo_voto,2023-09,3420,RECUERDO,9999,N.C.,n c,True
-partidos,recuerdo_votantes_r,2023-09,3420,RECUVOTOGR,1,PSOE,psoe,False
-partidos,recuerdo_votantes_r,2023-09,3420,RECUVOTOGR,2,PP,pp,False
-partidos,recuerdo_votantes_r,2023-09,3420,RECUVOTOGR,3,VOX,vox,False
-partidos,recuerdo_votantes_r,2023-09,3420,RECUVOTOGR,4,Unidas Podemos,unidas podemos,False
-partidos,recuerdo_votantes_r,2023-09,3420,RECUVOTOGR,903,En Comú Podem,en comu podem,False
-partidos,recuerdo_votantes_r,2023-09,3420,RECUVOTOGR,1202,En Común-Unidas Podemos,en comun unidas podemos,False
-partidos,recuerdo_votantes_r,2023-09,3420,RECUVOTOGR,5,Ciudadanos,ciudadanos,False
-partidos,recuerdo_votantes_r,2023-09,3420,RECUVOTOGR,7,Más País,mas pais,False
-partidos,recuerdo_votantes_r,2023-09,3420,RECUVOTOGR,901,ERC,erc,False
-partidos,recuerdo_votantes_r,2023-09,3420,RECUVOTOGR,902,JxCat,jxcat,False
-partidos,recuerdo_votantes_r,2023-09,3420,RECUVOTOGR,904,CUP,cup,False
-partidos,recuerdo_votantes_r,2023-09,3420,RECUVOTOGR,1601,EAJ-PNV,eaj pnv,False
-partidos,recuerdo_votantes_r,2023-09,3420,RECUVOTOGR,1602,EH Bildu,eh bildu,False
-partidos,recuerdo_votantes_r,2023-09,3420,RECUVOTOGR,1501,Na+,na+,False
-partidos,recuerdo_votantes_r,2023-09,3420,RECUVOTOGR,501,CCa-NC,cca nc,False
-partidos,recuerdo_votantes_r,2023-09,3420,RECUVOTOGR,1001,Més Compromís,mes compromis,False
-partidos,recuerdo_votantes_r,2023-09,3420,RECUVOTOGR,1201,BNG,bng,False
-partidos,recuerdo_votantes_r,2023-09,3420,RECUVOTOGR,601,PRC,prc,False
-partidos,recuerdo_votantes_r,2023-09,3420,RECUVOTOGR,202,Teruel Existe,teruel existe,False
-partidos,recuerdo_votantes_r,2023-09,3420,RECUVOTOGR,6,PACMA,pacma,False
-partidos,recuerdo_votantes_r,2023-09,3420,RECUVOTOGR,8995,Otros partidos,otros partidos,False
-partidos,recuerdo_votantes_r,2023-09,3420,RECUVOTOGR,8996,En blanco,en blanco,False
-partidos,recuerdo_votantes_r,2023-09,3420,RECUVOTOGR,9977,Voto nulo,voto nulo,False
-partidos,recuerdo_votantes_r,2023-09,3420,RECUVOTOGR,9998,No recuerda,no recuerda,True
-partidos,recuerdo_votantes_r,2023-09,3420,RECUVOTOGR,9999,N.C.,n c,True
-partidos,recuerdo_votantes_r,2023-09,3420,RECUVOTOGR,0,N.P.,n p,True
+partidos,recuerdo_voto,2023-09,3420,RECUERDO1,2,PP,pp,False
+partidos,recuerdo_voto,2023-09,3420,RECUERDO1,1,PSOE,psoe,False
+partidos,recuerdo_voto,2023-09,3420,RECUERDO1,3,VOX,vox,False
+partidos,recuerdo_voto,2023-09,3420,RECUERDO1,21,Sumar,sumar,False
+partidos,recuerdo_voto,2023-09,3420,RECUERDO1,901,ERC,erc,False
+partidos,recuerdo_voto,2023-09,3420,RECUERDO1,902,Junts,junts,False
+partidos,recuerdo_voto,2023-09,3420,RECUERDO1,1602,EH Bildu,eh bildu,False
+partidos,recuerdo_voto,2023-09,3420,RECUERDO1,1601,EAJ-PNV,eaj pnv,False
+partidos,recuerdo_voto,2023-09,3420,RECUERDO1,1201,BNG,bng,False
+partidos,recuerdo_voto,2023-09,3420,RECUERDO1,503,CCa,cca,False
+partidos,recuerdo_voto,2023-09,3420,RECUERDO1,1501,UPN,upn,False
+partidos,recuerdo_voto,2023-09,3420,RECUERDO1,6,PACMA,pacma,False
+partidos,recuerdo_voto,2023-09,3420,RECUERDO1,8995,Otro partido,otro partido,False
+partidos,recuerdo_voto,2023-09,3420,RECUERDO1,8996,En blanco,en blanco,False
+partidos,recuerdo_voto,2023-09,3420,RECUERDO1,9977,Nulo,nulo,False
+partidos,recuerdo_voto,2023-09,3420,RECUERDO1,9995,No tenía edad,no tenia edad,False
+partidos,recuerdo_voto,2023-09,3420,RECUERDO1,9997,No votó,no voto,False
+partidos,recuerdo_voto,2023-09,3420,RECUERDO1,9996,No tenía derecho a voto,no tenia derecho a voto,False
+partidos,recuerdo_voto,2023-09,3420,RECUERDO1,9998,No recuerda,no recuerda,True
+partidos,recuerdo_voto,2023-09,3420,RECUERDO1,9999,N.C.,n c,True
+partidos,recuerdo_votantes_r,2023-09,3420,RECUVOTOG1R,2,PP,pp,False
+partidos,recuerdo_votantes_r,2023-09,3420,RECUVOTOG1R,1,PSOE,psoe,False
+partidos,recuerdo_votantes_r,2023-09,3420,RECUVOTOG1R,3,VOX,vox,False
+partidos,recuerdo_votantes_r,2023-09,3420,RECUVOTOG1R,21,Sumar,sumar,False
+partidos,recuerdo_votantes_r,2023-09,3420,RECUVOTOG1R,901,ERC,erc,False
+partidos,recuerdo_votantes_r,2023-09,3420,RECUVOTOG1R,902,Junts,junts,False
+partidos,recuerdo_votantes_r,2023-09,3420,RECUVOTOG1R,1602,EH Bildu,eh bildu,False
+partidos,recuerdo_votantes_r,2023-09,3420,RECUVOTOG1R,1601,EAJ-PNV,eaj pnv,False
+partidos,recuerdo_votantes_r,2023-09,3420,RECUVOTOG1R,1201,BNG,bng,False
+partidos,recuerdo_votantes_r,2023-09,3420,RECUVOTOG1R,503,CCa,cca,False
+partidos,recuerdo_votantes_r,2023-09,3420,RECUVOTOG1R,1501,UPN,upn,False
+partidos,recuerdo_votantes_r,2023-09,3420,RECUVOTOG1R,6,PACMA,pacma,False
+partidos,recuerdo_votantes_r,2023-09,3420,RECUVOTOG1R,8995,Otro partido,otro partido,False
+partidos,recuerdo_votantes_r,2023-09,3420,RECUVOTOG1R,8996,En blanco,en blanco,False
+partidos,recuerdo_votantes_r,2023-09,3420,RECUVOTOG1R,9977,Voto nulo,voto nulo,False
+partidos,recuerdo_votantes_r,2023-09,3420,RECUVOTOG1R,9998,No recuerda,no recuerda,True
+partidos,recuerdo_votantes_r,2023-09,3420,RECUVOTOG1R,9999,N.C.,n c,True
+partidos,recuerdo_votantes_r,2023-09,3420,RECUVOTOG1R,0,N.P.,n p,True
 problemas,prob_esp_1,2023-10,3423,PESPANNA1,1,El paro,el paro,False
 problemas,prob_esp_1,2023-10,3423,PESPANNA1,2,Las drogas,las drogas,False
 problemas,prob_esp_1,2023-10,3423,PESPANNA1,3,La inseguridad ciudadana,la inseguridad ciudadana,False

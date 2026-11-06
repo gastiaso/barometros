@@ -22,8 +22,9 @@ nacionalidad,3,2024-10,2026-03,6,En primer lugar quisiera preguntarle si tiene U
 nacionalidad,4,2025-07,2025-12,5,En primer lugar quisiera preguntarle si tiene Ud.... Si P0a=3 ir a fin de cuestionario.
 nivel_estudios,1,2021-01,2023-12,33,"¿Cuáles son los estudios de más alto nivel oficial que Ud. ha cursado (con independencia de que los haya terminado o no)? Por favor, especifique lo más posible, diciéndome el curso en que estaba cuando los terminó (o los interrumpió) y también el nombre que tenían entonces esos estudios (ej.: 3 años de estudios primarios, primaria, 5º de bachillerato, Maestría Industrial, preuniversitario, 4º de EGB, licenciatura, doctorado, FP1, etc.). . CURSO __________ N.S. - N.R. = 98 N.C. = 99 NOMBRE DE ESTUDIOS __________ N.S. - N.R. = 98 N.C. = 99"
 nivel_estudios,2,2024-01,2026-10,31,¿Cuáles son los estudios de más alto nivel oficial que usted ha terminado obteniendo la titulación correspondiente? . NOMBRE DE ESTUDIOS FINALIZADOS __________ N.S. - N.R. = 98 N.C. = 99 __________ N.S. = 98 N.C. = 99 INFORMACIÓ N ADICIONAL 01. Menos de 5 años de escolarización o primaria
-participacion_g,1,2021-01,2023-09,30,¿Me podría decir si en las elecciones generales del 10 de noviembre de 2019...? (LEER RESPUESTAS).
-participacion_g,2,2023-10,2026-10,34,¿Me podría decir si en las últimas elecciones generales celebradas el 23 de julio de 2023 Ud...? .
+participacion_g,1,2021-01,2023-07,29,¿Me podría decir si en las elecciones generales del 10 de noviembre de 2019...? (LEER RESPUESTAS).
+participacion_g,2,2023-09,2023-09,1,¿Me podría decir si en las elecciones generales del pasado 23 de julio? (LEER).
+participacion_g,3,2023-10,2026-10,34,¿Me podría decir si en las últimas elecciones generales celebradas el 23 de julio de 2023 Ud...? .
 practica_religiosa,1,2021-01,2026-10,64,"¿Con qué frecuencia asiste Ud. a misa u otros oficios religiosos, sin contar las ocasiones relacionadas con ceremonias de tipo social, por ejemplo, bodas, comuniones o funerales?"
 pref_presidente,1,2021-01,2026-10,64,"De los/as principales líderes políticos/as, ¿quién preferiría que fuese el/la presidente/a del Gobierno en estos momentos? (SOLO UN NOMBRE)."
 prob_esp_1,1,2021-01,2026-10,64,"¿Cuál es, a su juicio, el principal problema que existe actualmente en España? ¿Y el segundo? ¿Y el tercero? 1er. Problema"

@@ -7,6 +7,7 @@ Registro de los cambios que afectan a los datos publicados (Parquet, columnas de
 Nivel 4 de la auditoría (PR #17):
 
 - **Validación con las notas de estimación del CIS**: `scripts/10_referencias_notas.py` extrae la intención directa recodificada («voto directo en la encuesta») de las 64 notas y la añade a `inventario/referencias_cis.csv` (1.077 cifras nuevas; 1.262 en total). 22 cifras de diez barómetros no cuadran con el fichero publicado (de 0,05 a 0,23 puntos; las mayores, PP y VOX en junio de 2026): quedan con tolerancia y motivo en `inventario/referencias_excepciones.csv` y anotadas en la documentación. `R/validar.R` y la prueba de la web admiten indicadores que suman categorías (`A+B`).
+- **Sensibilidad de la reponderación por recuerdo**: `scripts/11_sensibilidad_recuerdo.R` recalcula la variante «solo votantes» (la anterior a octubre de 2026) para los 64 barómetros; la intención directa de cada partido se mueve menos de 0,25 puntos, «No votaría» hasta 1,5. Tabla en `inventario/sensibilidad_recuerdo.csv`; no se publica un segundo peso.
 
 Nivel 3 de la auditoría (PR #15):
 

@@ -92,7 +92,7 @@ El detalle técnico está en [`docs/documentacion_tecnica.md`](docs/documentacio
 
 ## Actualización
 
-Cuando el CIS publica un barómetro nuevo, se añade su ZIP a `datos/raw/`, se revisa el inventario y se relanza el flujo. La validación impide publicar si la armonización no reproduce las cifras del CIS. 
+Cuando el CIS publica un barómetro nuevo, se añade su ZIP a `datos/raw/`, se revisa el inventario y se relanza el flujo. La validación impide publicar si la armonización no reproduce las cifras del CIS. Los cambios de método y de datos quedan anotados en [`CHANGELOG.md`](CHANGELOG.md); cómo proponer correcciones, en [`CONTRIBUTING.md`](CONTRIBUTING.md). 
 
 ## Limitaciones
 

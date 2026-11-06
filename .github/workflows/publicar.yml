@@ -32,6 +32,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Comprobación estática de web/js (variables no definidas o sin usar, igualdad estricta) antes de construir nada
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Comprobar web/js (eslint)
+        run: |
+          npm ci --no-audit --no-fund
+          npm run lint
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"

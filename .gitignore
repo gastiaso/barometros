@@ -6,3 +6,5 @@ __pycache__/
 .Rhistory
 .RData
 web/datos/
+.lint/
+node_modules/

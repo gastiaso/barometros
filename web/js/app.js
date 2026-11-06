@@ -1319,7 +1319,6 @@ async function pintarEditor() {
     const res = await calcular(base);
     if (BORRADOR !== b) return;
     const P = res.P, media = res.unidad === 'media';
-    const conc = P.cols[0];
     const fmtv = v => v == null ? '' : media ? fmt2(v) : fmt1(v) + ' %';
     const resTot = base.cruce ? await calcular({ ...base, cruce: null }) : res;
     if (BORRADOR !== b) return;

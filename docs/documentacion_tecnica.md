@@ -41,6 +41,7 @@ Rscript -e 'targets::tar_make()'
 Rscript scripts/07_web.R              # VEDA=1 para la versión sin series electorales
 python scripts/08_prueba_web.py .     # la web calcula igual que R y que el CIS (Playwright + Chromium)
 python scripts/09_vista_previa.py .   # imagen de vista previa para redes
+npm ci && npm run lint                # comprobación estática de web/js (eslint; también en CI)
 python3 -m http.server -d web 8000    # vista previa en http://localhost:8000
 ```
 

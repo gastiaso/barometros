@@ -97,6 +97,10 @@ jobs:
       - name: Imagen de vista previa
         run: python scripts/09_vista_previa.py .
 
+      # Tarjeta del último barómetro (web/img/tarjeta.png y tarjeta.txt): los cambios significativos del mes, para redes
+      - name: Tarjeta del último barómetro
+        run: python scripts/12_tarjeta.py .
+
       # Versión en las direcciones de los scripts y la hoja de estilos: tras cada publicación el navegador
       # descarga los nuevos en lugar de mezclarlos con los que tenga en caché.
       - name: Versión de los ficheros de la web

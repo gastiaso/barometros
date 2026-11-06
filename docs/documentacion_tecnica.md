@@ -23,6 +23,7 @@ scripts/07_web.R                datos de la web: una columna comprimida por preg
 scripts/08_prueba_web.py        prueba en Chromium: la web recalcula las referencias del CIS y debe dar lo mismo que R
 scripts/07_estimacion.R         datos de «Construye tu estimación» (web/datos/estimacion.json) desde la rejilla ya calculada
 scripts/09_vista_previa.py      imagen para redes (web/img/vista-previa.png): captura de los paneles por defecto
+scripts/12_tarjeta.py           tarjeta del último barómetro para redes (web/img/tarjeta.png y .txt, generados en cada publicación)
 scripts/10_referencias_notas.py referencias de validación desde las notas de estimación del CIS (intención directa de los 64 barómetros)
 scripts/11_sensibilidad_recuerdo.R sensibilidad de la reponderación por recuerdo a la variante «solo votantes» (inventario/sensibilidad_recuerdo.csv)
 estimacion/                     estimación de voto: rejilla de supuestos (rejilla.R), modelos de referencia con remuestreo
@@ -54,6 +55,7 @@ Rscript scripts/07_web.R              # VEDA=1 para la versión sin series elect
 Rscript scripts/07_estimacion.R       # datos de «Construye tu estimación» (nada en modo veda)
 python scripts/08_prueba_web.py .     # la web calcula igual que R y que el CIS (Playwright + Chromium)
 python scripts/09_vista_previa.py .   # imagen de vista previa para redes
+python scripts/12_tarjeta.py .        # tarjeta del mes: cambios significativos (web/img/tarjeta.png) y texto de 280 caracteres (tarjeta.txt)
 npm ci && npm run lint                # comprobación estática de web/js (eslint; también en CI)
 python3 -m http.server -d web 8000    # vista previa en http://localhost:8000
 ```

@@ -629,10 +629,13 @@ function dibujar(host, res, cfg) {
     ser.forEach(s => svg.append('path').attr('d', area(preguntados(s))).attr('fill', col[s.id]).attr('fill-opacity', PAL.band).attr('stroke', 'none'));
   }
   const line = d3.line().defined(def).x(p => x(fecha(p.mes))).y(p => y(p.v));
-  ser.forEach(s => {
+  // en modo daltónico cada serie lleva además un trazo distinto, para no depender solo del color (PSOE y VOX, por ejemplo,
+  // se confunden con deuteranopia); el mismo trazo va en la leyenda
+  const trazo = i => (modoCVD() ? TRAZOS_CVD[i % TRAZOS_CVD.length] : null);
+  ser.forEach((s, i) => {
     const pts = preguntados(s);
     svg.append('path').attr('d', line(pts)).attr('fill', 'none').attr('stroke', col[s.id]).attr('stroke-width', 2)
-      .attr('stroke-linejoin', 'round').attr('stroke-linecap', 'round');
+      .attr('stroke-dasharray', trazo(i)).attr('stroke-linejoin', 'round').attr('stroke-linecap', trazo(i) ? 'butt' : 'round');
     pts.forEach((p, i) => {
       if (p.v == null) return;
       const prev = pts[i - 1], next = pts[i + 1];
@@ -654,8 +657,9 @@ function dibujar(host, res, cfg) {
   // leyenda
   if (ser.length > 1) ser.forEach((s, i) => {
     const gx = 8 + (i % perRow) * colW, gy = 2 + Math.floor(i / perRow) * 18;
-    svg.append('rect').attr('x', gx).attr('y', gy + 5).attr('width', 14).attr('height', 3).attr('fill', col[s.id]);
-    svg.append('text').attr('x', gx + 20).attr('y', gy + 10).attr('fill', PAL.ink2).attr('font-size', 11.5)
+    if (trazo(i)) svg.append('line').attr('x1', gx).attr('x2', gx + 22).attr('y1', gy + 6.5).attr('y2', gy + 6.5).attr('stroke', col[s.id]).attr('stroke-width', 2.5).attr('stroke-dasharray', trazo(i));
+    else svg.append('rect').attr('x', gx).attr('y', gy + 5).attr('width', 14).attr('height', 3).attr('fill', col[s.id]);
+    svg.append('text').attr('x', gx + (trazo(i) ? 28 : 20)).attr('y', gy + 10).attr('fill', PAL.ink2).attr('font-size', 11.5)
       .text(s.label.length > maxL ? s.label.slice(0, maxL - 1) + '…' : s.label).append('title').text(s.label);
   });
   svg.selectAll('path, circle, text, line').attr('pointer-events', 'none');
@@ -1576,6 +1580,16 @@ async function pintarResumen() {
 }
 
 /* ================= arranque ================= */
+/* Modo daltónico: paleta categórica segura (Okabe-Ito y afines, en estilos.css) y un trazo distinto por serie en las líneas.
+   Los colores de partido se mantienen (son convención), por eso el trazo. */
+const TRAZOS_CVD = [null, '7 3', '2 2.5', '9 3 2 3', '1 3', '12 4', '4 2 1 2', '14 3 2 3'];
+const modoCVD = () => document.documentElement.dataset.cvd === '1';
+function cvd(on) {
+  try { if (on) localStorage.setItem('bet-cvd', '1'); else localStorage.removeItem('bet-cvd'); } catch (e) { /* */ }
+  if (on) document.documentElement.dataset.cvd = '1'; else delete document.documentElement.dataset.cvd;
+  const b = $('#cvd'); if (b) b.setAttribute('aria-pressed', String(!!on));
+  rerender();
+}
 function tema(v) {
   try { if (v === 'system') localStorage.removeItem('bet-tema'); else localStorage.setItem('bet-tema', v); } catch (e) { /* */ }
   if (v === 'system') delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme = v;
@@ -1618,6 +1632,7 @@ async function iniciar() {
 }
 
 document.querySelectorAll('#tema button').forEach(b => b.addEventListener('click', () => tema(b.dataset.v)));
+$('#cvd')?.addEventListener('click', () => cvd(!modoCVD()));
 document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => pestana(b.dataset.tab)));
 // flechas, Inicio y Fin entre pestañas
 $('.tabs').addEventListener('keydown', ev => {

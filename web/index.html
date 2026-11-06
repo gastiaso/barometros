@@ -63,7 +63,7 @@
 }
 </script>
 <link rel="stylesheet" href="css/estilos.css">
-<script>try{const t=localStorage.getItem('bet-tema');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t;}catch(e){}</script>
+<script>try{const t=localStorage.getItem('bet-tema');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t;if(localStorage.getItem('bet-cvd')==='1')document.documentElement.dataset.cvd='1';}catch(e){}</script>
 </head>
 <body>
 <div class="wrap">
@@ -76,6 +76,9 @@
     <div class="toolbar">
       <div class="seg" id="tema" aria-label="Tema">
         <button type="button" data-v="system" aria-pressed="true">Sistema</button><button type="button" data-v="light" aria-pressed="false">Claro</button><button type="button" data-v="dark" aria-pressed="false">Oscuro</button>
+      </div>
+      <div class="seg" aria-label="Accesibilidad del color">
+        <button type="button" id="cvd" aria-pressed="false" title="Colores distinguibles con daltonismo y un trazo distinto por serie">Modo daltónico</button>
       </div>
     </div>
   </header>
@@ -256,6 +259,7 @@
           <h3>Margen de error</h3><p>Intervalo al 95 % corregido por el efecto de diseño de la ponderación (Kish, deff = n · Σw² / (Σw)²), calculado sobre las entrevistas de la propia base: en un cruce, las del grupo, no las del estudio entero, porque el peso puede estar correlacionado con el grupo (por nivel de estudios desde noviembre de 2023, por ejemplo). Para porcentajes, intervalo de Wilson sobre el tamaño efectivo n/deff, que no se trunca en cero y cubre mejor que el intervalo clásico cuando el porcentaje es pequeño o la base corta; para medias, m ± 1,96 · √(deff · s²/n). El error típico de las comparaciones usa la misma corrección. No se recoge el efecto de la estratificación ni el de los conglomerados del muestreo del CIS.</p>
           <h3>Mínimo de entrevistas</h3><p>No se muestra ningún punto cuya base tenga menos de 50 entrevistas sin ponderar.</p>
           <h3>Variaciones</h3><p>El tooltip muestra la variación respecto al barómetro anterior, en puntos. No se calcula cuando entre ambos meses hay una ruptura de tipo C que afecta a la pregunta, al cruce o al filtro.</p>
+          <h3>Modo daltónico</h3><p>El botón de la cabecera cambia la paleta de las series sin color de partido por una segura para deuteranopia y protanopia (Okabe-Ito y afines) y añade a cada línea un trazo distinto (continuo, discontinuo, punteado…), que también figura en la leyenda. Los colores de partido se mantienen porque son convención: ahí es el trazo el que distingue, por ejemplo, PSOE de VOX. Se recuerda en el navegador.</p>
           <h3>Convocatorias electorales</h3><p>El botón «Elecciones» de cada panel de series marca en el eje las convocatorias celebradas en el periodo: generales y europeas con una línea punteada y su rótulo; autonómicas y municipales con una marca corta en la base. Solo convocatorias electorales, nunca otros acontecimientos: la lista está en <code>inventario/eventos_electorales.csv</code>.</p>
           <h3>Abreviaturas</h3><p>«s. c.»: sin comparación, porque entre los dos meses hay una ruptura de tipo C. «n. s.»: diferencia no significativa al 95 %. «n &lt; 50»: celda con menos de 50 entrevistas, que no se muestra. «—» o «sin dato»: la pregunta o la respuesta no existe ese mes. «NS», «NC», «NR»: no sabe, no contesta, no recuerda.</p>
         </section>

@@ -89,6 +89,12 @@ select,input[type=search],input[type=text]{background:var(--surface);border:1px 
 .qe-portada>.qe-txt>h2{font-family:var(--font-d);font-size:20px;font-weight:600;text-transform:uppercase;letter-spacing:.03em;line-height:1.2;margin:0;flex:0 0 auto}
 .qe-portada>.qe-txt>h2::before{content:none}
 .qe-portada>.qe-txt>p{margin:0;font-size:14.5px;max-width:92ch;flex:1 1 40ch}
+.qe-cambios{border:1px solid var(--line);background:var(--surface);padding:10px 14px;display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 18px}
+.qe-cambios h3{margin:0;font-family:var(--font-d);font-size:12.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink2);font-weight:600}
+.qe-cambios ul{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:2px 22px}
+.qe-cambios li{font-size:13.5px;display:flex;gap:6px;align-items:baseline}
+.qe-cambios li small,.qe-cambios h3 small{color:var(--ink3);font-weight:400;text-transform:none;letter-spacing:0;font-size:12px}
+.qe-cambios p{margin:0;font-size:13.5px}
 .qe-paso{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,3fr);gap:28px;align-items:start;border-top:1px solid var(--line2);padding:26px 0;scroll-margin-top:12px;counter-increment:paso}
 .qe-paso.solo{grid-template-columns:minmax(0,1fr)}
 .qe-txt h2{font-family:var(--font-d);font-size:20px;font-weight:600;text-transform:uppercase;letter-spacing:.03em;line-height:1.2;margin:0 0 12px}

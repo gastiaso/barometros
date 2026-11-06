@@ -1555,9 +1555,12 @@ function tema(v) {
   document.querySelectorAll('#tema button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === v)));
   rerender();
 }
-/* La web entra siempre por «¿Qué es esto?». Los paneles del explorador no se pintan (ni descargan sus columnas)
+/* La web entra por «¿Qué es esto?» la primera vez; cuando ya se ha visto la pestaña de series en este navegador, entra
+   directamente en ella (la guía sigue a un clic). Los paneles del explorador no se pintan (ni descargan sus columnas)
    hasta que se abre la pestaña de series. */
 const VISTAS_WEB = ['que', 'series', 'meth', 'datos'];
+const CLAVE_GUIA = 'bet-guia';
+const guiaVista = () => { try { return localStorage.getItem(CLAVE_GUIA) === 'vista'; } catch (e) { return false; } };
 let GRID_LISTO = false;
 function mostrarVista(t) {
   document.querySelectorAll('.tabs button').forEach(b => { const on = b.dataset.tab === t; b.setAttribute('aria-selected', String(on)); b.tabIndex = on ? 0 : -1; });
@@ -1569,7 +1572,7 @@ function pestana(t, historial = true) {
   if (historial && vistaDeHash() !== t) history.pushState(null, '', '#' + t);
   mostrarVista(t);
   if (!META) return;
-  if (t === 'series') { if (GRID_LISTO) rerender(); else { GRID_LISTO = true; leerPaleta(); renderTodo(); } pintarResumen(); }
+  if (t === 'series') { try { localStorage.setItem(CLAVE_GUIA, 'vista'); } catch (e) { /* */ } if (GRID_LISTO) rerender(); else { GRID_LISTO = true; leerPaleta(); renderTodo(); } pintarResumen(); }
   if (t === 'que') repintarGuia();
 }
 
@@ -1613,6 +1616,7 @@ $('#b-link').addEventListener('click', async ev => {
 });
 matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', rerender);
 let rto; addEventListener('resize', () => { clearTimeout(rto); rto = setTimeout(rerender, 200); });
-// los enlaces a paneles (#p=…) y a una pestaña (#series, #meth…) entran directamente en ella
-if (vistaDeHash()) mostrarVista(vistaDeHash());
+// los enlaces a paneles (#p=…, #vivienda…) y a una pestaña (#series, #meth…) entran directamente en ella; sin enlace,
+// quien ya ha visto las series entra en ellas
+if (vistaDeHash()) mostrarVista(vistaDeHash()); else if (guiaVista() && $('#view-series')) mostrarVista('series');
 iniciar();

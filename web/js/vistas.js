@@ -546,11 +546,19 @@ async function datosPuntos(c, cap) {
   for (let i = orden.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); const t = orden[i]; orden[i] = orden[j]; orden[j] = t; }
   return { x: Float64Array.from(X), y: Float32Array.from(YV), cat: Uint8Array.from(CAT), orden, porMes, meses, cap, total, sinEje };
 }
+/* ¿Ha quedado el lienzo en negro? Lee un píxel de la esquina del fondo. Si el navegador no deja leerlo, se da por bueno. */
+function lienzoNegro(cv) {
+  try {
+    const d = cv.getContext('2d').getImageData(2, 2, 1, 1).data;
+    return d[3] === 255 && d[0] === 0 && d[1] === 0 && d[2] === 0;
+  } catch (e) { return false; }
+}
 /* Dibujo en un canvas: W × H en píxeles CSS, a la escala indicada. En modo banner lleva título y fuente dentro. */
 function pintarPuntos(cv, D, c, W, H, escala, opc = {}) {
   if (!PAL || !PAL.completa) leerPaleta();   // la paleta se lee al arrancar; si no estaba completa, se vuelve a intentar al pintar
   cv.width = Math.round(W * escala); cv.height = Math.round(H * escala);
-  const ctx = cv.getContext('2d');
+  // soft: canvas por software (willReadFrequently), para los navegadores cuyo canvas acelerado devuelve negro
+  const ctx = cv.getContext('2d', opc.soft ? { willReadFrequently: true } : undefined);
   if (!ctx) throw new Error('El navegador no ha podido crear el lienzo (sin memoria para el canvas).');
   ctx.scale(escala, escala);
   ctx.fillStyle = PAL.surface; ctx.fillRect(0, 0, W, H);
@@ -644,14 +652,16 @@ async function vistaPuntos(host, cfg) {
   // la serie ponderada de la vista de líneas, para medir en la nota cuánto se separa la nube
   const [D, res] = await Promise.all([datosPuntos(c, cap), calcular({ preg: c.pregId, desde: meses[0].mes, hasta: meses[meses.length - 1].mes })]);
   host.innerHTML = '';
-  const cv = document.createElement('canvas');
-  cv.style.width = W + 'px'; cv.style.height = H + 'px'; cv.style.display = 'block';
-  cv.setAttribute('role', 'img');
+  const nuevoLienzo = () => { const k = document.createElement('canvas'); k.style.width = W + 'px'; k.style.height = H + 'px'; k.style.display = 'block'; k.setAttribute('role', 'img'); return k; };
+  let cv = nuevoLienzo(), soft = false;
   host.appendChild(cv);
   pintarPuntos(cv, D, c, W, H, escala);
+  // El fondo nunca es negro puro (#f7f6f3 o #1c1e20): si un píxel del fondo sale negro, el canvas acelerado del navegador ha
+  // fallado (ocurre en Firefox con algunos drivers) y se repite en un canvas por software, que no pasa por la GPU
+  if (lienzoNegro(cv)) { soft = true; const k = nuevoLienzo(); cv.replaceWith(k); cv = k; pintarPuntos(cv, D, c, W, H, escala, { soft }); }
   // si el navegador descarta el lienzo (pestaña en segundo plano con poca memoria, pérdida del contexto gráfico),
   // vuelve en negro o vacío: se repinta al recuperarlo y al volver a la pestaña
-  const repintar = () => { if (cv.isConnected) try { pintarPuntos(cv, D, c, W, H, escala); } catch (e) { /* */ } };
+  const repintar = () => { if (cv.isConnected) try { pintarPuntos(cv, D, c, W, H, escala, { soft }); } catch (e) { /* */ } };
   cv.addEventListener('contextrestored', repintar);
   const alVolver = () => { if (!cv.isConnected) return document.removeEventListener('visibilitychange', alVolver); if (document.visibilityState === 'visible') repintar(); };
   document.addEventListener('visibilitychange', alVolver);
@@ -689,12 +699,12 @@ async function vistaPuntos(host, cfg) {
     csv: { cab: ['mes', 'estudio', 'puntos', 'n_a', 'n_b', 'n_ambas', 'n_ninguna', 'pct_a_puntos', 'pct_b_puntos', 'pct_a_ponderado', 'pct_b_ponderado'],
       filas: filas.map(f => [f.e.mes, f.e.estudio, f.n, f.cont[1], f.cont[2], f.cont[3], f.cont[0], f.pa, f.pb, f.wa, f.wb]) },
     // imagen a la escala pedida (PNG del panel) y banner de 1584 × 396 (2×) con la muestra completa
-    lienzo: esc => { const k = document.createElement('canvas'); pintarPuntos(k, D, c, W, H, esc); return k; },
+    lienzo: esc => { const k = document.createElement('canvas'); pintarPuntos(k, D, c, W, H, esc, { soft }); return k; },
     banner: async (esc = 2) => {
       const Wb = 1584, Hb = 396;
       const Db = await datosPuntos(c, capPuntos(meses, Wb * Hb * esc * esc));
       const k = document.createElement('canvas');
-      pintarPuntos(k, Db, c, Wb, Hb, esc, { banner: true });
+      pintarPuntos(k, Db, c, Wb, Hb, esc, { banner: true, soft });
       return new Promise(ok => k.toBlob(ok));
     },
   };

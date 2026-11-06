@@ -10,7 +10,7 @@ const EST_TIT = {
 };
 const EST_AYUDA = {
   base: 'La intención directa es la respuesta a «¿a qué partido votaría?». Voto + simpatía añade, a quien no la da, el partido por el que siente simpatía (recodificación del CIS).',
-  votante: 'Desde septiembre de 2022 el CIS pregunta la probabilidad de ir a votar (0 a 10). Antes no hay pregunta y todas las opciones equivalen a la primera.',
+  votante: 'Desde septiembre de 2022 el CIS pregunta la probabilidad de ir a votar (0 a 10). Antes no hay pregunta: las cuatro últimas opciones cuentan a todos menos a quien dice que no votaría.',
   reparto: 'Quien no sabe o no contesta puede quedar fuera o recibir un partido: con preguntas en cascada (la primera que responda) o con una regresión que lo estima por su ideología, su recuerdo, su valoración de los líderes, su sexo y su edad.',
   alfa: 'Los pesos del CIS no corrigen el recuerdo de voto. La corrección completa es la reponderación de la web; las intermedias acercan a 1 cada factor de ajuste.',
 };
@@ -93,6 +93,7 @@ async function pintarEstimacion() {
     EE.mes = ESTIM.meses.length - 1;
     EE.partidos = estPartidosDefecto();
   }
+  else if (/^#est=/.test(location.hash)) EE.cfg = estLeer();   // un enlace con supuestos manda sobre lo elegido antes
   if (!host.dataset.listo) { estEsqueleto(host); host.dataset.listo = '1'; $('#est-sel-mes').value = String(EE.mes); }
   estRepintar();
 }
@@ -342,7 +343,27 @@ function estContraste() {
   box.innerHTML = `<h3>¿Cuánto se habría equivocado en el 23J?</h3>
     <p class="note">Error frente al resultado de las generales del 23 de julio de 2023 en los dos barómetros anteriores: media del error absoluto en PP, PSOE, VOX y Sumar (con los partidos que concurrieron en su coalición), y desviación de la ventaja del PP sobre el PSOE (positiva: la estimación daba más ventaja al PP que las urnas).</p>
     <div class="tablaw"><table class="est-t"><thead><tr><th>Barómetro</th>${completa ? '<th>Error medio</th><th>Ventaja PP−PSOE</th><th>Puesto (menor error)</th>' : ''}<th>Error medio, todas</th><th>CIS, error medio</th><th>CIS, ventaja</th></tr></thead><tbody>${filas}</tbody></table></div>
-    <p class="note">Una sola elección no permite elegir supuestos: el orden de las combinaciones cambia entre junio y julio, y cualquier combinación puede acertar por azar.</p>`;
+    <p class="note">Una sola elección no permite elegir supuestos: el orden de las combinaciones cambia entre junio y julio, y cualquier combinación puede acertar por azar.</p>${estHistorico(completa, k)}`;
+}
+
+// error en las encuestas del CIS anteriores a cinco generales (2015-2023)
+function estHistorico(completa, k) {
+  const H = ESTIM.historico;
+  if (!H) return '';
+  const orden = H.medio.filter(v => v != null).sort((a, b) => a - b);
+  const puesto = v => orden.indexOf(v) + 1;
+  const filasEl = H.elecciones.map(e => {
+    const vs = e.medio.filter(v => v != null);
+    return `<tr><td>${esc(e.eleccion)} (${e.encuestas} ${e.encuestas === 1 ? 'encuesta' : 'encuestas'})</td>${completa ? `<td class="n"><b>${e.medio[k] == null ? '—' : fmt1(e.medio[k])}</b></td>` : ''}<td class="n">${fmt1(Math.min(...vs))} – ${fmt1(Math.max(...vs))}</td></tr>`;
+  }).join('');
+  const cab = completa
+    ? `<p>Con esta combinación, el error medio en las ${H.encuestas} encuestas es de <b>${fmt1(H.medio[k])} puntos</b>, y la ventaja del ganador sobre el segundo se desvía de media ${fmt1(H.ventaja[k])}. Puesto ${puesto(H.medio[k])} de ${orden.length}, de menor a mayor error.</p>`
+    : `<p>El error medio de las ${orden.length} combinaciones en las ${H.encuestas} encuestas va de ${fmt1(orden[0])} a ${fmt1(orden[orden.length - 1])} puntos.</p>`;
+  return `<h3>¿Y en cinco generales?</h3>
+    <p class="note">Las mismas combinaciones, calculadas con los microdatos de ${H.encuestas} encuestas del CIS de los meses anteriores a las generales de 2015, 2016, abril y noviembre de 2019 y 2023, y comparadas con el resultado: media del error absoluto en los partidos principales de cada elección.</p>
+    ${cab}
+    <div class="tablaw"><table class="est-t"><thead><tr><th>Elección</th>${completa ? '<th>Esta combinación</th>' : ''}<th>Todas</th></tr></thead><tbody>${filasEl}</tbody></table></div>
+    <p class="note">Cinco elecciones y ${H.encuestas} encuestas siguen siendo pocas, y las condiciones cambian de una a otra: el recuerdo de voto se corrige con la elección anterior, y en abril de 2019 la anterior era de 2016.</p>`;
 }
 
 function estFicha() {
@@ -387,3 +408,8 @@ function estCSV() {
     q('Fuente: CIS, barómetros mensuales (microdatos); estimación publicada por el CIS en cada barómetro. Elaboración: Barómetro a barómetro.'));
   descargar('estimacion' + (completa ? '_' + EST_DIMS.map(d => cfg[d]).join('_') : '_rango') + '.csv', new Blob(['﻿' + lines.join('\n')], { type: 'text/csv;charset=utf-8' }));
 }
+
+// un enlace #est=… pegado en una pestaña ya abierta
+window.addEventListener('hashchange', () => {
+  if (/^#est=/.test(location.hash) && ESTIM && $('#view-est') && !$('#view-est').hidden) pintarEstimacion();
+});

@@ -51,8 +51,8 @@ Una estimación de voto depende de supuestos que la encuesta no fija. La pestañ
 
 - Sin supuestos elegidos, el gráfico muestra el **rango** de las 240 combinaciones y la estimación del CIS. Cuatro atajos fijan combinaciones de referencia: M1 (voto + simpatía), M2 (M1 corregido por recuerdo), M3 (votantes probables y cascada) y M4 (votantes probables y regresión).
 - **Margen de error** al 95 % con el tamaño efectivo de la muestra que dejan los pesos. Comprobado con remuestreo en M1 a M4 (`estimacion/modelos.R`): en los partidos con al menos un 5 %, la mediana de la razón entre el margen por remuestreo y el aproximado va de 0,94 a 0,97 según el atajo, y el 80 % central de los casos queda entre 0,7 y 1,3.
-- **Contraste con el 23J**: error de cada combinación en los barómetros de junio y julio de 2023 frente al resultado de las generales.
-- La estimación del CIS se transcribe de las notas de estimación de cada barómetro (`estimacion/estimacion_cis.csv`, con la dirección de cada documento).
+- **Contraste con elecciones**: error de cada combinación en los barómetros de junio y julio de 2023 frente al resultado del 23J y, con los microdatos de 13 encuestas del CIS de 2015 a 2023, frente a cinco generales (`estimacion/historico_armonizar.py` y `estimacion/historico_rejilla.R`; los microdatos se descargan de cis.es con su formulario y no van en el repositorio).
+- La estimación del CIS se transcribe de las notas de estimación de cada barómetro (`estimacion/estimacion_cis.csv`, con la dirección de cada documento) y se coteja con una lectura automática de su texto (`estimacion/cotejo_estimacion_cis.py`).
 - La rejilla se calcula aparte, porque tarda cerca de una hora: `Rscript estimacion/rejilla.R` (después de `targets::tar_make()`), que escribe `estimacion/rejilla.csv.gz` y `estimacion/rejilla_info.csv.gz`. La publicación solo la pasa a la web (`scripts/07_estimacion.R`). En modo veda la sección se retira.
 
 ## Datos

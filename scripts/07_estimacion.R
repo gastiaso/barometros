@@ -96,6 +96,23 @@ for (c in c("intencion_voto_r", "voto_simpatia", "intencion_voto")) for (x in me
   if (is.null(etiquetas[[x$id]])) etiquetas[[x$id]] <- x$etiqueta
 etiquetas <- etiquetas[intersect(names(etiquetas), orden_p$partido)]
 
+# error de cada combinación en las encuestas anteriores a cinco generales (estimacion/historico_rejilla.R)
+historico <- NULL
+if (file.exists(file.path(EST, "historico_rejilla.csv"))) {
+  hr <- read_csv(file.path(EST, "historico_rejilla.csv"), col_types = "ccccccddd", progress = FALSE) |>
+    mutate(alfa = format(as.numeric(alfa), drop0trailing = TRUE, trim = TRUE), k = indice(base, votante, reparto, alfa))
+  stopifnot(!anyNA(hr$k))
+  porcomb <- hr |> group_by(k) |> summarise(medio = mean(error_medio), ventaja = mean(abs(error_ventaja)), n = n(), .groups = "drop")
+  vec <- function(df, col) { v <- rep(NA_real_, n_comb); v[df$k + 1] <- round(df[[col]], 3); v }
+  NOMBRES <- c("2015-12" = "20D-2015", "2016-06" = "26J-2016", "2019-04" = "28A-2019", "2019-11" = "10N-2019", "2023-07" = "23J-2023")
+  por_el <- lapply(names(NOMBRES), \(el) {
+    x <- hr |> filter(eleccion == el) |> group_by(k) |> summarise(medio = mean(error_medio), .groups = "drop")
+    list(eleccion = NOMBRES[[el]], encuestas = n_distinct(hr$estudio[hr$eleccion == el]), medio = vec(x, "medio"))
+  })
+  historico <- list(encuestas = n_distinct(hr$estudio), medio = vec(porcomb, "medio"), ventaja = vec(porcomb, "ventaja"),
+                    elecciones = por_el)
+}
+
 salida <- list(
   generado = format(Sys.Date()),
   dims = DIMS, presets = PRESETS, n_comb = n_comb,
@@ -108,7 +125,8 @@ salida <- list(
   cis = cis_v,
   # ficha técnica del CIS de cada barómetro (estimacion/fichas_tecnicas.py)
   ficha = lapply(estudios$estudio, \(s) { f <- fichas[fichas$estudio == s, ]; if (!nrow(f)) NULL else as.list(f[1, -1]) }),
-  contraste_23j = list(real = as.list(REAL_23J), estudios = c23)
+  contraste_23j = list(real = as.list(REAL_23J), estudios = c23),
+  historico = historico
 )
 write_json(salida, file.path(WEB, "estimacion.json"), auto_unbox = TRUE, na = "null", digits = NA)
 cat(sprintf("estimacion: %d meses × %d combinaciones, %d partidos, %.1f MB\n", length(meses), n_comb, nrow(orden_p),

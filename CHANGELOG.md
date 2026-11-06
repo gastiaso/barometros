@@ -14,7 +14,7 @@ Nivel 3 de la auditoría (PR #15):
 - **Nota metodológica**: catálogo de categorías de problemas por barómetro (26 de 97 no están en todos los estudios), desde `inventario/mapa_problemas.csv`.
 - **Portada**: «Qué cambia» en el último barómetro (intención, problemas, economía e ideología) con enlace al resumen completo.
 - **Web**: el índice de la nota metodológica y las anclas internas abren su pestaña (antes devolvían a la portada); las pestañas se reparten en varias líneas; fuente de rótulos autoalojada (Roboto Condensed variable, subconjunto latino, OFL) en lugar de la condensada de cada sistema; la anchura de las etiquetas de los SVG se mide en canvas (`anchoTexto`) en vez de estimarse por carácter, y en «Comparar» las etiquetas largas van en dos líneas; los atajos M1-M4 de la estimación muestran su descripción; en pantallas bajas la lista de respuestas del editor no tiene desplazamiento propio.
-- **Repositorio**: pruebas unitarias de R (`tests/testthat/`, también en CI); entorno de construcción fijado (R 4.6.2 e instantánea por fecha de Posit Package Manager); flujo `version.yml` que publica una release con el Parquet, los metadatos y el inventario al etiquetar `vAAAA-MM`.
+- **Repositorio**: `web/js/app.js` repartido en `comun.js`, `datos.js`, `grafico.js`, `paneles.js`, `editor.js` y `app.js` sin cambio funcional (PR #16); pruebas unitarias de R (`tests/testthat/`, también en CI); entorno de construcción fijado (R 4.6.2 e instantánea por fecha de Posit Package Manager); flujo `version.yml` que publica una release con el Parquet, los metadatos y el inventario al etiquetar `vAAAA-MM`.
 
 Nivel 2 de la auditoría (PR #13):
 

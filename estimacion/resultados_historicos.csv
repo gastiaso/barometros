@@ -1,0 +1,55 @@
+eleccion,dato,valor,fuente
+2011-11,censo_total,35779491,"Wikipedia (en), Results breakdown of the 2011 Spanish general election (Congress)"
+2011-11,votantes_total,24666441,Ídem
+2011-11,votos_validos,24348886,Ídem
+2011-11,votos_blanco,333461,Ídem
+2011-11,PP,10866566,Ídem
+2011-11,PSOE,7003511,Ídem
+2011-11,IU,1686040,"Ídem (IU-LV, La Izquierda Plural)"
+2011-11,UPYD,1143225,Ídem
+2011-11,CIU,1015691,Ídem
+2011-11,censo_cera,1480000,"APROXIMADO: «más de 1.400.000» justo antes de la reforma de 2011 (Revista de Derecho Político, UNED). Verificar"
+2011-11,votantes_cera,73260,"APROXIMADO: 4,95 % de participación CERA en 2011 (El Orden Mundial). Verificar"
+2015-12,censo_total,36511848,"Wikipedia (en), Results breakdown of the 2015 Spanish general election (Congress). Wikipedia (es) da 36 510 952: verificar en Interior"
+2015-12,votantes_total,25438532,Ídem
+2015-12,votos_validos,25211313,Ídem
+2015-12,votos_blanco,188132,Ídem
+2015-12,PP,7236965,Ídem
+2015-12,PSOE,5545315,Ídem
+2015-12,PODEMOS,5212711,"Ídem: agregado de Podemos (3 198 584), En Comú Podem (929 880), Podemos-Compromís (673 549) y Podemos-En Marea-Anova-EU (410 698)"
+2015-12,CS,3514528,Ídem
+2015-12,IU,926783,Ídem (IU-Unidad Popular en Común)
+2015-12,ERC,604285,Ídem
+2015-12,DL,567253,Ídem
+2015-12,censo_cera,1875272,Wikipedia (es): electores residentes en el extranjero; verificar que es el CERA
+2015-12,votantes_cera,93764,"APROXIMADO: 5,0 % del censo CERA (participación media CERA 2011-2019 en torno al 5,7 %, UNED). Verificar"
+2016-06,censo_total,36520913,"Wikipedia (en), Results breakdown of the 2016 Spanish general election (Congress)"
+2016-06,votantes_total,24279259,Ídem
+2016-06,votos_validos,24053755,Ídem
+2016-06,votos_blanco,179081,Ídem
+2016-06,PP,7941236,Ídem
+2016-06,PSOE,5443846,Ídem
+2016-06,UP,5087538,"Ídem: agregado de Unidos Podemos (3 227 123), En Comú Podem (853 102), Compromís-Podemos-EUPV (659 771) y En Marea (347 542)"
+2016-06,CS,3141570,Ídem
+2016-06,ERC,639652,Ídem
+2016-06,CDC,483488,Ídem
+2016-06,censo_cera,1920256,"Wikipedia (es), nota del INE: electores residentes en el extranjero; verificar que es el CERA"
+2016-06,votantes_cera,109455,"APROXIMADO: 5,7 % del censo CERA (participación media CERA 2011-2019, UNED). Verificar"
+2019-04,censo_total,36898883,"Wikipedia (en), Results breakdown of the April 2019 Spanish general election (Congress)"
+2019-04,votantes_total,26478140,Ídem
+2019-04,votos_validos,26201371,Ídem
+2019-04,votos_blanco,199836,Ídem
+2019-04,PSOE,7513142,Ídem
+2019-04,PP,4373653,Ídem
+2019-04,CS,4155665,Ídem
+2019-04,UP,3751145,"Ídem: agregado de Unidas Podemos (2 897 419), En Comú Podem (615 665) y En Común-Unidas Podemos (238 061)"
+2019-04,VOX,2688092,Ídem
+2019-04,ERC,1024628,Ídem
+2019-04,JUNTS,500787,Ídem
+2019-04,censo_cera,2099463,Wikipedia (es): residentes en el extranjero; verificar que es el CERA
+2019-04,votantes_cera,118357,Wikipedia (es); verificar
+2019-11,votos_validos,24258228,"Wikipedia (en), Results breakdown of the November 2019 Spanish general election (Congress)"
+2019-11,votos_blanco,217227,Ídem
+2019-11,ERC,880734,Ídem
+2019-11,JUNTS,530225,Ídem
+2019-11,MAS_PAIS,582306,"Ídem: agregado de Más País-Equo, Més Compromís, Más País y Más País-CHA-Equo"

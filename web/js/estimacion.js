@@ -107,7 +107,7 @@ function estEsqueleto(host) {
       <div class="seg" role="group" aria-label="${esc(EST_TIT[d])}">${ESTIM.dims[d].map(x => `<button type="button" data-v="${esc(x.id)}" aria-pressed="false">${esc(x.t)}</button>`).join('')}</div>
       <p class="note">${esc(EST_AYUDA[d])}</p><p class="note est-aviso" hidden></p></fieldset>`;
   host.innerHTML = `
-    <div class="est-atajos"><span class="note">Atajos:</span>${Object.keys(EST_ATAJOS).map(m => `<button class="btn" type="button" data-atajo="${m}" title="${esc(EST_ATAJOS[m])}">${m}</button>`).join('')}
+    <div class="est-atajos"><span class="note">Atajos:</span>${Object.keys(EST_ATAJOS).map(m => `<button class="btn" type="button" data-atajo="${m}" aria-label="${m}: ${esc(EST_ATAJOS[m])}"><b>${m}</b><small>${esc(EST_ATAJOS[m])}</small></button>`).join('')}
       <button class="btn" type="button" id="est-quitar">Quitar mi estimación</button></div>
     <div class="est-mandos">${EST_DIMS.map(grupo).join('')}</div>
     <article class="est-panel" id="est-panel">

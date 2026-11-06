@@ -548,8 +548,10 @@ async function datosPuntos(c, cap) {
 }
 /* Dibujo en un canvas: W × H en píxeles CSS, a la escala indicada. En modo banner lleva título y fuente dentro. */
 function pintarPuntos(cv, D, c, W, H, escala, opc = {}) {
+  if (!PAL || !PAL.completa) leerPaleta();   // la paleta se lee al arrancar; si no estaba completa, se vuelve a intentar al pintar
   cv.width = Math.round(W * escala); cv.height = Math.round(H * escala);
   const ctx = cv.getContext('2d');
+  if (!ctx) throw new Error('El navegador no ha podido crear el lienzo (sin memoria para el canvas).');
   ctx.scale(escala, escala);
   ctx.fillStyle = PAL.surface; ctx.fillRect(0, 0, W, H);
   const fs = opc.banner ? Math.max(12, W * 0.0105) : 12;
@@ -647,6 +649,12 @@ async function vistaPuntos(host, cfg) {
   cv.setAttribute('role', 'img');
   host.appendChild(cv);
   pintarPuntos(cv, D, c, W, H, escala);
+  // si el navegador descarta el lienzo (pestaña en segundo plano con poca memoria, pérdida del contexto gráfico),
+  // vuelve en negro o vacío: se repinta al recuperarlo y al volver a la pestaña
+  const repintar = () => { if (cv.isConnected) try { pintarPuntos(cv, D, c, W, H, escala); } catch (e) { /* */ } };
+  cv.addEventListener('contextrestored', repintar);
+  const alVolver = () => { if (!cv.isConnected) return document.removeEventListener('visibilitychange', alVolver); if (document.visibilityState === 'visible') repintar(); };
+  document.addEventListener('visibilitychange', alVolver);
   const [A, B] = c.cats, conc = c.P.cols[0];
   const nomA = etiqueta(conc, A), nomB = etiqueta(conc, B);
   const vA = minuscula(breve(nomA)), vB = minuscula(breve(nomB));

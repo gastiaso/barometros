@@ -108,6 +108,19 @@ const DEFECTO_MOVIL = [
   { preg: 'prob_esp' },
   { preg: 'eco_esp' },
 ];
+/* Enlaces con nombre (#vivienda, #lideres…): una selección de paneles cada uno, en la misma notación que DEFECTO */
+const PRESETS = {
+  voto: [{ preg: 'intencion_voto_r' }, { preg: 'voto_simpatia' }, { tipo: 'comparar', preg: 'intencion_voto_r' }],
+  edad: [{ tipo: 'barras', preg: 'intencion_voto_r', cruce: 'edad_g', ancho: true, cats: ['PSOE', 'PP', 'VOX', 'SUMAR', 'PODEMOS', 'SALF', 'NO_VOTARIA', 'NS'] }, { preg: 'intencion_voto_r', cruce: 'edad_g', cat1: 'VOX' }, { preg: 'intencion_voto_r', cruce: 'edad_g', cat1: 'PSOE' }],
+  transferencias: [{ tipo: 'transferencias', preg: 'intencion_voto_r', acum: 3, ancho: true }],
+  lideres: [{ preg: 'lideres' }, { preg: 'pref_presidente', catsEtq: ['Pedro Sánchez', 'Alberto Núñez Feijóo', 'Santiago Abascal', 'Yolanda Díaz', 'Gabriel Rufián', 'Irene Montero'] }],
+  problemas: [{ preg: 'prob_esp' }, { preg: 'prob_per' }, { tipo: 'calor', preg: 'prob_esp', ancho: true }],
+  vivienda: [{ preg: 'prob_esp', catsEtq: ['La vivienda'] }, { preg: 'prob_per', catsEtq: ['La vivienda'] }, { preg: 'prob_esp', cruce: 'edad_g', cat1Etq: 'La vivienda' }, { tipo: 'mapa', indEtq: ['prob_esp', 'La vivienda'], acum: 6 }],
+  economia: [{ preg: 'eco_esp' }, { preg: 'eco_per' }],
+  ideologia: [{ preg: 'ideologia' }, { tipo: 'dispersion', grupo: 'voto_simpatia', x: { preg: 'ideologia' }, yEtq: ['prob_esp', 'La vivienda'], acum: 3 }],
+  recuerdo: [{ preg: 'intencion_voto_r', recuerdo: true }, { preg: 'recuerdo_voto' }],
+  puntos: [{ tipo: 'puntos', ancho: true }],
+};
 const esMovil = () => matchMedia('(max-width: 640px)').matches;
 const CLAVE = 'bet-paneles-v4';
 const NOTA_RECUERDO = 'Reponderado por recuerdo de voto: los pesos del CIS se ajustan para que quienes podían votar reproduzcan la participación de las últimas generales, y quienes recuerdan su voto, el resultado (2019 hasta septiembre de 2023; 2023 desde octubre). Es una estimación propia y no coincide con las tablas del CIS. El margen de error usa el efecto de diseño de los nuevos pesos, mayor que el del CIS.';
@@ -474,12 +487,18 @@ const breveRuptura = d => {
 
 /* ================= paleta ================= */
 let PAL = {};
+/* Valores de la paleta clara, por si alguna variable CSS no se resuelve al leerla (hoja aún no aplicada, navegador con
+   problemas): un canvas con fillStyle inválido pinta en negro, y un SVG con fill vacío también */
+const PAL_DEFECTO = { surface: '#f7f6f3', ink: '#1c1d1f', ink2: '#4f5257', ink3: '#65686d', line: '#dcdad5', line2: '#c4c1bb', acc: '#b2422e',
+  cat: ['#d64a33', '#1794b5', '#a93772', '#bc9121', '#284e99', '#6f7d1a', '#8c64b7', '#177c52', '#e8899a', '#3f8fd0', '#b0652a', '#6a5bd8'],
+  fontD: "Bahnschrift,'DIN Alternate','DIN 2014','D-DIN','Roboto Condensed','Arial Narrow',sans-serif" };
 function leerPaleta() {
   const cs = getComputedStyle(document.documentElement);
-  const v = n => cs.getPropertyValue(n).trim();
-  PAL = { surface: v('--surface'), ink: v('--ink'), ink2: v('--ink2'), ink3: v('--ink3'), line: v('--line'), line2: v('--line2'),
-    acc: v('--acc'), band: +v('--band') || .12, cat: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(i => v('--c' + i)), font: getComputedStyle(document.body).fontFamily,
-    fontD: v('--font-d') };
+  const v = (n, d) => cs.getPropertyValue(n).trim() || d;
+  PAL = { surface: v('--surface', PAL_DEFECTO.surface), ink: v('--ink', PAL_DEFECTO.ink), ink2: v('--ink2', PAL_DEFECTO.ink2), ink3: v('--ink3', PAL_DEFECTO.ink3),
+    line: v('--line', PAL_DEFECTO.line), line2: v('--line2', PAL_DEFECTO.line2), acc: v('--acc', PAL_DEFECTO.acc), band: +v('--band', '') || .12,
+    cat: PAL_DEFECTO.cat.map((d, i) => v('--c' + (i + 1), d)), font: getComputedStyle(document.body).fontFamily || 'sans-serif',
+    fontD: v('--font-d', PAL_DEFECTO.fontD), completa: !!cs.getPropertyValue('--surface').trim() };
 }
 function colores(lista, cfg, dim = 'cat') {
   const P = preg(cfg.preg);
@@ -1108,23 +1127,29 @@ function guardar() {
 }
 const b64e = s => btoa(unescape(encodeURIComponent(s))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 const b64d = s => decodeURIComponent(escape(atob(s.replace(/-/g, '+').replace(/_/g, '/'))));
+const presetDeHash = () => { const h = location.hash.slice(1); return PRESETS[h] ? h : null; };
 function cargarPaneles() {
   let ps = null;
   if (location.hash.startsWith('#p=')) { try { ps = JSON.parse(b64d(location.hash.slice(3))); } catch (e) { ps = null; } }
+  if (presetDeHash()) ps = resolver(PRESETS[presetDeHash()]);
   if (!ps) { try { ps = JSON.parse(localStorage.getItem(CLAVE) || 'null'); } catch (e) { ps = null; } }
   if (!Array.isArray(ps) || !ps.length) ps = defecto();
   PANELES = ps.filter(p => VISTAS[p.tipo] || preg(p.preg)).map(p => ({ ...p, id: nuevoId() }));
 }
 // paneles de partida; las categorías indicadas por etiqueta se traducen a identificadores
-function defecto() {
+function resolver(lista) {
   const porEtq = (concepto, et) => Object.entries(LAB[concepto] || {}).find(([, e]) => e === et)?.[0];
-  return (META.veda ? DEFECTO_VEDA : esMovil() ? DEFECTO_MOVIL : DEFECTO).map(p => {
-    const { catsEtq, yEtq, indEtq, ...r } = p;
-    if (catsEtq) r.cats = catsEtq.map(e => porEtq(p.preg, e)).filter(Boolean);
+  return lista.map(p => {
+    const { catsEtq, cat1Etq, yEtq, indEtq, ...r } = p;
+    if (catsEtq) r.cats = catsEtq.map(e => porEtq(preg(p.preg).cols[0], e)).filter(Boolean);
+    if (cat1Etq) r.cat1 = porEtq(preg(p.preg).cols[0], cat1Etq);
     if (yEtq) r.y = { preg: yEtq[0], cat: porEtq(preg(yEtq[0]).cols[0], yEtq[1]) };
     if (indEtq) r.ind = { preg: indEtq[0], cat: porEtq(preg(indEtq[0]).cols[0], indEtq[1]) };
     return r;
   });
+}
+function defecto() {
+  return resolver(META.veda ? DEFECTO_VEDA : esMovil() ? DEFECTO_MOVIL : DEFECTO);
 }
 
 /* ================= editor ================= */
@@ -1539,7 +1564,7 @@ function mostrarVista(t) {
   VISTAS_WEB.forEach(v => { const el = $('#view-' + v); if (el) el.hidden = v !== t; });
 }
 /* La pestaña va en la dirección (#que, #series, #meth, #datos): el botón atrás vuelve a la anterior */
-const vistaDeHash = () => { const h = location.hash.slice(1); return h.startsWith('p=') ? 'series' : VISTAS_WEB.includes(h) ? h : null; };
+const vistaDeHash = () => { const h = location.hash.slice(1); return h.startsWith('p=') || PRESETS[h] ? 'series' : VISTAS_WEB.includes(h) ? h : null; };
 function pestana(t, historial = true) {
   if (historial && vistaDeHash() !== t) history.pushState(null, '', '#' + t);
   mostrarVista(t);

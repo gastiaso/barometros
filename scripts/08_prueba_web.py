@@ -47,7 +47,9 @@ CALCULAR = """async (refs) => {
     else if (tipo === 'media') { spec = { preg: col }; id = col; }
     else { spec = { preg: col }; id = cat; }
     const res = await calcular({ ...spec, desde: est.mes, hasta: est.mes });
-    out.push({ ...r, web: res.filas[0].grupos[0].vals[id] ?? 0 });
+    // varias categorías unidas con «+» se suman, como en R/validar.R
+    const vals = res.filas[0].grupos[0].vals;
+    out.push({ ...r, web: tipo === 'media' ? (vals[id] ?? 0) : id.split('+').reduce((a, k) => a + (vals[k] ?? 0), 0) });
   }
   return out;
 }"""

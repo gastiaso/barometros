@@ -4,6 +4,10 @@ Registro de los cambios que afectan a los datos publicados (Parquet, columnas de
 
 ## Sin publicar
 
+Nivel 4 de la auditoría (PR #17):
+
+- **Validación con las notas de estimación del CIS**: `scripts/10_referencias_notas.py` extrae la intención directa recodificada («voto directo en la encuesta») de las 64 notas y la añade a `inventario/referencias_cis.csv` (1.077 cifras nuevas; 1.262 en total). 22 cifras de diez barómetros no cuadran con el fichero publicado (de 0,05 a 0,23 puntos; las mayores, PP y VOX en junio de 2026): quedan con tolerancia y motivo en `inventario/referencias_excepciones.csv` y anotadas en la documentación. `R/validar.R` y la prueba de la web admiten indicadores que suman categorías (`A+B`).
+
 Nivel 3 de la auditoría (PR #15):
 
 - **Recuerdo y participación de septiembre de 2023 (3420, postelectoral)**: se toman del módulo postelectoral (RECUERDO1, PARTICIPACIONG1, RECUVOTOG1R), que preguntan por las generales del 23J, en vez de las preguntas habituales, que ese mes seguían refiriéndose a 2019. R09 (cambio de referencia del recuerdo) pasa de octubre a septiembre de 2023; la reponderación por recuerdo de ese barómetro se ajusta al 23J (efecto de diseño 1,47 en vez de 1,73). Cambian `recuerdo_voto`, `recuerdo_votantes_r`, `participacion_g` y `peso_recuerdo` del estudio 3420 en el Parquet; el resto de estudios no cambia. Ese mes el voto por correo queda como categoría aparte de la participación. La rejilla de «Construye tu estimación» de septiembre de 2023 (`estimacion/rejilla.csv.gz`) está recalculada con los nuevos pesos: con la corrección por recuerdo, ese mes el PP sube unos 3 puntos y Sumar y VOX bajan unos 2 (M3: PP 34,6 % y PSOE 32,2 % en vez de 31,3 % y 30,9 %); las combinaciones sin corrección no cambian. Nuevo `inventario/variables_manuales.csv` para imponer una variable a un concepto en un estudio (`02_crosswalk.py`).

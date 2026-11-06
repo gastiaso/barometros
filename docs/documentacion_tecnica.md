@@ -23,6 +23,7 @@ scripts/07_web.R                datos de la web: una columna comprimida por preg
 scripts/08_prueba_web.py        prueba en Chromium: la web recalcula las referencias del CIS y debe dar lo mismo que R
 scripts/07_estimacion.R         datos de «Construye tu estimación» (web/datos/estimacion.json) desde la rejilla ya calculada
 scripts/09_vista_previa.py      imagen para redes (web/img/vista-previa.png): captura de los paneles por defecto
+scripts/10_referencias_notas.py referencias de validación desde las notas de estimación del CIS (intención directa de los 64 barómetros)
 estimacion/                     estimación de voto: rejilla de supuestos (rejilla.R), modelos de referencia con remuestreo
                                 (modelos.R), estimación publicada por el CIS (estimacion_cis.csv) y resumen (resumen_rejilla.py)
 web/                            la web: index.html, css/ y js/ (d3 autoalojado, sin dependencias externas): comun.js (utilidades y catálogo), datos.js
@@ -45,6 +46,7 @@ python scripts/03_textos.py .
 python scripts/04_enunciados.py .
 python scripts/05_revision.py .
 python scripts/06_revision_xlsx.py .
+python scripts/10_referencias_notas.py <carpeta con estimacion_<estudio>.pdf>   # referencias desde las notas de estimación (opcional)
 Rscript -e 'targets::tar_make()'
 Rscript estimacion/rejilla.R          # rejilla de la estimación (cerca de una hora; solo cuando hay barómetro nuevo)
 Rscript scripts/07_web.R              # VEDA=1 para la versión sin series electorales
@@ -88,7 +90,8 @@ El paso de R necesita los paquetes `targets`, `haven`, `arrow`, `dplyr`, `tidyr`
 
 | Fichero | Contenido |
 |---|---|
-| `referencias_cis.csv` | Cifras publicadas por el CIS (avances de resultados) que el fichero armonizado debe reproducir; entrada editable |
+| `referencias_cis.csv` | Cifras publicadas por el CIS que el fichero armonizado debe reproducir: avances de resultados (a mano) y notas de estimación (`scripts/10_referencias_notas.py`) |
+| `referencias_excepciones.csv` | Cifras de las notas de estimación que no cuadran con el fichero publicado al redondeo: tolerancia y motivo (entrada editable de `10_referencias_notas.py`) |
 | `validacion_cifras_cis.csv` | Cifras publicadas por el CIS frente a las calculadas con el fichero armonizado |
 | `validacion_sin_mapa.csv` | Códigos presentes en los datos sin categoría armonizada (debe estar vacío) |
 | `validacion_anomalias_no_respuesta.csv` | Estudios con no respuesta muy por encima de la habitual del concepto |
@@ -167,6 +170,7 @@ R19 y R22 coinciden con una reordenación del cuestionario en octubre de 2023, s
    - 3582 (oct-2026): `ESTUDIOS` viene vacía (5.010 de 5.024 casos como N.C.). Se reconstruye desde `NIVELESTENTREV` con la correspondencia de 3571 y 3577; la distribución resultante coincide con la de 3577 a menos de 0,5 pp. La ponderación no está afectada: `ESCIDEOL` reproduce la cifra publicada.
    - 3502: el código 0 de `INTENCIONGALTER` (1.205 casos filtrados) está etiquetado «N.C.»; se trata como «No procede».
    - Códigos de partido sin etiqueta en 3457, 3502 y 3577, y etiquetas ambiguas en 3405 («PNC») y 3413 («Existe»): se resuelven en `codigos_sin_etiqueta.csv`.
+   - Las notas de estimación de 3384, 3403, 3435, 3445, 3478, 3505, 3510, 3514, 3562 y 3567 dan una intención directa que el fichero de microdatos publicado no reproduce exactamente (22 cifras, desviación de 0,05 a 0,23 puntos; las mayores, PP y VOX en 3567 y VOX en 3435). En los ocho barómetros con avance de resultados, el avance sí cuadra: la nota parece calcularse con una versión anterior del fichero. Sin confirmar con el CIS.
 9. **No respuesta armonizada por tipo, no por código:** NS (no sabe, «no sabe todavía»), NC (no contesta), NR (no recuerda) y NP (no procede: el entrevistado no recibió la pregunta). NP queda fuera de la base de los porcentajes; NS, NC y NR cuentan en ella, como en las publicaciones del CIS.
 
 ## Web
@@ -193,7 +197,7 @@ R19 y R22 coinciden con una reordenación del cuestionario en octubre de 2023, s
 ## Pendiente
 
 - R24 (cambio de la población de referencia de la ponderación, mar-2025): verificado en los datos. Los márgenes de sexo × edad que fija el peso son idénticos de jun-2024 a feb-2025 y cambian en mar-2025 a valores nuevos que se mantienen (65 y más: de 25,72 % a 26,02 %; 35-44: de 17,1-17,3 % a 16,4 %); el salto es menor de un punto y no se distingue en comunidad, tamaño de municipio ni estudios. Efecto inferior a dos décimas en los porcentajes nacionales; queda como ruptura técnica, sin corte.
-- `referencias_cis.csv` cubre ene-2021, oct-2021, oct-2022, oct-2023, mar-2025, mar-2026 y oct-2026 (185 cifras, con las nuevas variables de perfil solo en oct-2026), más la serie de ideología: 181 al redondeo y 4 con una décima de tolerancia (el avance usa una o dos entrevistas más que el fichero). Faltan referencias para problemas, preferencia como presidente, simpatía, cercanía y recuerdo.
+- `referencias_cis.csv`: 1.262 cifras. Intención directa recodificada (INTENCIONGR) de los 64 barómetros desde las notas de estimación del CIS (`scripts/10_referencias_notas.py`; «Otros partidos» y las cifras de 0,1 % ajustadas por el CIS quedan fuera, y las filas que agrupan dos categorías se comprueban como suma, con una décima de tolerancia) y 185 cifras de los avances de resultados de ocho barómetros (ene-2021, oct-2021, oct-2022, oct-2023, mar-2025, mar-2026 y oct-2026) más la serie de ideología. 22 cifras de las notas (10 barómetros) difieren del fichero entre una y dos décimas: `referencias_excepciones.csv` les da tolerancia 0,11 o 0,25 con el motivo. Faltan referencias para problemas, preferencia como presidente, simpatía, cercanía y recuerdo.
 - Si el CIS corrige el fichero de 3582, retirar la reconstrucción de `ESTUDIOS`.
 - Las 76 comprobaciones de códigos sin lista en el libro de códigos se apoyan solo en el .sav.
 

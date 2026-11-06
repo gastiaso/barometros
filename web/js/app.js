@@ -126,8 +126,9 @@ async function pintarResumen() {
   RESUMEN_LISTO = true;
   const n = EST.length;
   if (n < 2) return;
-  // abierto en pantallas anchas; en el móvil, cerrado para que los paneles no queden tres pantallas más abajo
-  let abierto = !esMovil();
+  // abierto en pantallas anchas y altas; en el móvil y en pantallas bajas (portátil pequeño, zoom alto), cerrado para que
+  // los paneles no queden varias pantallas más abajo
+  let abierto = !esMovil() && innerHeight >= 800;
   try { const v = localStorage.getItem('bet-resumen'); if (v) abierto = v === 'abierto'; } catch (e) { /* */ }
   const ult = EST[n - 1], ant = EST[n - 2];
   box.hidden = false;

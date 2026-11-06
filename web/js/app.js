@@ -250,7 +250,7 @@ async function calcular(cfg) {
     const cs = P.cols.map(c => COLS[c]);
     const K = ids.length;
     for (const e of meses) {
-      const base = new Float64Array(G), n = new Uint32Array(G), num = new Float64Array(G * K);
+      const base = new Float64Array(G), base2 = new Float64Array(G), n = new Uint32Array(G), num = new Float64Array(G * K);
       const marca = new Int32Array(K).fill(-1), pres = new Uint8Array(K);
       for (let r = e.desde; r < e.hasta; r++) {
         // respuestas que existen en el barómetro: las que alguien da en toda la muestra (sin filtro ni cruce)
@@ -267,7 +267,7 @@ async function calcular(cfg) {
         const k0 = mapas[0][c0 - 1];
         if (isNP[k0] || (cfg.exNR && isNR[k0])) continue;
         const w = peso[r];
-        base[g] += w; n[g]++;
+        base[g] += w; base2[g] += w * w; n[g]++;
         if (P.tipo === 'cat') { num[g * K + k0] += w; for (const kb of enBloque[k0]) num[g * K + kb] += w; continue; }
         for (let j = 0; j < cs.length; j++) {           // hasta tres menciones, sin contar dos veces la misma
           const c = cs[j][r]; if (c === 0) continue;
@@ -282,7 +282,7 @@ async function calcular(cfg) {
         const vals = {}, wnum = {};
         // 0 % solo si la respuesta existe ese mes; si no existía, no hay dato
         if (n[g] > 0) for (let k = 0; k < K; k++) if (pres[k]) { vals[ids[k]] = 100 * num[g * K + k] / base[g]; wnum[ids[k]] = num[g * K + k]; }
-        grupos.push({ n: n[g], base: base[g], vals, wnum });
+        grupos.push({ n: n[g], base: base[g], base2: base2[g], vals, wnum });
       }
       filas.push({ e, grupos, pres: ids.filter((id, k) => pres[k]) });
     }
@@ -292,7 +292,7 @@ async function calcular(cfg) {
   const cs = P.cols.map(c => COLS[c]);
   for (const e of meses) {
     const K = cs.length;
-    const sw = new Float64Array(G * K), swx = new Float64Array(G * K), swx2 = new Float64Array(G * K), n = new Uint32Array(G * K);
+    const sw = new Float64Array(G * K), sw2 = new Float64Array(G * K), swx = new Float64Array(G * K), swx2 = new Float64Array(G * K), n = new Uint32Array(G * K);
     for (let r = e.desde; r < e.hasta; r++) {
       if (fcol && fcol[r] !== fcod) continue;
       let g = 0;
@@ -300,23 +300,35 @@ async function calcular(cfg) {
       const w = peso[r];
       for (let k = 0; k < K; k++) {
         const v = cs[k][r]; if (v === 0) continue;
-        const i = g * K + k; sw[i] += w; swx[i] += w * v; swx2[i] += w * v * v; n[i]++;
+        const i = g * K + k; sw[i] += w; sw2[i] += w * w; swx[i] += w * v; swx2[i] += w * v * v; n[i]++;
       }
     }
     const grupos = [];
     for (let g = 0; g < G; g++) {
-      const vals = {}, ns = {}, sd = {}, a = {}, b = {}, c = {};
+      const vals = {}, ns = {}, sd = {}, a = {}, a2 = {}, b = {}, c = {};
       for (let k = 0; k < K; k++) {
         const i = g * K + k, id = P.cols[k];
-        if (n[i] > 0) { const m = swx[i] / sw[i]; vals[id] = m; ns[id] = n[i]; sd[id] = Math.sqrt(Math.max(0, swx2[i] / sw[i] - m * m)); a[id] = sw[i]; b[id] = swx[i]; c[id] = swx2[i]; }
+        if (n[i] > 0) { const m = swx[i] / sw[i]; vals[id] = m; ns[id] = n[i]; sd[id] = Math.sqrt(Math.max(0, swx2[i] / sw[i] - m * m)); a[id] = sw[i]; a2[id] = sw2[i]; b[id] = swx[i]; c[id] = swx2[i]; }
       }
-      grupos.push({ vals, ns, sd, sw: a, swx: b, swx2: c });
+      grupos.push({ vals, ns, sd, sw: a, sw2: a2, swx: b, swx2: c });
     }
     filas.push({ e, grupos });
   }
   return { P, cfg, filas, ids: P.cols.slice(), glev, unidad: 'media' };
 }
 
+/* Efecto de diseño de Kish de un conjunto de entrevistas: n · Σw² / (Σw)². El del subgrupo, no el del estudio entero,
+   porque en los cruces el peso puede estar correlacionado con el grupo (por nivel de estudios desde nov-2023, por ejemplo) */
+const kish = (n, sw, sw2) => (n > 0 && sw > 0 && sw2 > 0 ? n * sw2 / (sw * sw) : 1);
+const Z = 1.96;
+/* Intervalo al 95 % de un porcentaje: Wilson sobre el tamaño efectivo n/deff. No se trunca en 0 porque nunca baja de 0,
+   y cubre mejor que Wald cuando p es pequeño o la base es corta (50 entrevistas) */
+function intervaloPct(p, n, deff) {
+  const ne = n / deff, z2 = Z * Z;
+  const centro = (p + z2 / (2 * ne)) / (1 + z2 / ne);
+  const semi = Z * Math.sqrt(p * (1 - p) / ne + z2 / (4 * ne * ne)) / (1 + z2 / ne);
+  return { se: 100 * Math.sqrt(deff * p * (1 - p) / n), lo: 100 * Math.max(0, centro - semi), hi: 100 * Math.min(1, centro + semi) };
+}
 /* Series a dibujar a partir de la agregación */
 function puntoDe(res, f, g, id) {
   const media = res.unidad === 'media';
@@ -324,10 +336,13 @@ function puntoDe(res, f, g, id) {
   const v = gr.vals[id];
   const n = media ? (gr.ns[id] || 0) : gr.n;
   if (v == null || n < MIN_N) return { v: null, n, omit: v != null && n > 0 };
-  let se;
-  if (media) se = Math.sqrt(f.e.deff * gr.sd[id] ** 2 / n);
-  else { const p = v / 100; se = 100 * Math.sqrt(f.e.deff * p * (1 - p) / n); }
-  return { v, n, se, lo: Math.max(0, v - 1.96 * se), hi: v + 1.96 * se };
+  if (media) {
+    const deff = kish(n, gr.sw[id], gr.sw2?.[id]);
+    const se = Math.sqrt(deff * gr.sd[id] ** 2 / n);
+    return { v, n, se, deff, lo: v - Z * se, hi: v + Z * se };
+  }
+  const deff = kish(n, gr.base, gr.base2);
+  return { v, n, deff, ...intervaloPct(v / 100, n, deff) };
 }
 /* Acumula varios barómetros (índices de res.filas) para un grupo y una respuesta: suma de pesos y de casos */
 function acumular(res, idxs, g, id) {
@@ -337,18 +352,18 @@ function acumular(res, idxs, g, id) {
     const gr = res.filas[i].grupos[g]; if (!gr) continue;
     if (media) {
       const n = gr.ns[id] || 0; if (!n) continue;
-      N += n; B += gr.sw[id]; S += gr.swx[id]; S2 += gr.swx2[id]; D += res.filas[i].e.deff * n;
+      N += n; B += gr.sw[id]; S += gr.swx[id]; S2 += gr.swx2[id]; D += kish(n, gr.sw[id], gr.sw2?.[id]) * n;
     } else {
       if (!gr.n || !(id in gr.wnum)) continue;          // la respuesta no existía ese mes: el barómetro no cuenta
-      N += gr.n; B += gr.base; S += gr.wnum[id]; D += res.filas[i].e.deff * gr.n;
+      N += gr.n; B += gr.base; S += gr.wnum[id]; D += kish(gr.n, gr.base, gr.base2) * gr.n;
     }
   }
   if (!N) return { v: null, n: 0 };
   if (N < MIN_N) return { v: null, n: N, omit: true };
   const deff = D / N;
-  if (media) { const m = S / B, sd = Math.sqrt(Math.max(0, S2 / B - m * m)), se = Math.sqrt(deff * sd * sd / N); return { v: m, n: N, se, lo: m - 1.96 * se, hi: m + 1.96 * se }; }
-  const p = S / B, se = Math.sqrt(deff * p * (1 - p) / N);
-  return { v: 100 * p, n: N, se: 100 * se, lo: Math.max(0, 100 * (p - 1.96 * se)), hi: 100 * (p + 1.96 * se) };
+  if (media) { const m = S / B, sd = Math.sqrt(Math.max(0, S2 / B - m * m)), se = Math.sqrt(deff * sd * sd / N); return { v: m, n: N, se, deff, lo: m - Z * se, hi: m + Z * se }; }
+  const p = S / B;
+  return { v: 100 * p, n: N, deff, ...intervaloPct(p, N, deff) };
 }
 /* Los k barómetros consecutivos que terminan en el índice i (los que tienen la pregunta), sin cruzar una ruptura C de
    los conceptos del panel. Con exigirMes, si el barómetro i no tiene la pregunta no hay ventana (media móvil). */
@@ -364,10 +379,27 @@ function ventana(res, cfg, i, k, exigirMes = false) {
   }
   return out;
 }
+/* Ventana de la media móvil, centrada: el barómetro, el anterior y el siguiente (por índice, como «ventana»), sin cruzar
+   una ruptura C. En el último barómetro de cada tramo (o si el siguiente no tiene la pregunta) se toman los dos anteriores,
+   y en el primero los dos siguientes; esos puntos se marcan como provisionales. */
+function ventanaMovil(res, cfg, i) {
+  const F = res.filas;
+  if (!conDatos(F[i])) return { idxs: [], centrada: false };
+  const cortes = rupturas(cfg).filter(r => r.tipo === 'C').map(r => r.m);
+  const tramo = mes => cortes.filter(c => c <= mes).length;
+  const t = tramo(F[i].e.mes);
+  const mismo = j => j >= 0 && j < F.length && tramo(F[j].e.mes) === t;
+  const con = j => mismo(j) && conDatos(F[j]);
+  if (con(i - 1) && con(i + 1)) return { idxs: [i - 1, i, i + 1], centrada: true };
+  const idxs = [i];
+  if (!con(i + 1)) { for (let j = i - 1; j >= i - 2 && mismo(j); j--) if (conDatos(F[j])) idxs.push(j); }
+  else { for (let j = i + 1; j <= i + 2 && mismo(j); j++) if (conDatos(F[j])) idxs.push(j); }
+  return { idxs, centrada: false };
+}
 function series(res, cfg) {
   const { P, filas, glev } = res;
   const punto = cfg.movil
-    ? (f, g, id) => { const i = filas.indexOf(f); return acumular(res, ventana(res, cfg, i, 3, true), g, id); }
+    ? (f, g, id) => { const i = filas.indexOf(f); const w = ventanaMovil(res, cfg, i); const pt = acumular(res, w.idxs, g, id); if (pt.v != null && !w.centrada) pt.prov = true; return pt; }
     : (f, g, id) => puntoDe(res, f, g, id);
   const conc = P.tipo === 'multi' ? P.cols[0] : P.cols[0];
   let out;
@@ -614,7 +646,8 @@ function dibujar(host, res, cfg) {
         return `<div class="r"><span><i class="sw" style="background:${col[s.id]}"></i>${esc(s.label)}</span><span>${v}${d}</span></div>`;
       }).join('');
       const n = !cfg.cruce && !media ? ser[0].pts[i].n : null;
-      const notas = rup.filter(r => r.m === mes).map(r => `<div class="tnote"><b>${esc(r.ruptura_id)}, tipo ${esc(r.tipo)}</b><br>${esc(breveRuptura(r.descripcion))}</div>`).join('') +
+      const prov = cfg.movil && ser.some(s => s.pts[i].prov) ? '<div class="tnote">Media provisional: sin barómetro posterior (o anterior) en el tramo, resume este y los dos más próximos.</div>' : '';
+      const notas = prov + rup.filter(r => r.m === mes).map(r => `<div class="tnote"><b>${esc(r.ruptura_id)}, tipo ${esc(r.tipo)}</b><br>${esc(breveRuptura(r.descripcion))}</div>`).join('') +
         notasEstudio(cfg, mes).map(t => `<div class="tnote">${esc(t)}</div>`).join('');
       showTip(`<b>${esc(mesLargo(mes))}</b>${rows}<div class="tnote">Estudio ${esc(res.filas[i].e.estudio)}${n ? `, base ${fmtInt(n)} entrevistas` : ''}. Variación en puntos respecto al barómetro anterior${cRupt.length ? '; «s. c.»: sin comparación por ruptura C' : ''}.</div>${notas}`, ev);
     })
@@ -811,7 +844,7 @@ function metaPanel(cfg, res) {
   const per = !f.length ? '' : cfg.tipo === 'barras' ? `${mesLargo(f[0].e.mes)} (estudio ${f[0].e.estudio})` : `${mesCorto(f[0].e.mes)} a ${mesCorto(f[f.length - 1].e.mes)}`;
   const fil = cfg.filtro ? `. Solo ${etiqueta(cfg.filtro.col, cfg.filtro.val)}` : '';
   const exn = cfg.exNR && res.unidad !== 'media' ? '. Sin NS/NC en la base' : '';
-  const mov = cfg.movil && cfg.tipo !== 'barras' ? '. Media móvil de 3 barómetros: cada punto resume ese barómetro y los dos anteriores' : '';
+  const mov = cfg.movil && cfg.tipo !== 'barras' ? '. Media móvil centrada de 3 barómetros: cada punto resume ese barómetro, el anterior y el siguiente (el último, los dos anteriores)' : '';
   const rec = cfg.recuerdo ? '. Pesos ajustados al recuerdo de voto (estimación propia)' : '';
   return `${ud}. ${per}${fil}${exn}${mov}${rec}${textoBloques(cfg)}${avisoVoto(cfg)}`;
 }
@@ -1159,7 +1192,7 @@ async function pintarEditor() {
   const chk = (id, lab, v) => `<label class="row"><input type="checkbox" id="${id}"${v ? ' checked' : ''}> ${lab}</label>`;
   const opExNR = chk('f-exnr', 'Excluir de la base «no sabe», «no contesta» y «no recuerda»', b.exNR);
   const opBanda = chk('f-banda', tipo === 'dispersion' ? 'Mostrar el margen de error en los dos ejes' : 'Mostrar el margen de error', b.banda ?? (tipo === 'lineas' && !b.cruce));
-  const opMovil = chk('f-movil', 'Media móvil de 3 barómetros: cada punto resume ese barómetro y los dos anteriores (suaviza los cruces con poca muestra)', b.movil);
+  const opMovil = chk('f-movil', 'Media móvil centrada de 3 barómetros: cada punto resume ese barómetro, el anterior y el siguiente (suaviza los cruces con poca muestra)', b.movil);
   const opRec = META.columnas.peso_recuerdo ? chk('f-recuerdo', 'Reponderar por recuerdo de voto (estimación propia: no coincide con el CIS)', b.recuerdo) : '';
   const opAncho = chk('f-ancho', 'Panel a todo el ancho', b.ancho);
   const fApilar = tipo === 'barras' && preg(b.preg)?.tipo === 'cat' ? `<div class="fld"><label for="f-apilar">Disposición</label><select id="f-apilar">${[['', 'Automática: apiladas con cruce y cinco o más respuestas'], ['agrupadas', 'Barras agrupadas'], ['apiladas', 'Barras apiladas al 100 %']].map(([k, t]) => `<option value="${k}"${(b.apilar || '') === k ? ' selected' : ''}>${t}</option>`).join('')}</select></div>` : '<div class="fld"></div>';
@@ -1384,7 +1417,21 @@ const RESUMEN = [
   { preg: 'eco_per', t: 'Situación económica personal' },
   { preg: 'ideologia', t: 'Autoubicación ideológica' },
 ];
-const Z_RESUMEN = 2.576, MIN_DIF = 1, MIN_DIF_MEDIA = 0.1, MIN_PCT_RESUMEN = 2, MAX_CAMBIOS = 4;
+const Q_FDR = 0.05, MIN_DIF = 1, MIN_DIF_MEDIA = 0.1, MIN_PCT_RESUMEN = 2, MAX_CAMBIOS = 4;
+/* Función de distribución normal estándar (Abramowitz y Stegun 7.1.26; error < 1,5e-7) */
+function phi(z) {
+  const t = 1 / (1 + 0.3275911 * Math.abs(z) / Math.SQRT2);
+  const y = 1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-z * z / 2);
+  return z >= 0 ? 0.5 + 0.5 * y : 0.5 - 0.5 * y;
+}
+const pBilateral = z => 2 * (1 - phi(Math.abs(z)));
+/* Benjamini–Hochberg: el mayor p que cumple p(k) ≤ k·q/m; todo p menor o igual se declara significativo */
+function umbralBH(ps, q = Q_FDR) {
+  const o = ps.slice().sort((a, b) => a - b), m = o.length;
+  let u = -1;
+  for (let k = m; k >= 1; k--) if (o[k - 1] <= k * q / m) { u = o[k - 1]; break; }
+  return u;
+}
 async function cambiosUltimo(spec) {
   const P = preg(spec.preg);
   if (!disponible(P)) return null;
@@ -1398,7 +1445,7 @@ async function cambiosUltimo(spec) {
   const corte = rupturas({ preg: spec.preg }).find(r => r.tipo === 'C' && r.m > fA.e.mes && r.m <= fB.e.mes);
   const base = { ...spec, fA, fB, media, conc: P.cols[0] };
   if (corte) return { ...base, corte };
-  const gA = fA.grupos[0], gB = fB.grupos[0], cambios = [];
+  const gA = fA.grupos[0], gB = fB.grupos[0], candidatos = [];
   for (const id of res.ids) {
     if (NR.has(id) && id !== 'NS') continue;
     const vA = gA.vals[id], vB = gB.vals[id];
@@ -1407,16 +1454,26 @@ async function cambiosUltimo(spec) {
     if (media) {
       const nA = gA.ns[id], nB = gB.ns[id];
       if (nA < MIN_N || nB < MIN_N || Math.abs(d) < MIN_DIF_MEDIA) continue;
-      se = Math.sqrt(fA.e.deff * gA.sd[id] ** 2 / nA + fB.e.deff * gB.sd[id] ** 2 / nB);
+      se = Math.sqrt(kish(nA, gA.sw[id], gA.sw2?.[id]) * gA.sd[id] ** 2 / nA + kish(nB, gB.sw[id], gB.sw2?.[id]) * gB.sd[id] ** 2 / nB);
     } else {
       if (Math.max(vA, vB) < MIN_PCT_RESUMEN || Math.abs(d) < MIN_DIF) continue;
       const pA = vA / 100, pB = vB / 100;
-      se = 100 * Math.sqrt(fA.e.deff * pA * (1 - pA) / gA.n + fB.e.deff * pB * (1 - pB) / gB.n);
+      se = 100 * Math.sqrt(kish(gA.n, gA.base, gA.base2) * pA * (1 - pA) / gA.n + kish(gB.n, gB.base, gB.base2) * pB * (1 - pB) / gB.n);
     }
-    if (se > 0 && Math.abs(d) / se >= Z_RESUMEN) cambios.push({ id, vA, vB, d });
+    if (se > 0) candidatos.push({ id, vA, vB, d, p: pBilateral(d / se) });
   }
-  cambios.sort((a, z) => Math.abs(z.d) - Math.abs(a.d));
-  return { ...base, cambios: cambios.slice(0, MAX_CAMBIOS), mas: Math.max(0, cambios.length - MAX_CAMBIOS) };
+  return { ...base, candidatos };
+}
+/* Con todos los candidatos del resumen a la vista, fija el umbral BH y reparte los cambios por pregunta */
+function aplicarFDR(rs) {
+  const todos = rs.flatMap(r => r.candidatos || []);
+  const u = umbralBH(todos.map(c => c.p));
+  for (const r of rs) {
+    if (!r.candidatos) continue;
+    const cambios = r.candidatos.filter(c => c.p <= u).sort((a, z) => Math.abs(z.d) - Math.abs(a.d));
+    r.cambios = cambios.slice(0, MAX_CAMBIOS); r.mas = Math.max(0, cambios.length - MAX_CAMBIOS);
+  }
+  return { rs, m: todos.length };
 }
 let RESUMEN_LISTO = false;
 async function pintarResumen() {
@@ -1438,8 +1495,8 @@ async function pintarResumen() {
     box.addEventListener('toggle', function abrir() { if (box.open) { box.removeEventListener('toggle', abrir); ok(); } });
   });
   box.addEventListener('toggle', () => { try { localStorage.setItem('bet-resumen', box.open ? 'abierto' : 'cerrado'); } catch (e) { /* */ } });
-  let rs;
-  try { rs = (await Promise.all(RESUMEN.map(cambiosUltimo))).filter(Boolean); }
+  let rs, m = 0;
+  try { rs = (await Promise.all(RESUMEN.map(cambiosUltimo))).filter(Boolean); ({ m } = aplicarFDR(rs)); }
   catch (e) { box.querySelector('.note').textContent = e.message; return; }
   const fmtv = (v, media) => media ? fmt2(v) : fmt1(v) + ' %';
   const fmtd = (d, media) => `${d > 0 ? '+' : '−'}${media ? fmt2(Math.abs(d)) : fmt1(Math.abs(d))}`;
@@ -1458,7 +1515,7 @@ async function pintarResumen() {
     ${sin.length ? `<p class="note"><b>Sin cambios significativos:</b> ${esc(sin.join(', ').toLowerCase())}.</p>` : ''}
     ${cortes.map(r => `<p class="note"><b>${esc(r.t)}:</b> sin comparación por la ruptura ${esc(r.corte.ruptura_id)} (${esc(breveRuptura(r.corte.descripcion))}).</p>`).join('')}
     ${ausentes.length ? `<p class="note"><b>No se preguntan en el último barómetro:</b> ${esc(ausentes.join(', ').toLowerCase())}.</p>` : ''}
-    <p class="note rs-crit">Solo cambios significativos al 99 % (con el efecto de diseño de cada estudio) y de al menos un punto, o una décima en las valoraciones. Con tantas comparaciones a la vez, un umbral menos exigente confundiría ruido con cambio. Variación en puntos; respuestas de menos del ${MIN_PCT_RESUMEN} % fuera. Un cambio significativo no siempre es un cambio de opinión: también puede deberse al cuestionario, por ejemplo a preguntas previas sobre el mismo tema.</p>`;
+    <p class="note rs-crit">Solo cambios de al menos un punto (una décima en las valoraciones) que siguen siendo significativos tras corregir por comparaciones múltiples: ${m} comparaciones a la vez, con la tasa de falsos descubrimientos controlada al 5 % (Benjamini–Hochberg) y el efecto de diseño de cada estudio. Variación en puntos; respuestas de menos del ${MIN_PCT_RESUMEN} % fuera. Un cambio significativo no siempre es un cambio de opinión: también puede deberse al cuestionario, por ejemplo a preguntas previas sobre el mismo tema.</p>`;
   box.querySelectorAll('[data-comparar]').forEach(bt => bt.addEventListener('click', () => {
     PANELES.unshift({ tipo: 'comparar', preg: bt.dataset.comparar, mesA: bt.dataset.mesa, id: nuevoId() });
     guardar(); renderTodo();

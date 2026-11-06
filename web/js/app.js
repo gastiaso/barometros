@@ -591,6 +591,21 @@ function dibujar(host, res, cfg) {
       .on('pointermove', ev => { ev.stopPropagation(); showTip(`<b>${esc(mesLargo(mk.mes))}</b>` + mk.rs.map(r => `<div class="tnote"><b>${esc(tituloRuptura(r))}, tipo ${esc(r.tipo)}</b><br>${esc(breveRuptura(r.descripcion))}</div>`).join(''), ev); })
       .on('pointerleave', hideTip);
   });
+  // convocatorias electorales (capa opcional): generales y europeas con línea punteada y rótulo en la base;
+  // autonómicas y municipales, marca corta en el eje. Solo convocatorias: ningún otro acontecimiento.
+  const finMes = meses[meses.length - 1];
+  const evs = cfg.elecciones && META.eventos ? META.eventos.filter(e => e.fecha.slice(0, 7) >= meses[0] && e.fecha.slice(0, 7) <= finMes) : [];
+  [...d3.group(evs, e => e.fecha)].forEach(([f, es]) => {
+    const xe = Math.min(x.range()[1], x(new Date(f + 'T00:00:00Z'))), mayor = es.some(e => e.ambito === 'generales' || e.ambito === 'europeas');
+    const g = svg.append('g');
+    g.append('line').attr('x1', xe).attr('x2', xe).attr('y1', mayor ? m.t : H - m.b - 10).attr('y2', H - m.b)
+      .attr('stroke', PAL.ink3).attr('stroke-width', 1).attr('stroke-dasharray', mayor ? '1 3' : null);
+    if (mayor) g.append('text').attr('x', xe + 3).attr('y', H - m.b - 4).attr('font-family', PAL.fontD).attr('font-size', 10).attr('fill', PAL.ink3)
+      .text(es.find(e => e.ambito === 'generales' || e.ambito === 'europeas').etiqueta.replace(/^(Generales|Europeas) del? /, ''));
+    g.append('rect').attr('x', xe - 5).attr('y', H - m.b - 12).attr('width', 10).attr('height', 14).attr('fill', 'transparent').style('cursor', 'help')
+      .on('pointermove', ev => { ev.stopPropagation(); showTip(`<b>${esc(f.slice(8, 10))}-${esc(f.slice(5, 7))}-${esc(f.slice(0, 4))}</b>` + es.map(e => `<div class="tnote">${esc(e.etiqueta)}</div>`).join(''), ev); })
+      .on('pointerleave', hideTip);
+  });
   // etiquetas de las rupturas C, agrupadas cuando caen a menos de 34 px (en la guía, con etiqueta corta, a 140 px)
   const grupos = [], dist = cfg.guia ? 140 : 34;
   marcas.filter(mk => mk.esC).sort((a, z) => a.x - z.x).forEach(mk => {
@@ -880,6 +895,7 @@ function panelEl(cfg) {
     <div class="acts">
       <button class="ib" type="button" data-a="edit">Configurar</button>
       ${cfg.tipo && cfg.tipo !== 'calor' ? '' : `<button class="ib" type="button" data-a="rupt" aria-pressed="${!cfg.sinRupturas}">${cfg.sinRupturas ? 'Mostrar rupturas' : 'Ocultar rupturas'}</button>`}
+      ${!cfg.tipo && META.eventos?.length ? `<button class="ib" type="button" data-a="elec" aria-pressed="${!!cfg.elecciones}" title="Marcar las convocatorias electorales en el eje">Elecciones</button>` : ''}
       <button class="ib" type="button" data-a="tabla" aria-pressed="false">Tabla</button>
       <button class="ib" type="button" data-a="csv">CSV</button>
       <button class="ib" type="button" data-a="png">PNG</button>
@@ -900,6 +916,11 @@ function panelEl(cfg) {
       const p = PANELES[i]; p.sinRupturas = !p.sinRupturas; guardar();
       ev.target.textContent = p.sinRupturas ? 'Mostrar rupturas' : 'Ocultar rupturas';
       ev.target.setAttribute('aria-pressed', String(!p.sinRupturas));
+      renderPanel(el, p);
+    }
+    if (a === 'elec') {
+      const p = PANELES[i]; p.elecciones = !p.elecciones; guardar();
+      ev.target.setAttribute('aria-pressed', String(!!p.elecciones));
       renderPanel(el, p);
     }
     if (a === 'csv') exportarCSV(el);

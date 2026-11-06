@@ -68,20 +68,21 @@ async function pintarEditor() {
   const opBanda = chk('f-banda', tipo === 'dispersion' ? 'Mostrar el margen de error en los dos ejes' : 'Mostrar el margen de error', b.banda ?? (tipo === 'lineas' && !b.cruce));
   const opMovil = chk('f-movil', 'Media móvil centrada de 3 barómetros: cada punto resume ese barómetro, el anterior y el siguiente (suaviza los cruces con poca muestra)', b.movil);
   const opRec = META.columnas.peso_recuerdo ? chk('f-recuerdo', 'Reponderar por recuerdo de voto (estimación propia: no coincide con el CIS)', b.recuerdo) : '';
+  const opEst = META.columnas.peso_estudios ? chk('f-estudios', 'Peso homogéneo con nivel de estudios desde 2021: R10 deja de cortar la serie (estimación propia: no coincide con el CIS antes de nov-2023)', b.pesoEstudios) : '';
   const opAncho = chk('f-ancho', 'Panel a todo el ancho', b.ancho);
   const fApilar = tipo === 'barras' && preg(b.preg)?.tipo === 'cat' ? `<div class="fld"><label for="f-apilar">Disposición</label><select id="f-apilar">${[['', 'Automática: apiladas con cruce y cinco o más respuestas'], ['agrupadas', 'Barras agrupadas'], ['apiladas', 'Barras apiladas al 100 %']].map(([k, t]) => `<option value="${k}"${(b.apilar || '') === k ? ' selected' : ''}>${t}</option>`).join('')}</select></div>` : '<div class="fld"></div>';
   const lista = `<div class="fld full" id="f-cats"><span class="lab">Respuestas</span><p class="hint">Calculando…</p></div>`;
   const fTam = `<div class="fld"><label for="f-tam">Tamaño de los puntos</label><select id="f-tam"><option value=""${b.tam !== 'n' ? ' selected' : ''}>Peso del grupo en la muestra ponderada</option><option value="n"${b.tam === 'n' ? ' selected' : ''}>Número de entrevistas</option></select></div>`;
   const fEje = `<div class="fld"><label for="f-eje">En vertical</label><select id="f-eje"><option value="edad"${b.eje !== 'ideologia' ? ' selected' : ''}>Edad</option><option value="ideologia"${b.eje === 'ideologia' ? ' selected' : ''}>Autoubicación ideológica (1 a 10)</option></select><span class="hint">En horizontal, el mes; cada punto cae al azar dentro del suyo.</span></div>`;
   const secciones = {
-    lineas: () => fPreg + fCruce + fFiltro + fPeriodo + lista + `<div class="fld full"><span class="lab">Opciones</span>${opExNR}${opBanda}${opMovil}${opRec}${opAncho}</div>`,
-    barras: () => fPreg + fCruce + fFiltro + fMes('f-mes', 'Barómetro', b.mes) + fApilar + lista + `<div class="fld full"><span class="lab">Opciones</span>${opExNR}${opBanda}${opRec}${opAncho}</div>`,
-    comparar: () => fPreg + fFiltro + '<div class="fld"></div>' + fMes('f-mesA', 'Barómetro inicial', mesInicialComparar(b)) + fMes('f-mesB', 'Barómetro final', b.mesB) + lista + `<div class="fld full"><span class="lab">Opciones</span>${opExNR}${opBanda}${opRec}${opAncho}</div>`,
-    calor: () => fPreg + fFiltro + '<div class="fld"></div>' + fPeriodo + lista + `<div class="fld full"><span class="lab">Opciones</span>${opExNR}${opRec}${opAncho}</div>`,
-    transferencias: () => fPreg + fFiltro + '<div class="fld"></div>' + fMes('f-mes', 'Último barómetro', b.mes) + fAcum + lista + `<div class="fld full"><span class="lab">Opciones</span>${opExNR}${opAncho}</div>`,
+    lineas: () => fPreg + fCruce + fFiltro + fPeriodo + lista + `<div class="fld full"><span class="lab">Opciones</span>${opExNR}${opBanda}${opMovil}${opRec}${opEst}${opAncho}</div>`,
+    barras: () => fPreg + fCruce + fFiltro + fMes('f-mes', 'Barómetro', b.mes) + fApilar + lista + `<div class="fld full"><span class="lab">Opciones</span>${opExNR}${opBanda}${opRec}${opEst}${opAncho}</div>`,
+    comparar: () => fPreg + fFiltro + '<div class="fld"></div>' + fMes('f-mesA', 'Barómetro inicial', mesInicialComparar(b)) + fMes('f-mesB', 'Barómetro final', b.mesB) + lista + `<div class="fld full"><span class="lab">Opciones</span>${opExNR}${opBanda}${opRec}${opEst}${opAncho}</div>`,
+    calor: () => fPreg + fFiltro + '<div class="fld"></div>' + fPeriodo + lista + `<div class="fld full"><span class="lab">Opciones</span>${opExNR}${opRec}${opEst}${opAncho}</div>`,
+    transferencias: () => fPreg + fFiltro + '<div class="fld"></div>' + fMes('f-mes', 'Último barómetro', b.mes) + fAcum + lista + `<div class="fld full"><span class="lab">Opciones</span>${opExNR}${opEst}${opAncho}</div>`,
     dispersion: () => `<div class="fld full"><label for="f-grupo">Cada punto es un grupo de</label><select id="f-grupo">${GRUPOS_DISP.filter(([k]) => META.columnas[k]).map(([k, t]) => `<option value="${k}"${k === b.grupo ? ' selected' : ''}>${esc(t)}</option>`).join('')}</select></div>` +
-      selectorIndicador('x', b.x, 'Eje horizontal') + selectorIndicador('y', b.y, 'Eje vertical') + fFiltro + fTam + fMes('f-mes', 'Último barómetro', b.mes) + fAcum + lista + `<div class="fld full"><span class="lab">Opciones</span>${opBanda}${opRec}${opAncho}</div>`,
-    mapa: () => selectorIndicador('i', b.ind, 'Indicador') + fFiltro + '<div class="fld"></div>' + fMes('f-mes', 'Último barómetro', b.mes) + fAcum + `<div class="fld full"><span class="lab">Opciones</span>${opExNR}${opRec}${opAncho}</div>`,
+      selectorIndicador('x', b.x, 'Eje horizontal') + selectorIndicador('y', b.y, 'Eje vertical') + fFiltro + fTam + fMes('f-mes', 'Último barómetro', b.mes) + fAcum + lista + `<div class="fld full"><span class="lab">Opciones</span>${opBanda}${opRec}${opEst}${opAncho}</div>`,
+    mapa: () => selectorIndicador('i', b.ind, 'Indicador') + fFiltro + '<div class="fld"></div>' + fMes('f-mes', 'Último barómetro', b.mes) + fAcum + `<div class="fld full"><span class="lab">Opciones</span>${opExNR}${opRec}${opEst}${opAncho}</div>`,
     puntos: () => fPreg + fEje + '<div class="fld"></div>' + fPeriodo + lista + `<div class="fld full"><span class="lab">Opciones</span>${opAncho}</div>`,
   };
   edb.innerHTML = `<div class="fld full"><label for="f-tipo">Tipo de gráfico</label><select id="f-tipo">${TIPOS.map(([k, t]) => `<option value="${k}"${k === tipo ? ' selected' : ''}>${esc(t)}</option>`).join('')}</select></div>` + secciones[tipo]();
@@ -106,8 +107,9 @@ async function pintarEditor() {
     if ($('#f-banda')) b.banda = $('#f-banda').checked;
     if ($('#f-movil')) b.movil = $('#f-movil').checked;
     b.recuerdo = !!$('#f-recuerdo')?.checked && b.tipo !== 'transferencias';
+    b.pesoEstudios = !!$('#f-estudios')?.checked && b.tipo !== 'puntos';
   };
-  edb.querySelectorAll('select, #f-exnr, #f-movil, #f-recuerdo').forEach(elx => elx.addEventListener('change', ev => {
+  edb.querySelectorAll('select, #f-exnr, #f-movil, #f-recuerdo, #f-estudios').forEach(elx => elx.addEventListener('change', ev => {
     const antes = { tipo: b.tipo, preg: b.preg, cruce: b.cruce, grupo: b.grupo, x: b.x?.preg, y: b.y?.preg, i: b.ind?.preg };
     leer();
     if (b.tipo !== antes.tipo) { b.banda = undefined; ajustarTipo(b); b.cats = null; b.gcats = null; }

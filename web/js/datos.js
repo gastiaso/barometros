@@ -24,7 +24,8 @@ async function cargarMeta() {
   META = await r.json();
   const deff = Object.fromEntries(META.estudios.map(e => [String(e.estudio), e]));
   EST = META.tramos_estudio.map(t => ({ ...t, estudio: String(t.estudio), deff: +deff[String(t.estudio)]?.deff || 1,
-    deffRec: +deff[String(t.estudio)]?.deff_recuerdo || +deff[String(t.estudio)]?.deff || 1, info: deff[String(t.estudio)] }));
+    deffRec: +deff[String(t.estudio)]?.deff_recuerdo || +deff[String(t.estudio)]?.deff || 1,
+    deffEst: +deff[String(t.estudio)]?.deff_estudios || +deff[String(t.estudio)]?.deff || 1, info: deff[String(t.estudio)] }));
   EST.forEach((e, i) => { ESTI[e.mes] = i; });
   for (const [k, c] of Object.entries(META.conceptos)) {
     LAB[k] = Object.fromEntries((c.categorias || []).map(x => [x.id, x.etiqueta]));
@@ -112,7 +113,8 @@ const ordenMeta = (concepto, ids) => {
 async function calcular(cfg) {
   const P = preg(cfg.preg);
   const recuerdo = !!cfg.recuerdo && !!META.columnas.peso_recuerdo;
-  const colPeso = recuerdo ? 'peso_recuerdo' : 'peso';
+  const estudios = !recuerdo && pesoEstudios(cfg);
+  const colPeso = recuerdo ? 'peso_recuerdo' : estudios ? 'peso_estudios' : 'peso';
   const need = [...P.cols, colPeso];
   if (cfg.cruce) need.push(cfg.cruce);
   if (cfg.filtro) need.push(cfg.filtro.col);
@@ -125,7 +127,7 @@ async function calcular(cfg) {
   let fcol = null, fcod = -1;
   if (cfg.filtro) { fcol = COLS[cfg.filtro.col]; fcod = nivelesDe(cfg.filtro.col).indexOf(cfg.filtro.val) + 1; }
   const meses = EST.filter(e => (!cfg.desde || e.mes >= cfg.desde) && (!cfg.hasta || e.mes <= cfg.hasta))
-    .map(e => (recuerdo ? { ...e, deff: e.deffRec } : e));
+    .map(e => (recuerdo ? { ...e, deff: e.deffRec } : estudios ? { ...e, deff: e.deffEst } : e));
   const filas = [];
 
   if (P.tipo === 'cat' || P.tipo === 'multi') {
@@ -351,10 +353,19 @@ function conceptosDe(cfg) {
   return cs;
 }
 const mesesRuptura = r => (r.mes || '').includes('…') ? [r.mes.slice(0, 7)] : (r.mes.match(/\d{4}-\d{2}/g) || []);
+/* Peso homogéneo con nivel de estudios (columna peso_estudios): el peso del CIS anterior a nov-2023 ajustado al nivel
+   de estudios, el mismo desde entonces. Con él, R10 deja de ser un corte: queda como ruptura B con su nota. */
+const pesoEstudios = cfg => !!cfg.pesoEstudios && !!META.columnas.peso_estudios;
+const RUPTURA_ESTUDIOS = 'R10';
+const NOTA_ESTUDIOS = 'Peso homogéneo con nivel de estudios: hasta octubre de 2023 el peso del CIS no ajustaba por nivel de estudios (R10); aquí se ajusta por raking al nivel de estudios dentro de cada grupo de sexo y edad, con la estructura educativa de noviembre y diciembre de 2023, y desde noviembre de 2023 es el peso del CIS. Es una estimación propia: no coincide con las tablas del CIS anteriores a noviembre de 2023. El margen de error usa el efecto de diseño de los nuevos pesos.';
 function rupturas(cfg) {
   const ids = new Set(conceptosDe(cfg).flatMap(c => META.conceptos[c]?.rupturas || []));
+  const homogeneo = pesoEstudios(cfg);
   return META.rupturas
     .filter(r => ids.has(r.ruptura_id) && (r.tipo === 'C' || r.tipo === 'B') && !/descartada/.test(r.estado))
+    .map(r => (homogeneo && r.ruptura_id === RUPTURA_ESTUDIOS && r.tipo === 'C'
+      ? { ...r, tipo: 'B', descripcion: 'Resuelta con el peso homogéneo: la ponderación por nivel de estudios se aplica también antes de noviembre de 2023 (estimación propia). ' + r.descripcion }
+      : r))
     .flatMap(r => mesesRuptura(r).map(m => ({ ...r, m })));
 }
 /* Cómo se nombra una ruptura: en la guía, la etiqueta corta («ponderación por estudios»); en el explorador, el código

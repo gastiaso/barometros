@@ -58,6 +58,27 @@ CALCULAR = """async (refs) => {
   return out;
 }"""
 
+# peso homogéneo con estudios: igual al peso del CIS desde nov-2023, distinto antes, y R10 deja de ser un corte
+ESTUDIOS = """async () => {
+  const errores = [];
+  if (!META.columnas.peso_estudios) return ['falta la columna peso_estudios'];
+  const preg = META.columnas.intencion_voto_r ? 'intencion_voto_r' : 'eco_esp';
+  const a = await calcular({ preg, desde: '2023-01', hasta: '2024-03' });
+  const b = await calcular({ preg, desde: '2023-01', hasta: '2024-03', pesoEstudios: true });
+  const ids = Object.keys(a.filas[0].grupos[0].vals);
+  let distintos = 0;
+  a.filas.forEach((f, i) => {
+    const g = b.filas[i].grupos[0];
+    const dif = Math.max(...ids.map(k => Math.abs((f.grupos[0].vals[k] ?? 0) - (g.vals[k] ?? 0))));
+    if (f.e.mes >= '2023-11' && (dif > 1e-9 || Math.abs(f.e.deff - b.filas[i].e.deff) > 1e-3)) errores.push(`peso homogéneo distinto del peso del CIS en ${f.e.mes}`);
+    if (f.e.mes < '2023-11') { if (dif > 1e-6) distintos++; if (b.filas[i].e.deff <= f.e.deff) errores.push(`el peso homogéneo no eleva el efecto de diseño en ${f.e.mes}`); }
+  });
+  if (!distintos) errores.push('el peso homogéneo no cambia nada antes de nov-2023');
+  const r10 = rupturas({ preg, pesoEstudios: true }).filter(r => r.ruptura_id === 'R10');
+  if (r10.some(r => r.tipo !== 'B')) errores.push('con el peso homogéneo R10 sigue siendo un corte C');
+  return errores;
+}"""
+
 BLOQUES = """async () => {
   const errores = [];
   if (!META.columnas.intencion_voto) return errores;    // modo veda: sin series electorales
@@ -179,6 +200,7 @@ async def main():
             if abs(web - cis) > tol:
                 fallos.append(f"web ≠ CIS en {clave}: web {web:.4f}, CIS {cis}")
         fallos += await pg.evaluate(BLOQUES)
+        fallos += await pg.evaluate(ESTUDIOS)
         fallos += await pg.evaluate(REGRESION)
         casos = casos_estimacion()
         veda = await pg.evaluate("META.veda")

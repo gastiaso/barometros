@@ -78,9 +78,10 @@ RAKING_PASADAS <- 5
 
 # raking de un estudio: w0 = peso del CIS; margenes = lista de list(cel, obj), con cel = celda de cada entrevista
 # (NA fuera del margen) y obj = proporciones objetivo dentro del margen; socio = márgenes que conservan el peso del CIS.
+# cota: límites del factor de ajuste (RAKING_FACTOR salvo que se pida otra, como hace el peso con estudios de R/pesos.R).
 # Devuelve los pesos (w), las iteraciones de la última pasada (iter), qué entrevistas tocaron la cota (recortado) y el
 # mayor desvío absoluto, en proporción, entre los márgenes finales y sus objetivos (desvio_max; 0 si converge).
-rastrillar <- function(w0, margenes, socio) {
+rastrillar <- function(w0, margenes, socio, cota = RAKING_FACTOR) {
   margenes <- lapply(margenes, \(m) {
     dentro <- !is.na(m$cel)
     presentes <- intersect(names(m$obj), unique(m$cel[dentro]))
@@ -123,8 +124,8 @@ rastrillar <- function(w0, margenes, socio) {
   for (pasada in seq_len(RAKING_PASADAS)) {
     r <- ajustar(w)
     f <- r$w / w0
-    fuera <- f < RAKING_FACTOR[1] | f > RAKING_FACTOR[2]
-    w <- if (any(fuera)) w0 * pmin(pmax(f, RAKING_FACTOR[1]), RAKING_FACTOR[2]) else r$w
+    fuera <- f < cota[1] | f > cota[2]
+    w <- if (any(fuera)) w0 * pmin(pmax(f, cota[1]), cota[2]) else r$w
     if (!any(fuera)) break
     recortado <- recortado | fuera
   }

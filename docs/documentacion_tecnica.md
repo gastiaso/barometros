@@ -16,13 +16,14 @@ scripts/04_enunciados.py        enunciado de cada concepto en cada cuestionario 
 scripts/05_revision.py          crosswalk revisado + mapas de partidos, problemas y candidatos
 scripts/06_revision_xlsx.py     inventario/revision.xlsx
 scripts/lib/                    parsers del libro de códigos y del cuestionario
-_targets.R, R/                  armonización en R: .sav -> microdatos armonizados + metadatos + validación
+_targets.R, R/                  armonización en R: .sav -> microdatos armonizados + metadatos + validación (R/pesos.R: peso homogéneo con estudios)
 tests/                          pruebas unitarias de R/ (testthat; Rscript tests/testthat.R)
 datos/publicacion/              microdatos.parquet y metadatos.json (generados)
 scripts/07_web.R                datos de la web: una columna comprimida por pregunta (web/datos/, generado)
 scripts/08_prueba_web.py        prueba en Chromium: la web recalcula las referencias del CIS y debe dar lo mismo que R
 scripts/07_estimacion.R         datos de «Construye tu estimación» (web/datos/estimacion.json) desde la rejilla ya calculada
 scripts/09_vista_previa.py      imagen para redes (web/img/vista-previa.png): captura de los paneles por defecto
+scripts/13_margenes_estudios.R  márgenes de nivel de estudios por sexo × edad para el peso homogéneo (inventario/margenes_estudios.csv)
 scripts/12_tarjeta.py           tarjeta del último barómetro para redes (web/img/tarjeta.png y .txt, generados en cada publicación)
 scripts/10_referencias_notas.py referencias de validación desde las notas de estimación del CIS (intención directa de los 64 barómetros)
 scripts/11_sensibilidad_recuerdo.R sensibilidad de la reponderación por recuerdo a la variante «solo votantes» (inventario/sensibilidad_recuerdo.csv)
@@ -100,6 +101,8 @@ El paso de R necesita los paquetes `targets`, `haven`, `arrow`, `dplyr`, `tidyr`
 | `validacion_anomalias_no_respuesta.csv` | Estudios con no respuesta muy por encima de la habitual del concepto |
 | `registro_etiquetas_cerradas.csv` | Variantes de etiqueta en las variables cerradas y a qué categoría se llevan |
 | `deff_recuerdo.csv` | Por estudio, efecto de diseño de los pesos reponderados por recuerdo, factores de ajuste extremos, iteraciones del raking, % de entrevistas recortadas por la cota y desvío máximo de los márgenes |
+| `margenes_estudios.csv` | Márgenes de nivel de estudios por celda de sexo × grupo de edad para el peso homogéneo (`R/pesos.R`); por defecto, la distribución ponderada de 3427 y 3431; sustituible por los del INE (entrada editable) |
+| `deff_estudios.csv` | Por estudio, efecto de diseño del peso homogéneo, factores extremos, iteraciones, % recortado por la cota y desvío máximo de los márgenes |
 | `sensibilidad_recuerdo.csv` | Por estudio y partido, intención directa con el peso del CIS, con el raking actual y con la variante «solo votantes» (`scripts/11_sensibilidad_recuerdo.R`): la variante mueve cada partido menos de 0,25 puntos |
 | `menciones_problemas.csv` | Por estudio y bloque de problemas (España, personales): menciones sustantivas medias por persona y % con tres y con ninguna, ponderado (diagnóstico de R30) |
 
@@ -145,6 +148,8 @@ Cómo se ha revisado:
 | R20 | 2024-01 | Nivel de estudios: de «cursados» a «terminados con titulación» | nivel_estudios, estudios y la propia ponderación |
 
 R19 y R22 coinciden con una reordenación del cuestionario en octubre de 2023, seguida un mes después por el cambio de ponderación (R10). **Para las series electorales, octubre-noviembre de 2023 es el corte principal de la ventana.** Decisión sobre R19: la serie se muestra continua, con una marca visual en octubre de 2023, y no se calculan variaciones entre meses situados a ambos lados del corte.
+
+**Peso homogéneo con nivel de estudios (`peso_estudios`, R/pesos.R).** Opcional en la web; resuelve R10. Para cada barómetro anterior a nov-2023, raking del peso del CIS al nivel de estudios dentro de cada celda de sexo × grupo de edad (la distribución de sexo × edad del peso se conserva; quien no da estudios, sexo o edad solo recibe el ajuste de su celda), con los márgenes de `inventario/margenes_estudios.csv`: por defecto, la distribución ponderada de 3427 y 3431 (nov-dic 2023; definición «cursados», la misma que 2021-2023), generada por `scripts/13_margenes_estudios.R` y sustituible por la del INE. Desde nov-2023, `peso_estudios = peso`. Cota del factor en [0,2, 10] (el peso del CIS con estudios llega a factores de 8-17 frente a uno solo con sexo, edad y comunidad); desvío máximo de los márgenes por estudio en `deff_estudios.csv` (hasta 0,04 en mayo de 2023, por celdas casi vacías). Efecto de diseño 2021-2023: de 1,0-1,1 a 1,26-1,69. Efecto en la intención directa 2021-2023: PSOE +0,6, PP −0,6, VOX +0,7 de media (el ajuste del CIS desde nov-2023, medido contra un peso solo con sexo × edad y comunidad: PSOE +0,7, PP −1,2, VOX +1,1, Sumar −1,2); con él, el salto PP de oct a nov de 2023 pasa de +0,4 a +2,1 puntos. Con el peso homogéneo la web trata R10 como B y no corta las variaciones. La validación contra el CIS y la estimación («Construye tu estimación») siguen con `peso`/`peso_recuerdo`.
 
 ## Hallazgos que condicionan el diseño
 

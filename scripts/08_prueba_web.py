@@ -1,6 +1,6 @@
 """Comprueba que la web calcula lo mismo que R y que el CIS.
 
-Abre la web en Chromium (Playwright), recalcula con el código del navegador (calcular() de web/js/app.js, sobre las
+Abre la web en Chromium (Playwright), recalcula con el código del navegador (calcular() de web/js/datos.js, sobre las
 columnas de web/datos) cada cifra de inventario/referencias_cis.csv y la compara con:
   - el valor calculado en R (inventario/validacion_cifras_cis.csv), con una tolerancia de 0,001 (la web guarda los
     pesos en coma flotante de 32 bits);

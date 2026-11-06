@@ -4,7 +4,7 @@ El proyecto lo mantiene una persona y se actualiza cada mes con el barómetro nu
 
 1. **Errores en los datos o en el método.** Abre una incidencia con el panel o la cifra, el mes y, si puedes, la tabla del CIS con la que no cuadra. Las cifras de referencia viven en `inventario/referencias_cis.csv`; añadir una fila con una cifra publicada por el CIS que la web no reproduce es la forma más directa de señalar un error, porque la validación la comprobará en cada publicación.
 2. **Decisiones de armonización.** Las reglas no están en el código sino en los CSV de `inventario/` (`crosswalk_revisado.csv`, `decisiones_manuales.csv`, `rupturas_candidatas.csv`, `mapa_*.csv`). Una propuesta de cambio debe decir qué estudio y qué pregunta afecta, por qué, y cómo se comprueba. Si cambia el nivel de comparabilidad (A/B/C) de alguna serie, hay que anotarlo en `CHANGELOG.md`.
-3. **Web.** `web/js/app.js` (cálculo, series, barras, editor), `web/js/vistas.js` (transferencias, dispersión, mapa, mapa de calor, comparar, nube de puntos) y `web/js/guia.js` (página de entrada). Sin dependencias externas: d3 va autoalojado y no se añaden librerías ni analítica.
+3. **Web.** `web/js/comun.js` (utilidades y catálogo de preguntas), `datos.js` (descarga y agregación), `grafico.js` (series, barras, comparar), `paneles.js`, `vistas.js` (transferencias, dispersión, mapa, mapa de calor, nube de puntos), `guia.js` (página de entrada), `estimacion.js`, `editor.js` y `app.js` (estado, nota metodológica, «Qué cambia», arranque). Son scripts clásicos que comparten el ámbito global y se cargan en ese orden desde `index.html`. Sin dependencias externas: d3 va autoalojado y no se añaden librerías ni analítica.
 
 ## Flujo
 

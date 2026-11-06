@@ -88,6 +88,19 @@ enun <- leer_enun("inventario/enunciados_versiones.csv") |>
   dplyr::summarise(version = dplyr::first(version), desde = min(desde), hasta = max(hasta),
                    n_estudios = sum(as.integer(n_estudios)), enunciado = dplyr::first(enunciado), .groups = "drop")
 meta$enunciados <- split(dplyr::select(enun, version, desde, hasta, n_estudios, enunciado), enun$concepto)
+# catálogo de categorías de problemas por barómetro (inventario/mapa_problemas.csv): la lista de codificación del CIS cambia
+# con el tiempo, así que un 0 % puede ser «la categoría no existía». Por categoría: etiqueta más reciente, primer y último
+# barómetro con ella, en cuántos está (España / personales) y los barómetros intermedios en que falta.
+mp <- readr::read_csv("inventario/mapa_problemas.csv", col_types = readr::cols(.default = "c"), show_col_types = FALSE) |>
+  filter(!id_armonizado %in% c("NS", "NC", "NR", "NP"))
+meses_todos <- sort(unique(as.character(est$mes)))
+meta$catalogo_problemas <- mp |>
+  group_by(id = id_armonizado) |>
+  summarise(etiqueta = etiqueta_armonizada[order(mes, decreasing = TRUE)][1], desde = min(mes), hasta = max(mes),
+            n_esp = n_distinct(estudio[bloque == "prob_esp"]), n_per = n_distinct(estudio[bloque == "prob_per"]),
+            huecos = paste(setdiff(meses_todos[meses_todos >= min(mes) & meses_todos <= max(mes)], unique(mes)), collapse = " "),
+            .groups = "drop") |>
+  arrange(id)
 # convocatorias electorales (capa opcional de marcas en el eje temporal de las series): inventario/eventos_electorales.csv
 meta$eventos <- readr::read_csv("inventario/eventos_electorales.csv", col_types = readr::cols(.default = "c"), show_col_types = FALSE)
 meta$veda <- VEDA

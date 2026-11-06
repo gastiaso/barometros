@@ -86,13 +86,14 @@
   <nav class="tabs" role="tablist" aria-label="Secciones">
     <button type="button" role="tab" id="tab-que" aria-controls="view-que" data-tab="que" aria-selected="true"><span class="lg">¿Qué es esto?</span><span class="ct" aria-hidden="true">Qué es</span></button>
     <button type="button" role="tab" id="tab-series" aria-controls="view-series" data-tab="series" aria-selected="false">Series</button>
+    <button type="button" role="tab" id="tab-est" aria-controls="view-est" data-tab="est" aria-selected="false"><span class="lg">Construye tu estimación</span><span class="ct" aria-hidden="true">Estimación</span></button>
     <button type="button" role="tab" id="tab-meth" aria-controls="view-meth" data-tab="meth" aria-selected="false"><span class="lg">Nota metodológica</span><span class="ct" aria-hidden="true">Método</span></button>
     <button type="button" role="tab" id="tab-datos" aria-controls="view-datos" data-tab="datos" aria-selected="false"><span class="lg">Datos y descargas</span><span class="ct" aria-hidden="true">Datos</span></button>
   </nav>
 
   <noscript><p class="aviso">Esta web calcula las series en el navegador y necesita JavaScript. Los microdatos armonizados de los barómetros del CIS (2021-2026) se pueden descargar en formato Parquet en <a href="datos/descargas/barometros_armonizados.parquet">datos/descargas</a>; la documentación está en <a href="https://github.com/gastiaso/barometros">GitHub</a>.</p></noscript>
 
-  <div class="aviso" id="aviso-veda" hidden><b>Periodo de prohibición de sondeos.</b> Del 24 al 29 de noviembre de 2026 no se publican series de intención de voto, simpatía, cercanía, preferencia como presidente ni valoración de líderes y ministros. El art. 69.7 de la LOREG prohíbe difundir sondeos electorales en los cinco días anteriores a la votación (del 24 al 28); el día 29 siguen retiradas. El resto de series sigue disponible.</div>
+  <div class="aviso" id="aviso-veda" hidden><b>Periodo de prohibición de sondeos.</b> Del 24 al 29 de noviembre de 2026 no se publican «Construye tu estimación» ni las series de intención de voto, simpatía, cercanía, probabilidad de ir a votar, preferencia como presidente y valoración de líderes y ministros. El art. 69.7 de la LOREG prohíbe difundir sondeos electorales en los cinco días anteriores a la votación (del 24 al 28); el día 29 siguen retiradas. El resto de series sigue disponible.</div>
 
   <div id="view-que" role="tabpanel" aria-labelledby="tab-que">
     <section class="qe-hero">
@@ -181,9 +182,10 @@
     <section class="qe-paso" id="qe-voto">
       <div class="qe-txt">
         <h2>¿Es esto una estimación de voto?</h2>
-        <p>No. Las series de voto recogen lo que responden los entrevistados: la <b>intención directa</b> («¿a qué partido votaría?») o el <b>voto más simpatía</b>, que añade a quien no declara voto pero sí simpatía por un partido. La estimación que publica el CIS sale de un modelo propio que esta herramienta no reproduce.</p>
+        <p>Las series, no. Recogen lo que responden los entrevistados: la <b>intención directa</b> («¿a qué partido votaría?») o el <b>voto más simpatía</b>, que añade a quien no declara voto pero sí simpatía por un partido. La estimación que publica el CIS sale de un modelo propio que esta herramienta no reproduce.</p>
         <p><b>Reponderar por recuerdo de voto</b>, una opción de <span class="ui">Configurar</span>, ajusta los pesos para que el recuerdo de la muestra cuadre con el resultado de las últimas generales. Es una estimación propia, no la del CIS, y ensancha el margen de error. Arriba, la intención directa; debajo, la misma serie reponderada.</p>
         <p>Las <span class="ui">Transferencias de voto</span> cruzan ese recuerdo con la respuesta actual: qué dicen hoy quienes votaron a cada partido.</p>
+        <p>La pestaña <a href="#" data-goto="est">Construye tu estimación</a> sí calcula estimaciones, con los supuestos a la vista: eliges a quién se cuenta como votante, qué se hace con quien no sabe a quién votaría y cuánto se corrige por recuerdo, y ves qué cifra sale junto al rango de todas las combinaciones y la estimación del CIS.</p>
       </div>
       <div class="qe-graf" data-paso="qe-voto"></div>
     </section>
@@ -220,6 +222,17 @@
     <p class="foot">Porcentajes ponderados sobre el total de entrevistados que reciben la pregunta. Los puntos con menos de 50 entrevistas sin ponderar no se muestran. La banda sombreada es el margen de error al 95 %. Las líneas verticales marcan rupturas de serie: las de tipo C (en color) impiden comparar a ambos lados y las de tipo B indican un cambio con regla de armonización. Detalle en la <a href="#" data-goto="meth">nota metodológica</a>.</p>
   </div>
 
+  <div id="view-est" role="tabpanel" aria-labelledby="tab-est" hidden>
+    <div class="est">
+      <header class="est-cab">
+        <h1>Construye tu propia estimación de voto</h1>
+        <p>Una estimación de voto no sale directamente de la encuesta. Depende de supuestos: a quién se cuenta como votante, qué se hace con quien no sabe a quién votaría y cuánto se corrige la muestra con el recuerdo de voto. Aquí eliges esos supuestos y ves qué estimación sale de los microdatos de cada barómetro.</p>
+        <p>Mientras no los elijas, el gráfico muestra el rango de todas las combinaciones: cuánto puede cambiar la cifra solo por los supuestos. La línea discontinua es la estimación que publica el CIS con su propio modelo. Ninguna de estas cifras es una predicción del resultado. Detalle en la <a href="#" data-goto="meth">nota metodológica</a>.</p>
+      </header>
+      <div id="est-app"><p class="note">Cargando…</p></div>
+    </div>
+  </div>
+
   <div id="view-meth" role="tabpanel" aria-labelledby="tab-meth" hidden>
     <div class="meth">
       <nav aria-label="Índice de la nota metodológica"><ol>
@@ -230,6 +243,7 @@
         <li><a href="#m-preg">Preguntas</a></li>
         <li><a href="#m-corr">Correcciones de los ficheros</a></li>
         <li><a href="#m-est">Estudios</a></li>
+        <li><a href="#m-estimacion">Construye tu estimación</a></li>
         <li><a href="#m-uso">Fuente y condiciones de uso</a></li>
         <li><a href="#m-lim">Limitaciones</a></li>
       </ol></nav>
@@ -294,13 +308,39 @@
         <section id="m-est"><h2>Estudios</h2>
           <div class="tablaw" id="m-est-tabla"></div>
         </section>
+        <section id="m-estimacion"><h2>Construye tu estimación</h2>
+          <p>La pestaña calcula estimaciones de voto propias con los microdatos de cada barómetro. No reproduce el modelo con el que el CIS publica la suya, que se dibuja aparte como referencia. Cada estimación combina cuatro supuestos, y las 240 combinaciones de cada barómetro están calculadas de antemano.</p>
+          <h3>Supuestos</h3>
+          <ul>
+            <li><b>Base de partida.</b> Intención directa (INTENCIONGR, la recodificación del CIS) o voto + simpatía (VOTOSIMG, que añade a quien no declara voto el partido por el que siente simpatía).</li>
+            <li><b>Quién cuenta como votante.</b> Todos los que declaran voto en la base; quienes dan una probabilidad de ir a votar de 8 a 10, de 9 o 10, o solo de 10 (escala de 0 a 10, desde septiembre de 2022); o todos, cada uno con un peso igual a su probabilidad dividida por 10. Con la escala, quien dice que no votaría queda fuera, y quien no la responde pero declara voto cuenta. Antes de septiembre de 2022 no hay escala: las cuatro últimas opciones cuentan a quien no dice que no votaría.</li>
+            <li><b>Quien no sabe o no contesta.</b> Puede quedar fuera o recibir un partido. En la cascada recibe la primera respuesta válida a la simpatía, al partido más cercano a sus ideas y al recuerdo de voto, en el orden elegido (el recuerdo, solo si ese partido figura en la intención del barómetro). En la regresión, un modelo logístico multinomial ajustado en el mismo barómetro sobre quienes declaran voto (ideología, recuerdo, valoración de los líderes que valora al menos la mitad, sexo y edad) le reparte su voto entre los partidos según sus probabilidades.</li>
+            <li><b>Corrección por recuerdo de voto.</b> Ninguna (peso del CIS), completa (la reponderación por recuerdo descrita arriba) o intermedia: peso del CIS × (peso reponderado ÷ peso del CIS)<sup>α</sup>, con α = 0,25 o 0,5, que acerca a 1 cada factor de ajuste.</li>
+          </ul>
+          <p>Los porcentajes son sobre voto válido (partidos y voto en blanco). Las candidaturas se agrupan como en la estimación del CIS: Podemos e IU dentro de Unidas Podemos hasta marzo de 2023; en abril y mayo de 2023, Podemos dentro de Unidas Podemos, e IU, Más País y Compromís dentro de Sumar; Sumar con Podemos, IU, Más País y Compromís de junio a diciembre de 2023; desde enero de 2024, Podemos aparte; Frente Amplio con Sumar en octubre de 2026, como «SUMAR / Frente Amplio» en el CIS.</p>
+          <h3>Atajos</h3>
+          <p>Cuatro combinaciones de referencia. <b>M1</b>: voto + simpatía, todos, sin reparto ni corrección. <b>M2</b>: M1 con la corrección completa. <b>M3</b>: intención directa, probabilidad de 9 o 10, cascada simpatía → cercanía → recuerdo y corrección completa. <b>M4</b>: M3 con la regresión en lugar de la cascada.</p>
+          <h3>Margen de error</h3>
+          <p>Al 95 %: 1,96 · √(p(1 − p) / n efectivo), con el tamaño efectivo que dejan los pesos (n efectivo = (Σw)² / Σw², sobre los votantes con partido). Se ha comprobado con remuestreo en los cuatro atajos y los 64 barómetros (100 réplicas; 25 en M4). En los partidos con al menos un 5 %, la mediana de la razón entre el margen por remuestreo y el aproximado es 0,94 en M1, 0,95 en M2, 0,94 en M3 y 0,97 en M4, y el 80 % central de los casos queda entre 0,7 y 1,3. El margen no recoge la incertidumbre de los supuestos: esa es la que muestra el rango.</p>
+          <h3>Cuánto mueve cada supuesto</h3>
+          <p>Desde septiembre de 2022, con los demás supuestos como en M3, la distancia entre la mayor y la menor ventaja del PSOE sobre el PP es, de media, de 8,1 puntos al mover solo la corrección por recuerdo (hasta 15,7 en un barómetro), de 0,3 al mover la base, de 2,0 con quién cuenta como votante y de 2,0 con el reparto de los indecisos. Moviendo los cuatro a la vez, es de 11,5 puntos de media (hasta 18,3). En octubre de 2026, la ventaja va de −2,0 a 15,2 puntos según la combinación, y el PSOE va por delante en el 80 % de ellas.</p>
+          <h3>Contraste con el 23J</h3>
+          <p>Para cada combinación, el error frente al resultado de las generales del 23 de julio de 2023 en los dos barómetros anteriores: la media del error absoluto en PP, PSOE, VOX y Sumar, y la desviación de la ventaja del PP sobre el PSOE. En julio, el error medio va de 1,5 a 3,0 puntos (CIS: 2,0); en junio, de 0,4 a 3,0 (CIS: 1,6). Una sola elección no permite elegir supuestos: la mejor combinación cambia de un mes a otro y cualquiera puede acertar por azar.</p>
+          <p>Por eso, las mismas 240 combinaciones se han calculado también con los microdatos de 13 encuestas del CIS de los meses anteriores a cinco generales: 2015 (una), 2016 (dos), abril de 2019 (tres), noviembre de 2019 (tres) y 2023 (los barómetros de junio y julio, el preelectoral y la encuesta flash). Cada una se repondera con el recuerdo de las generales anteriores y se compara con el resultado en los partidos principales de cada elección. El error medio va de 2,5 a 3,5 puntos según la combinación. Lo que más lo mueve es, de nuevo, la corrección por recuerdo: 3,3 puntos de media sin ella y 2,7 con la completa. De los atajos, M1 queda en el puesto 232 de 240, M2 en el 106, M3 en el 42 y M4 en el 32. Falta el preelectoral de 2015 (estudio 3117), cuya ficha no se puede abrir en cis.es. El voto exterior de 2011, 2015 y 2016, que entra en la participación de referencia, es aproximado.</p>
+          <h3>Estimación del CIS</h3>
+          <p>Transcrita de la nota de estimación de cada barómetro, sobre voto válido (<code>estimacion/estimacion_cis.csv</code>, con la dirección de cada documento), y cotejada con una segunda lectura automática del texto de las 64 notas: coinciden las 1.069 cifras (<code>estimacion/cotejo_estimacion_cis.csv</code>). El CIS cambió de modelo en mayo de 2022, así que su serie no es homogénea.</p>
+          <h3>Ficha técnica</h3>
+          <p>Cada estimación lleva su ficha: el trabajo de campo es del CIS (ámbito, universo, muestra, muestreo, error muestral y fechas, tomados de la ficha técnica de cada estudio) y la estimación, de esta herramienta. Se añaden los supuestos, el margen, la proporción de votantes que queda sin partido y el texto de las preguntas.</p>
+          <h3>Límites</h3>
+          <p>Son estimaciones con los supuestos elegidos, no predicciones del resultado. La corrección por recuerdo supone que la desviación del recuerdo es error de la muestra y no olvido o cambio de declaración. La probabilidad de ir a votar declarada sobrestima la participación. Las combinaciones no son igual de razonables: la rejilla las muestra todas para que se vea cuánto pesan los supuestos, no para que valgan lo mismo.</p>
+        </section>
         <section id="m-uso"><h2>Fuente y condiciones de uso</h2>
           <p>Origen de los datos: Centro de Investigaciones Sociológicas (CIS), barómetros mensuales, microdatos. Elaboración propia. Los datos se reutilizan conforme a las condiciones generales del CIS: se cita la fuente, no se altera el sentido de la información y no se sugiere que el CIS patrocine o respalde esta herramienta, que es independiente.</p>
           <p>Para citar: «Origen de los datos: Centro de Investigaciones Sociológicas (CIS), barómetros mensuales (microdatos), hasta <span class="cita-ult">el último barómetro incluido</span>. Armonización: Guillermo Astiaso Llamazares, <i>Barómetro a barómetro</i>, https://gastiaso.github.io/barometros/ (CC BY 4.0)», con la fecha de consulta. Código y tablas de armonización: <a href="https://github.com/gastiaso/barometros">github.com/gastiaso/barometros</a>.</p>
           <p>Licencias: el código, <a href="https://github.com/gastiaso/barometros/blob/main/LICENSE">MIT</a>; los datos armonizados, metadatos y textos de elaboración propia, <a href="https://creativecommons.org/licenses/by/4.0/deed.es">CC BY 4.0</a>. Los datos del CIS siguen sujetos a sus condiciones de reutilización. Detalle en <a href="https://github.com/gastiaso/barometros/blob/main/LICENCIA-DATOS.md">LICENCIA-DATOS.md</a>.</p>
         </section>
         <section id="m-lim"><h2>Limitaciones</h2>
-          <p>Las series son de intención directa y de respuestas declaradas, no estimaciones de voto: el CIS publica aparte una estimación con su propio modelo, que esta herramienta no reproduce. Los márgenes de error suponen muestreo aleatorio y no recogen otros errores (cobertura, no respuesta, efecto del cuestionario). Los cruces con pocas entrevistas son volátiles aunque superen el mínimo. El universo de los barómetros es la población de nacionalidad española de 18 años y más: no se entrevista a los residentes extranjeros. La armonización se ha revisado contra cuestionarios y libros de códigos, pero puede contener errores: el registro completo está en el repositorio.</p>
+          <p>Las series del explorador son de intención directa y de respuestas declaradas, no estimaciones de voto. «Construye tu estimación» calcula estimaciones propias con supuestos explícitos, que tampoco reproducen el modelo con el que el CIS publica la suya. Los márgenes de error suponen muestreo aleatorio y no recogen otros errores (cobertura, no respuesta, efecto del cuestionario). Los cruces con pocas entrevistas son volátiles aunque superen el mínimo. El universo de los barómetros es la población de nacionalidad española de 18 años y más: no se entrevista a los residentes extranjeros. La armonización se ha revisado contra cuestionarios y libros de códigos, pero puede contener errores: el registro completo está en el repositorio.</p>
         </section>
       </div>
     </div>
@@ -338,6 +378,7 @@
 <script src="js/vendor/d3-composite-projections.min.js"></script>
 <script src="js/vistas.js"></script>
 <script src="js/guia.js"></script>
+<script src="js/estimacion.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

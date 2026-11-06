@@ -73,6 +73,11 @@ jobs:
       - name: Datos de la web
         run: Rscript scripts/07_web.R
 
+      # La rejilla de «Construye tu estimación» se calcula aparte (estimacion/rejilla.R, cerca de una hora) y se
+      # guarda en el repositorio; aquí solo se pasa a la web. En modo veda no se publica.
+      - name: Datos de la estimación
+        run: Rscript scripts/07_estimacion.R
+
       - name: Comprobar que la web calcula igual que R y que el CIS
         run: |
           pip install playwright==1.56.0

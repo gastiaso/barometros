@@ -24,6 +24,7 @@ El Centro de Investigaciones Sociológicas (CIS) publica cada barómetro por sep
   - mapa por comunidades;
   - cada punto, una entrevista: todas las entrevistas dibujadas una a una, sin ponderar, con el color según dos problemas que cite la persona.
 - **Reponderar por recuerdo de voto**, opcionalmente, para ver cuánto cambia la serie cuando el recuerdo se ajusta al resultado real de las últimas generales.
+- **Construir tu propia estimación de voto**: eliges cuatro supuestos (base de partida, quién cuenta como votante, qué se hace con quien no sabe a quién votaría y cuánto se corrige por recuerdo) y ves qué estimación sale en cada barómetro, junto al rango de todas las combinaciones y la estimación publicada por el CIS.
 - **Exportar** cada panel como tabla, CSV o PNG, y compartir un enlace con la configuración exacta.
 - **Descargar los microdatos armonizados** (Parquet, una fila por entrevista) para trabajar en R, Python o DuckDB.
 
@@ -35,7 +36,24 @@ El Centro de Investigaciones Sociológicas (CIS) publica cada barómetro por sep
 - **El margen de error es más realista que el de la ficha técnica.** Incorpora el efecto de diseño de la ponderación de cada estudio (Kish), que la ficha del CIS no recoge; no incorpora el de la estratificación ni el de los conglomerados del muestreo. Nunca muestra un dato con menos de 50 entrevistas.
 - **No usa servidor de cálculo.** El navegador descarga solo las columnas que necesita y hace las cuentas. Sin cookies ni analítica; GitHub Pages, que aloja la web, puede registrar qué ficheros se descargan.
 
-> **No es una estimación de voto.** Las series de voto son respuestas directas, no la «estimación» que el CIS calcula con su propio modelo. La reponderación por recuerdo es una estimación propia y no coincide con las tablas del CIS.
+> **Las series no son una estimación de voto.** Las series de voto son respuestas directas, no la «estimación» que el CIS calcula con su propio modelo. La reponderación por recuerdo es una estimación propia y no coincide con las tablas del CIS. Las estimaciones están aparte, en «Construye tu estimación», con los supuestos a la vista.
+
+## Construye tu estimación
+
+Una estimación de voto depende de supuestos que la encuesta no fija. La pestaña los separa en cuatro y calcula, en cada barómetro, todas sus combinaciones (240):
+
+| Supuesto | Opciones |
+|---|---|
+| Base de partida | intención directa (INTENCIONGR); voto + simpatía (VOTOSIMG) |
+| Quién cuenta como votante | todos los que declaran voto; probabilidad de ir a votar 8 a 10, 9 o 10, o solo 10; todos, ponderados por su probabilidad (la pregunta existe desde septiembre de 2022) |
+| Quien no sabe o no contesta | queda fuera; cascada de preguntas en tres órdenes (simpatía, partido más cercano, recuerdo de voto) o solo simpatía; regresión logística multinomial |
+| Corrección por recuerdo | ninguna (peso del CIS), un cuarto, la mitad o completa (`peso_recuerdo`) |
+
+- Sin supuestos elegidos, el gráfico muestra el **rango** de las 240 combinaciones y la estimación del CIS. Cuatro atajos fijan combinaciones de referencia: M1 (voto + simpatía), M2 (M1 corregido por recuerdo), M3 (votantes probables y cascada) y M4 (votantes probables y regresión).
+- **Margen de error** al 95 % con el tamaño efectivo de la muestra que dejan los pesos. Comprobado con remuestreo en M1 a M4 (`estimacion/modelos.R`): en los partidos con al menos un 5 %, la mediana de la razón entre el margen por remuestreo y el aproximado va de 0,94 a 0,97 según el atajo, y el 80 % central de los casos queda entre 0,7 y 1,3.
+- **Contraste con elecciones**: error de cada combinación en los barómetros de junio y julio de 2023 frente al resultado del 23J y, con los microdatos de 13 encuestas del CIS de 2015 a 2023, frente a cinco generales (`estimacion/historico_armonizar.py` y `estimacion/historico_rejilla.R`; los microdatos se descargan de cis.es con su formulario y no van en el repositorio).
+- La estimación del CIS se transcribe de las notas de estimación de cada barómetro (`estimacion/estimacion_cis.csv`, con la dirección de cada documento) y se coteja con una lectura automática de su texto (`estimacion/cotejo_estimacion_cis.py`).
+- La rejilla se calcula aparte, porque tarda cerca de una hora: `Rscript estimacion/rejilla.R` (después de `targets::tar_make()`), que escribe `estimacion/rejilla.csv.gz` y `estimacion/rejilla_info.csv.gz`. La publicación solo la pasa a la web (`scripts/07_estimacion.R`). En modo veda la sección se retira.
 
 ## Datos
 
@@ -83,6 +101,7 @@ Para reproducirlo en local, desde la raíz del repositorio:
 python scripts/00_extraer.py .
 Rscript -e 'targets::tar_make()'
 Rscript scripts/07_web.R
+Rscript scripts/07_estimacion.R        # usa la rejilla ya calculada (estimacion/rejilla.R)
 python scripts/08_prueba_web.py .
 python scripts/09_vista_previa.py .
 cd web && python -m http.server

@@ -15,6 +15,7 @@ voto_simpatia,serie,abierta,Voto + simpatía,VOTOSIMG,^voto simpatia,0
 simpatia,serie,abierta,Partido por el que siente más simpatía,SIMPATIA,mas simpatia,0
 cercania,serie,abierta,Partido más cercano a sus ideas,CERCANIA,mas cercano a sus ideas,0
 pref_presidente,serie,abierta,Preferencia personal como presidente del Gobierno,PREFPTE,preferencia personal como presidente,0
+prob_votar,serie,escala,Probabilidad de ir a votar en unas generales (0-10),PROBVOTO,probabilidad .*vot,0
 participacion_g,cruce,cerrada,Participación en las últimas generales,PARTICIPACIONG,^participacion electoral en las elecciones generales,0
 recuerdo_voto,cruce,abierta,Recuerdo de voto en las últimas generales (con participación),RECUERDO,,0
 recuerdo_votantes_r,cruce,abierta,Recuerdo de voto de los votantes [recodificada CIS],RECUVOTOGR,,0

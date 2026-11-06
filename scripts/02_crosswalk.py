@@ -73,6 +73,8 @@ CONCEPTOS = [
     ("cercania", "serie", "abierta", "Partido más cercano a sus ideas", ["CERCANIA"], r"mas cercano a sus ideas", 0),
     ("pref_presidente", "serie", "abierta", "Preferencia personal como presidente del Gobierno", ["PREFPTE"],
      r"preferencia personal como presidente", 0),
+    ("prob_votar", "serie", "escala", "Probabilidad de ir a votar en unas generales (0-10)", ["PROBVOTO"],
+     r"probabilidad .*vot", 0),
     ("participacion_g", "cruce", "cerrada", "Participación en las últimas generales", ["PARTICIPACIONG"],
      r"^participacion electoral en las elecciones generales", 0),
     ("recuerdo_voto", "cruce", "abierta", "Recuerdo de voto en las últimas generales (con participación)", ["RECUERDO"], None, 0),

@@ -10,10 +10,10 @@ PUB <- "datos/publicacion"
 WEB <- "web/datos"
 VEDA <- identical(Sys.getenv("VEDA"), "1")
 
-# Series que no se difunden durante la veda: intención, simpatía, cercanía, preferencia como presidente y líderes.
-# El recuerdo de voto (pasado) y el resto de series se mantienen.
+# Series que no se difunden durante la veda: intención, simpatía, cercanía, preferencia como presidente, probabilidad
+# de ir a votar y líderes. El recuerdo de voto (pasado) y el resto de series se mantienen.
 ELECTORALES <- c("intencion_voto", "intencion_voto_r", "intencion_alternativa", "voto_simpatia", "simpatia",
-                 "cercania", "pref_presidente")
+                 "cercania", "pref_presidente", "prob_votar")
 
 d <- read_parquet(file.path(PUB, "microdatos.parquet")) |> arrange(estudio)
 meta <- read_json(file.path(PUB, "metadatos.json"))

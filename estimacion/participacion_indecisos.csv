@@ -1,0 +1,65 @@
+n,filtro,votantes_probables,indecisos_votantes,sin_asignar_m3,estudio,mes
+3862,sin pregunta de probabilidad,81.7,25.2,8.9,3307,2021-01
+3869,sin pregunta de probabilidad,81.8,23.6,9.3,3309,2021-02
+3820,sin pregunta de probabilidad,82.8,25.1,9.7,3313,2021-03
+3823,sin pregunta de probabilidad,82.7,26.2,9.8,3318,2021-04
+3814,sin pregunta de probabilidad,84.9,25.3,9,3322,2021-05
+3814,sin pregunta de probabilidad,83.3,24.2,9.2,3326,2021-06
+3798,sin pregunta de probabilidad,82.1,26.8,9.6,3330,2021-07
+3779,sin pregunta de probabilidad,82.6,24.5,10.2,3334,2021-09
+3660,sin pregunta de probabilidad,83.4,25.9,7.9,3337,2021-10
+3779,sin pregunta de probabilidad,83.8,21.7,8,3340,2021-11
+3733,sin pregunta de probabilidad,82.7,19.1,6.4,3344,2021-12
+3777,sin pregunta de probabilidad,84.4,23.4,7.4,3347,2022-01
+3860,sin pregunta de probabilidad,84.4,22.7,8.4,3351,2022-02
+3922,sin pregunta de probabilidad,85.6,18,6.3,3355,2022-03
+3650,sin pregunta de probabilidad,86,20.4,7.6,3359,2022-04
+3865,sin pregunta de probabilidad,83.2,18.2,7.6,3363,2022-05
+3623,sin pregunta de probabilidad,84.9,17.1,5.7,3366,2022-06
+3988,sin pregunta de probabilidad,85.9,15.1,4.4,3371,2022-07
+3837,probabilidad 9-10,63.2,16.6,5.4,3375,2022-09
+3713,probabilidad 9-10,64.5,16.2,5.3,3380,2022-10
+3821,probabilidad 9-10,64.7,15.8,4,3384,2022-11
+3871,probabilidad 9-10,63.3,14.6,3.5,3388,2022-12
+3961,probabilidad 9-10,64,14,4.2,3390,2023-01
+3935,probabilidad 9-10,63.6,17,5.2,3395,2023-02
+3787,probabilidad 9-10,63,15.7,4.8,3398,2023-03
+4159,probabilidad 9-10,63.8,11.7,3.2,3403,2023-04
+4030,probabilidad 9-10,66.8,13.8,4,3405,2023-05
+7407,probabilidad 9-10,70.3,27,6.1,3410,2023-06
+4164,probabilidad 9-10,71.6,16.7,1.3,3413,2023-07
+10101,probabilidad 9-10,69.9,15.7,6.5,3420,2023-09
+4029,probabilidad 9-10,70,14.1,3.6,3423,2023-10
+4090,probabilidad 9-10,70.4,13.3,4.4,3427,2023-11
+4613,probabilidad 9-10,69.5,14,3.3,3431,2023-12
+4015,probabilidad 9-10,64.7,15.2,3.1,3435,2024-01
+3926,probabilidad 9-10,65.8,15.7,4.5,3441,2024-02
+3931,probabilidad 9-10,67.4,19,4.4,3445,2024-03
+4032,probabilidad 9-10,66,16.3,4.1,3450,2024-04
+4013,probabilidad 9-10,66.6,16,4.1,3457,2024-05
+4011,probabilidad 9-10,65,14,3.8,3463,2024-06
+4007,probabilidad 9-10,67.3,17.2,5.2,3468,2024-07
+4027,probabilidad 9-10,66.8,17.3,5.3,3474,2024-09
+4005,probabilidad 9-10,65.6,16.9,4,3478,2024-10
+4009,probabilidad 9-10,62.4,18.3,4.5,3485,2024-11
+4621,probabilidad 9-10,62.7,19.4,5.8,3489,2024-12
+4024,probabilidad 9-10,62.8,17.5,4.1,3492,2025-01
+4042,probabilidad 9-10,64.4,17,3.9,3496,2025-02
+4018,probabilidad 9-10,64.3,18.2,4.1,3502,2025-03
+4008,probabilidad 9-10,66.1,16,3.4,3505,2025-04
+4018,probabilidad 9-10,65,17.2,4.3,3510,2025-05
+4013,probabilidad 9-10,63.5,17.4,3.5,3514,2025-06
+4018,probabilidad 9-10,68.6,17.3,3.5,3517,2025-07
+4122,probabilidad 9-10,65.9,15,3.5,3524,2025-09
+4029,probabilidad 9-10,67,16.5,4.1,3528,2025-10
+4027,probabilidad 9-10,66,17.4,4.1,3530,2025-11
+4017,probabilidad 9-10,68.2,14.9,3.9,3536,2025-12
+4006,probabilidad 9-10,65.2,16.2,3.9,3540,2026-01
+4027,probabilidad 9-10,69.5,16,3.4,3544,2026-02
+4016,probabilidad 9-10,65.7,15.3,3.1,3546,2026-03
+4020,probabilidad 9-10,68.7,16.2,4.5,3557,2026-04
+4015,probabilidad 9-10,69.8,13.4,4.1,3562,2026-05
+4024,probabilidad 9-10,69.5,16.7,4.3,3567,2026-06
+4020,probabilidad 9-10,69.7,15,4,3571,2026-07
+4042,probabilidad 9-10,70.6,16.3,4,3577,2026-09
+5024,probabilidad 9-10,71.3,17.6,3,3582,2026-10

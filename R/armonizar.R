@@ -228,6 +228,9 @@ armonizar_estudio <- function(lectura, canon, insumos) {
   out$ideologia_cat <- ifelse(id$nr, tipo_no_respuesta(id$etiqueta, id$codigo), cod_chr(id$codigo))
   out$ideologia_g <- dplyr::coalesce(grupo_ideologia(out$ideologia), ifelse(id$nr, tipo_no_respuesta(id$etiqueta, id$codigo), NA))
   out$ocupacion_g <- grupo_ocupacion(out$ocupacion_r)
+  # probabilidad de ir a votar (0-10, desde sep-2022); NS y NC quedan como NA
+  pv <- v$prob_votar
+  out$prob_votar <- if (is.null(pv)) NA_real_ else ifelse(!pv$nr & pv$codigo %in% 0:10, pv$codigo, NA_real_)
   ed <- v$edad
   out$edad <- ifelse(ed$nr, NA_real_, ed$codigo)
   out$edad_g <- grupo_edad(out$edad)
